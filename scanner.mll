@@ -42,9 +42,10 @@ rule token = parse
 | "bool"    { BOOL }
 | "string"  { STRING }
 | "rgx"     { RGX }
-| "%"       { RGXCOMP } 
-| "!~"      { RGXNEQ }
-| "~"       { RGXEQ }
+| "%"       { RGXEQ } 
+| "!%"       { RGXNEQ }
+| "!~"      { RGXSTRNOT }
+| "~"       { RGXSTRCMP }
 | "arr[]"   { ARRAY }
 | "map"     { MAP }
 | "[]"      { EMPTYARR }
