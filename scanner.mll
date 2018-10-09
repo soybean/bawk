@@ -63,11 +63,3 @@ rule token = parse
 | eof { EOF }
 | _ as char { raise (Failure("illegal character " ^
 Char.escaped char)) }
-
-
-| ’+’ { PLUS }
-| ’-’ { MINUS }
-| ’*’ { TIMES }
-| ’/’ { DIVIDE }
-| [’0’-’9’]+ as lit { LITERAL(int_of_string lit) }
-| eof { EOF }
