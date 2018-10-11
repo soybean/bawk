@@ -66,5 +66,5 @@ rule token = parse
 Char.escaped char)) }
 
 and comment = parse
-['\n' '\r'] { token lexbuf }
-_ { comment lexbuf }
+  '\n' { token lexbuf }
+| _    { comment lexbuf }
