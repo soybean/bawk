@@ -63,7 +63,7 @@ rule token = parse
 | ["a"-"z" "A"-"Z"]["a"-"z" "A"-"Z" "0"-"9" "_"]* as lxm { ID(lxm) }
 | eof { EOF }
 | _ as char { raise (Failure("illegal character " ^
-Char.escaped char)) }
+                              Char.escaped char)) }
 
 and comment = parse
   '\n' { token lexbuf }
