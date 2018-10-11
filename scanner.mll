@@ -40,6 +40,7 @@ rule token = parse
 | "function" { FUNCTION }
 | "int"      { INT }
 | "bool"     { BOOL }
+| "void"     { VOID }
 | "string"   { STRING }
 | "rgx"      { RGX }
 | "%"        { RGXEQ } 
