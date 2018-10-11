@@ -6,10 +6,10 @@ rule token = parse
 | "#"        { comment lexbuf } (* Comments *)
 | "("        { LPAREN }
 | ")"        { RPAREN }
-| "{"        { LBRACKET }
-| "}"        { RBRACKET }
-| "["        { LBRACE }
-| "]"        { RBRACE }
+| "{"        { LCURLY }
+| "}"        { RCURLY }
+| "["        { LSQUARE }
+| "]"        { RSQUARE }
 | ";"        { SEMI }
 | ","        { COMMA }
 | "&"        { STRCAT }
