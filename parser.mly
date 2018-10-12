@@ -20,6 +20,9 @@
 %type <Ast.program> program
 
 %%
+
+(* DECLARATIONS *)
+
 program: begin_block EOF { $1 }
 
 begin_block: BEGIN LCURLY func_list global_vars_list RCURLY 
