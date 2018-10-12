@@ -12,7 +12,10 @@ type expr = Binop of expr * op * expr
 | Call of string * expr list
 | Rgx of rgx
 | Unop of uop * expr
-
+| InitIntArrLit of string * list
+| InitMapLit of typ * typ * string * list
+| AssignElement of string * expr * expr
+| GetElement of string * expr
 type config_expr = RSAssign of config_expr * expr
 | FSAssign of config_expr * expr
 
