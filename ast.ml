@@ -1,5 +1,5 @@
 type op = Add | Sub | Mult | Div | Assn
-type typ = Int | Bool | String 
+type typ = Int | Bool | Void | String | Rgx
 type bind = typ * string 
 type expr = Binop of expr * op * expr
 | BoolLit of bool
