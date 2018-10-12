@@ -25,58 +25,61 @@
 %right NOT
 
 
-program: begin_block loop_block end_block EOF
+program: config_block begin_block loop_block end_block EOF
 
 begin_block:
-	BEGIN LCURLY func_opts global_var_opts RCURLY {{}}
+	BEGIN LCURLY func_list global_vars_list RCURLY { [func_list, global_vars_list] }
 
 loop_block:
-	LOOP LCURLY expr_opts local_vars_opts RCURLY {{}}
+	LOOP LCURLY expr_list local_vars_list RCURLY { [ expr_list, local_vars_list] }
 
 end_block:
-	END LCURLY expr_opts local_vars_opts RCURLY {{}}
+	END LCURLY expr_list local_vars_list RCURLY { [expr_list, local_vars_list] }
 
-Config_opts:
-	/* nothing */				{[]}
-	config_block				{
+config_block:
+	CONFIG LCURLY RCURLY
+
+config_opts:
+					{ [] }
+	| config_block			{ }
 typ: 
-STRING 				{ String }
-| INT 					{ Int }
-| BOOL					{ Bool }
-| ARR					{ Arr }
-| MAP					{ Map }
-| RGX					{ Rgx }
+	STRING 				{ String }
+	| INT 				{ Int }
+	| BOOL				{ Bool }
+	| ARR				{ Arr }
+	| MAP				{ Map }
+	| RGX				{ Rgx }
 
-func_opts:
-	/* nothing */				{}
-	| func					{ List.rev $1 }
+func_list:
+						{ [] }
+	| func_list func			{ $2 :: $1 }
 
-global_vars_opts:
-/* nothing */				{}
-	| var_decl				{ List.rev $1 }
+global_vars_list:
+					{ [] }
+	| global_vars_list var_decl	{ $2 :: $1 }
 
-expr_opts:
-	/* nothing */				{}
-	| expr					{ List.rev $1 }
+expr_list:
+						{ [] }
+	| expr_list expr			{ $2 :: $1 }
 
-local_vars_opts:
-	/* nothing */				{}
-	| var_decl				{ List.rev $1 }
-	
+local_vars_list:
+						{ [] }
+	| local_vars_list var_decl		{ $2 :: $1 }
+
 func:
-function ID LPAREN formals_opt RPAREN typ LBRACK 
+	FUNCTION ID LPAREN formals_opt RPAREN typ LCURLY local_vars_opts stmt_list 
+	RCURLY { { fname = $2; formals = $4; ret_type = $6; locals = $8;  body = List.rev $9} }
 
 formals_opt:
-/* nothing */				{}
+					{ [] }
 	| formals_list			{ List.rev $1 }
 
 formals_list:
-	typ ID					{}
-	formal_list COMMA typ ID 		{}
+	typ ID				{ [($1, $2)] }
+	| formal_list COMMA typ ID 	{ ($3, $4) :: $1 }
 
 var_decl:
 	typ ID SEMI { ($1, $2) }
-
 
 
 /* STATEMENTS */
