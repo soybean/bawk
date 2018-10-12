@@ -53,12 +53,16 @@ formals_list: typ ID		{ [($1, $2)] }
 
 var_decl: typ ID SEMI { ($1, $2) }
 
+(* STATEMENTS *)
+
 stmt_list: 		{ [] } 
 | stmt_list stmt 	{ $2 :: $1 } 
 
 stmt: expr SEMI 		{ Expr $1 } 
 | RETURN expr SEMI 		{ Return $2 } 
 | LCURLY stmt_list RCURLY 	{ Block(List.rev $2) }
+
+(* EXPRESSIONS *)
 
 expr: LITERAL { Literal($1) } 
 | TRUE { BoolLit(true) } 
