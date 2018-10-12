@@ -1,6 +1,24 @@
-type op =  Add | Strcat | And | Or | Sub | 
-           Mult | Div | Inc | Dec | Pluseq | Mineq |
-           Leq | Geq | Less | Greater | Assn | Equal | Neq |
-           Rgx | Rgxcomp | Rgxneq | Rgxeq
-type uop = Neg | Not | Dollar | Index
-type typ = Int | Bool | String | Rgx | Arr | Map
+type op = Add | Sub | Mult | Div | Assn
+type typ = Int | Bool | String 
+type bind = typ * string 
+type expr = Binop of expr * op * expr
+| BoolLit of bool
+| Literal of int
+| Id of string
+| Assign of string * expr
+| Call of string * expr list
+
+type stmt = 
+| Return of expr
+| Expr of expr
+| Block of stmt list
+
+type func_decl = {
+  ret_type : typ;
+  fname    : string;
+  formals  : bind list;
+  locals   : bind list;
+  body     : stmt list;
+}
+
+type program = bind list * func_decl list
