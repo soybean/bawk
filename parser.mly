@@ -2,23 +2,29 @@
 
 %token LPAREN RPAREN LCURLY RCURLY SEMI COMMA
 %token PLUS MINUS DIVIDE MULTIPLY ASSIGN
-%token EQUALS NEQ LT LEQ GT GEQ AND OR
+%token EQUALS NEQ LT LEQ GT GEQ AND OR NOT
+%token PLUSEQ MINUSEQ INCREMENT DECREMENT
+
 %token RETURN FUNCTION 
 %token CONFIG BEGIN LOOP END
 %token INT BOOL VOID STRING RGX TRUE FALSE
 %token RS FS
+%token STRCAT
+%token RGXEQ RGXNEQ RGXSTRCMP RGXSTRNOT
 
 %token <int> LITERAL
 %token <string> ID
 %token EOF
 
-%right ASSIGN
+%right ASSIGN PLUSEQ MINUSEQ
 %left OR
 %left AND
-%left EQUALS NEQ
+%left EQUALS NEQ RGXEQ RGXNEQ RGXSTRCMP RGXSTRNOT
+
 %left LT LEQ GT GEQ
-%left PLUS MINUS
+%left PLUS MINUS STRCAT
 %left MULTIPLY DIVIDE
+%right NOT INCREMENT DECREMENT
 
 %start program
 %type <Ast.program> program
@@ -69,8 +75,8 @@ var_decl: typ ID SEMI { ($1, $2) }
 config_expr_list: 				{ [] }
 | config_expr_list config_expr	{ $2 :: $1}
 
-config_expr: RS ASSIGN expr { Assign($1, $3) }
-| FS ASSIGN expr 			{ Assign($1, $3) }
+config_expr: RS ASSIGN expr { RSAssign($3) }
+| FS ASSIGN expr 			{ FSAssign($3) }
 
 stmt_list: 		{ [] } 
 | stmt_list stmt 	{ $2 :: $1 } 
@@ -95,6 +101,16 @@ expr: LITERAL { Literal($1) }
 | expr GEQ expr { Binop($1, Geq, $3) } 
 | expr AND expr { Binop($1, And, $3) } 
 | expr OR expr { Binop($1, Or, $3) }
+| expr PLUSEQ expr { Binop($1, Pluseq, $3) } 
+| expr MINUSEQ expr { Binop($1, Minuseq, $3) }
+| expr INCREMENT { Binop($1, Add, 1) }
+| expr DECREMENT { Binop($1, Sub, 1) }
+| expr STRCAT expr { Binop($1, Strcat, $3) }
+| expr RGXEQ expr { Binop ($1, Rgxeq, $3) }
+| expr RGXNEQ expr { Binop ($1, Rgxneq, $3)}
+| expr RGXSTRCMP expr { Binop ($1, Rgxcomp, $3)}
+| expr RGXSTRNOT expr { Binop ($1, Rgxnot, $3)}
+| NOT expr { Unop(Not, $2) }
 | ID ASSIGN expr { Assign($1, $3) } 
 | LPAREN expr RPAREN { $2 } 
 | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
