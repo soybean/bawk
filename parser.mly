@@ -25,7 +25,7 @@
 %left LT LEQ GT GEQ
 %left PLUS MINUS STRCAT
 %left MULTIPLY DIVIDE
-%right NOT
+%right NOT NEG
 %right INCREMENT DECREMENT
 %right DOLLAR
 
@@ -80,9 +80,10 @@ config_expr_list: 				{ [] }
 | config_expr_list config_expr	{ $2 :: $1 }
 
 expr_list: /* Nothing */ { [] }
-    | expr_list expr { $2 :: $1 }
+    | expr_list COMMA expr { $3 :: $1 }
 
 config_expr: RS ASSIGN expr { RSAssign($3) }
+
 | FS ASSIGN expr 			{ FSAssign($3) }
 
 stmt_list: 		{ [] } 
@@ -95,8 +96,8 @@ stmt: expr SEMI 		{ Expr $1 }
 | MAP LTRI typ COMMA typ RTRI ID ASSIGN EMPTYMAP { InitEmptyMap($3, $5, $7) }
 | FOR LPAREN expr SEMI expr SEMI expr RPAREN stmt { For($3, $5, $7, $9) }
 | FOR LPAREN typ ID IN ID RPAREN stmt { EnhancedFor($3, $4, $6) }
-/*| INTARR ID ASSIGN LSQUARE expr_list RSQUARE { InitIntArrLit($2, $5) }*/
-/*| MAP LTRI typ COMMA typ RTRI ID ASSIGN LCURLY expr_list RCURLY { InitMapLit($3, $5, $7, $10) }*/
+| INTARR ID ASSIGN LSQUARE expr_list RSQUARE { InitIntArrLit($2, $5) }
+| MAP LTRI typ COMMA typ RTRI ID ASSIGN LCURLY expr_list RCURLY { InitMapLit($3, $5, $7, $10) }
 
 expr: LITERAL { Literal($1) } 
 | TRUE { BoolLit(true) } 
@@ -134,6 +135,7 @@ expr: LITERAL { Literal($1) }
 | STRINGARR ID ASSIGN EMPTYARR { Unop(InitStrArr, $2) }
 | BOOLARR ID ASSIGN EMPTYARR { Unop(InitBoolArr, $2) }
 | RGXARR ID ASSIGN EMPTYARR { Unop(InitRgxArr, $2) }
+| MINUS expr %prec NEG { Unop(Neg, $2) }
 
 actuals_opt: { [] } 
 | actuals_list { List.rev $1 } 
