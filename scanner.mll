@@ -15,6 +15,14 @@ rule token = parse
 | "/"        { DIVIDE }
 | "*"        { MULTIPLY }
 | "="        { ASSIGN }
+| "=="       { EQUALS }
+| "!="       { NEQ }
+| "<"        { LT }
+| "<="       { LEQ }
+| ">"        { GT }
+| ">="       { GEQ }
+| "&&"       { AND }
+| "||"       { OR }
 | "return"   { RETURN }
 | "function" { FUNCTION }
 | "int"      { INT }
