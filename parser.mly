@@ -4,8 +4,9 @@
 %token PLUS MINUS DIVIDE MULTIPLY ASSIGN
 %token EQUALS NEQ LT LEQ GT GEQ AND OR
 %token RETURN FUNCTION 
-%token BEGIN LOOP END
+%token CONFIG BEGIN LOOP END
 %token INT BOOL VOID STRING RGX TRUE FALSE
+%token RS FS
 
 %token <int> LITERAL
 %token <string> ID
@@ -23,7 +24,7 @@
 %type <Ast.program> program
 
 %%
-program: begin_block loop_block end_block EOF { ($1, $2) }
+program: config_block begin_block loop_block end_block EOF { ($1, $2, $3, $4) }
 
 begin_block: BEGIN LCURLY func_list global_vars_list RCURLY 
 { [func_list, global_vars_list] }
@@ -33,6 +34,9 @@ loop_block: LOOP LCURLY stmt_list local_vars_list RCURLY
 
 end_block: END LCURLY stmt_list local_vars_list RCURLY 
 { [stmt_list, local_vars_list] }
+
+config_block:							{ [] }
+| CONFIG LCURLY config_expr_list RCURLY	{ [config_expr_list] }
 
 typ: STRING	{ String }
 | INT 		{ Int }
@@ -62,6 +66,11 @@ formals_list: typ ID		{ [($1, $2)] }
 
 var_decl: typ ID SEMI { ($1, $2) }
 
+config_expr_list: 				{ [] }
+| config_expr_list config_expr	{ $2 :: $1}
+
+config_expr: RS ASSIGN expr { Assign($1, $3) }
+| FS ASSIGN expr 			{ Assign($1, $3) }
 
 stmt_list: 		{ [] } 
 | stmt_list stmt 	{ $2 :: $1 } 
@@ -69,7 +78,6 @@ stmt_list: 		{ [] }
 stmt: expr SEMI 		{ Expr $1 } 
 | RETURN expr SEMI 		{ Return $2 } 
 | LCURLY stmt_list RCURLY 	{ Block(List.rev $2) }
-
 
 expr: LITERAL { Literal($1) } 
 | TRUE { BoolLit(true) } 
