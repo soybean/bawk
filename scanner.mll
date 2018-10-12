@@ -30,6 +30,9 @@ rule token = parse
 | "void"     { VOID }
 | "string"   { STRING }
 | "rgx"      { RGX }
+| "CONFIG"   { CONFIG }
+| "RS"       { RS }
+| "FS"       { FS }
 | "BEGIN"    { BEGIN }
 | "LOOP"     { LOOP }
 | "END"      { END }
