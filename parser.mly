@@ -4,7 +4,7 @@
 %token PLUS MINUS DIVIDE MULTIPLY ASSIGN
 %token EQUALS
 %token RETURN FUNCTION 
-%token BEGIN
+%token BEGIN LOOP END
 %token INT BOOL VOID STRING RGX TRUE FALSE
 
 %token <int> LITERAL
@@ -20,10 +20,16 @@
 %type <Ast.program> program
 
 %%
-program: begin_block EOF { $1 }
+program: begin_block loop_block end_block EOF { ($1, $2) }
 
 begin_block: BEGIN LCURLY func_list global_vars_list RCURLY 
 { [func_list, global_vars_list] }
+
+loop_block: LOOP LCURLY stmt_list local_vars_list RCURLY 
+{ [ stmt_list, local_vars_list] }
+
+end_block: END LCURLY stmt_list local_vars_list RCURLY 
+{ [stmt_list, local_vars_list] }
 
 typ: STRING	{ String }
 | INT 		{ Int }
@@ -53,12 +59,14 @@ formals_list: typ ID		{ [($1, $2)] }
 
 var_decl: typ ID SEMI { ($1, $2) }
 
+
 stmt_list: 		{ [] } 
 | stmt_list stmt 	{ $2 :: $1 } 
 
 stmt: expr SEMI 		{ Expr $1 } 
 | RETURN expr SEMI 		{ Return $2 } 
 | LCURLY stmt_list RCURLY 	{ Block(List.rev $2) }
+
 
 expr: LITERAL { Literal($1) } 
 | TRUE { BoolLit(true) } 
