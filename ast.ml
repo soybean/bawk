@@ -1,4 +1,5 @@
-type op = Add | Sub | Mult | Div | Assn
+type op = Add | Sub | Mult | Div | Assn | Equal | Neq | Less | Leq | Greater | 
+		  Geq | And | Or:
 type typ = Int | Bool | Void | String | Rgx
 type bind = typ * string 
 type expr = Binop of expr * op * expr
