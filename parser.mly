@@ -18,6 +18,8 @@
 %token <string> ID
 %token EOF
 
+%nonassoc NOELSE
+%nonassoc ELSE
 %right ASSIGN PLUSEQ MINUSEQ
 %left OR
 %left AND
@@ -98,6 +100,10 @@ stmt: expr SEMI 		{ Expr $1 }
 | FOR LPAREN typ ID IN ID RPAREN stmt { EnhancedFor($3, $4, $6) }
 | INTARR ID ASSIGN LSQUARE expr_list RSQUARE { InitIntArrLit($2, $5) }
 | MAP LTRI typ COMMA typ RTRI ID ASSIGN LCURLY expr_list RCURLY { InitMapLit($3, $5, $7, $10) }
+| IF LPAREN expr RPAREN stmt ELSE stmt { If($3, $5, $7) }
+| IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
+/*| ID LSQUARE expr RSQUARE ASSIGN expr { AssignElement($1, $3, $6) }*/
+| ID LSQUARE expr RSQUARE { GetElement($1, $3) }
 
 expr: LITERAL { Literal($1) } 
 | TRUE { BoolLit(true) } 
@@ -128,7 +134,6 @@ expr: LITERAL { Literal($1) }
 | ID ASSIGN expr { Assign($1, $3) } 
 | LPAREN expr RPAREN { $2 } 
 | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
-| IF LPAREN expr RPAREN stmt ELSE stmt { If($3, $5, $7) }
 | NF { NumFields() }
 | DOLLAR expr { Unop(Access, $2) }
 | INTARR ID ASSIGN EMPTYARR { Unop(InitIntArr, $2) }

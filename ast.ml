@@ -1,7 +1,7 @@
 type op = Add | Sub | Mult | Div | Assn | Equal | Neq | Less | Leq | Greater | 
 		  Geq | And | Or | Pluseq | Minuseq | Strcat | Rgxeq | Rgxneq | 
 		  Rgxcomp | Rgxnot
-type uop = Not | Access | InitIntArr | InitStrArr | InitBoolArr | InitRgxArr | Neg
+type uop = Not | Access | InitIntArr | InitStrArr | InitBoolArr | InitRgxArr | Neg | AssignElement | GetElement
 type typ = Int | Bool | Void | String | Rgx
 type bind = typ * string 
 type expr = Binop of expr * op * expr
@@ -26,6 +26,8 @@ type stmt = Return of expr
 | EnhancedFor of typ * string * stmt
 | InitIntArrLit of string * list
 | InitMapLit of typ * typ * string * list
+| AssignElement of string * expr * expr
+| GetElement of string * expr
 
 type func_decl = {
   ret_type : typ;
