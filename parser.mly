@@ -1,16 +1,15 @@
 %{ open Ast %}
 
 %token LPAREN RPAREN LCURLY RCURLY SEMI COMMA
-%token PLUS MINUS DIVIDE MULTIPLY ASSIGN
+%token PLUS MINUS DIVIDE MULTIPLY ASSIGN STRCAT
 %token EQUALS NEQ LT LEQ GT GEQ AND OR NOT
 %token PLUSEQ MINUSEQ INCREMENT DECREMENT
-
+%token RGXEQ RGXNEQ RGXSTRCMP RGXSTRNOT
 %token RETURN FUNCTION 
 %token CONFIG BEGIN LOOP END
 %token INT BOOL VOID STRING RGX TRUE FALSE
 %token RS FS
-%token STRCAT
-%token RGXEQ RGXNEQ RGXSTRCMP RGXSTRNOT
+%token IF ELSE WHILE
 
 %token <int> LITERAL
 %token <string> ID
@@ -20,7 +19,6 @@
 %left OR
 %left AND
 %left EQUALS NEQ RGXEQ RGXNEQ RGXSTRCMP RGXSTRNOT
-
 %left LT LEQ GT GEQ
 %left PLUS MINUS STRCAT
 %left MULTIPLY DIVIDE
@@ -84,6 +82,7 @@ stmt_list: 		{ [] }
 stmt: expr SEMI 		{ Expr $1 } 
 | RETURN expr SEMI 		{ Return $2 } 
 | LCURLY stmt_list RCURLY 	{ Block(List.rev $2) }
+| WHILE LPAREN expr RPAREN stmt { While($3, $5) }
 
 expr: LITERAL { Literal($1) } 
 | TRUE { BoolLit(true) } 
@@ -114,6 +113,7 @@ expr: LITERAL { Literal($1) }
 | ID ASSIGN expr { Assign($1, $3) } 
 | LPAREN expr RPAREN { $2 } 
 | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
+| IF LPAREN expr RPAREN stmt ELSE stmt { If($3, $5, $7) }
 
 actuals_opt: { [] } 
 | actuals_list { List.rev $1 } 
