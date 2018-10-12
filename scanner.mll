@@ -9,6 +9,7 @@ rule token = parse
 | "{"        { LCURLY }
 | "}"        { RCURLY }
 | ";"        { SEMI }
+| "&"        { STRCAT }
 | ","        { COMMA }
 | "+"        { PLUS }
 | "-"        { MINUS }
@@ -23,6 +24,11 @@ rule token = parse
 | ">="       { GEQ }
 | "&&"       { AND }
 | "||"       { OR }
+| "+="       { PLUSEQ }
+| "-="       { MINUSEQ }
+| "++"       { INCREMENT }
+| "--"       { DECREMENT }
+| "!"        { NOT }
 | "return"   { RETURN }
 | "function" { FUNCTION }
 | "int"      { INT }
@@ -30,6 +36,10 @@ rule token = parse
 | "void"     { VOID }
 | "string"   { STRING }
 | "rgx"      { RGX }
+| "%"        { RGXEQ } 
+| "!%"       { RGXNEQ }
+| "~"        { RGXSTRCMP }
+| "!~"       { RGXSTRNOT }
 | "CONFIG"   { CONFIG }
 | "RS"       { RS }
 | "FS"       { FS }
