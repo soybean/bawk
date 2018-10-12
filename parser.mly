@@ -2,7 +2,7 @@
 
 %token LPAREN RPAREN LCURLY RCURLY SEMI COMMA
 %token PLUS MINUS DIVIDE MULTIPLY ASSIGN
-%token EQUALS
+%token EQUALS NEQ LT LEQ GT GEQ AND OR
 %token RETURN FUNCTION 
 %token BEGIN LOOP END
 %token INT BOOL VOID STRING RGX TRUE FALSE
@@ -12,7 +12,10 @@
 %token EOF
 
 %right ASSIGN
-%left EQUALS
+%left OR
+%left AND
+%left EQUALS NEQ
+%left LT LEQ GT GEQ
 %left PLUS MINUS
 %left MULTIPLY DIVIDE
 
@@ -77,6 +80,13 @@ expr: LITERAL { Literal($1) }
 | expr MULTIPLY expr { Binop($1, Mult, $3) } 
 | expr DIVIDE expr { Binop($1, Div, $3) } 
 | expr EQUALS expr { Binop($1, Equal, $3) } 
+| expr NEQ expr { Binop($1, Neq, $3) }
+| expr LT expr { Binop($1, Less, $3) } 
+| expr LEQ expr { Binop($1, Leq, $3) } 
+| expr GT expr { Binop($1, Greater, $3) } 
+| expr GEQ expr { Binop($1, Geq, $3) } 
+| expr AND expr { Binop($1, And, $3) } 
+| expr OR expr { Binop($1, Or, $3) }
 | ID ASSIGN expr { Assign($1, $3) } 
 | LPAREN expr RPAREN { $2 } 
 | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
