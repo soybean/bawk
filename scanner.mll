@@ -28,6 +28,9 @@ rule token = parse
 | "-="       { MINUSEQ }
 | "++"       { INCREMENT }
 | "--"       { DECREMENT }
+| "if"       { IF }
+| "else"     { ELSE }
+| "while"    { WHILE }
 | "!"        { NOT }
 | "return"   { RETURN }
 | "function" { FUNCTION }
