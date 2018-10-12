@@ -16,10 +16,11 @@ type expr = Binop of expr * op * expr
 type config_expr = RSAssign of config_expr * expr
 | FSAssign of config_expr * expr
 
-type stmt = 
-| Return of expr
+type stmt = Return of expr
 | Expr of expr
 | Block of stmt list
+| While of expr * stmt
+| If of expr * stmt * stmt
 
 type func_decl = {
   ret_type : typ;
