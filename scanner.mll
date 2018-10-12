@@ -23,6 +23,8 @@ rule token = parse
 | "string"   { STRING }
 | "rgx"      { RGX }
 | "BEGIN"    { BEGIN }
+| "LOOP"     { LOOP }
+| "END"      { END }
 | "true"     { TRUE }
 | "false"    { FALSE }
 | ["0"-"9"]+ as lxm { LITERAL(int_of_string lxm) }
