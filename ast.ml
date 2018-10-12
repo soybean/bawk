@@ -1,5 +1,7 @@
 type op = Add | Sub | Mult | Div | Assn | Equal | Neq | Less | Leq | Greater | 
-		  Geq | And | Or
+		  Geq | And | Or | Pluseq | Minuseq | Strcat | Rgxeq | Rgxneq | 
+		  Rgxcomp | Rgxnot
+type uop = Not
 type typ = Int | Bool | Void | String | Rgx
 type bind = typ * string 
 type expr = Binop of expr * op * expr
@@ -8,6 +10,11 @@ type expr = Binop of expr * op * expr
 | Id of string
 | Assign of string * expr
 | Call of string * expr list
+| Rgx of rgx
+| Unop of uop * expr
+
+type config_expr = RSAssign of config_expr * expr
+| FSAssign of config_expr * expr
 
 type stmt = 
 | Return of expr
