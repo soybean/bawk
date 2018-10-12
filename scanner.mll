@@ -8,6 +8,10 @@ rule token = parse
 | ")"        { RPAREN }
 | "{"        { LCURLY }
 | "}"        { RCURLY }
+| "["        { LSQUARE }
+| "]"        { RSQUARE }
+| "<"        { LTRI }
+| ">"        { RTRI }
 | ";"        { SEMI }
 | "&"        { STRCAT }
 | ","        { COMMA }
@@ -43,6 +47,13 @@ rule token = parse
 | "!%"       { RGXNEQ }
 | "~"        { RGXSTRCMP }
 | "!~"       { RGXSTRNOT }
+| "int[]"    { INTARR }
+| "string[]" { STRINGARR }
+| "bool[]"   { BOOLARR }
+| "rgx[]"    { RGXARR }
+| "[]"       { EMPTYARR }
+| "{}"       { EMPTYMAP }
+| "map"      { MAP }
 | "CONFIG"   { CONFIG }
 | "RS"       { RS }
 | "FS"       { FS }

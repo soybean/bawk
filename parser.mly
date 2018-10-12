@@ -1,6 +1,6 @@
 %{ open Ast %}
 
-%token LPAREN RPAREN LCURLY RCURLY SEMI COMMA
+%token LPAREN RPAREN LCURLY RCURLY LSQUARE RSQUARE SEMI COMMA
 %token PLUS MINUS DIVIDE MULTIPLY ASSIGN STRCAT
 %token EQUALS NEQ LT LEQ GT GEQ AND OR NOT
 %token PLUSEQ MINUSEQ INCREMENT DECREMENT
@@ -8,8 +8,11 @@
 %token RETURN FUNCTION 
 %token CONFIG BEGIN LOOP END
 %token INT BOOL VOID STRING RGX TRUE FALSE
-%token RS FS
-%token IF ELSE WHILE
+%token RS FS NF
+%token IF ELSE WHILE FOR IN
+%token INTARR STRINGARR BOOLARR RGXARR EMPTYARR
+%token MAP LTRI RTRI EMPTYMAP
+%token DOLLAR
 
 %token <int> LITERAL
 %token <string> ID
@@ -22,7 +25,10 @@
 %left LT LEQ GT GEQ
 %left PLUS MINUS STRCAT
 %left MULTIPLY DIVIDE
-%right NOT INCREMENT DECREMENT
+%right NOT
+%right INCREMENT DECREMENT
+%right DOLLAR
+
 
 %start program
 %type <Ast.program> program
@@ -71,7 +77,10 @@ formals_list: typ ID		{ [($1, $2)] }
 var_decl: typ ID SEMI { ($1, $2) }
 
 config_expr_list: 				{ [] }
-| config_expr_list config_expr	{ $2 :: $1}
+| config_expr_list config_expr	{ $2 :: $1 }
+
+expr_list: /* Nothing */ { [] }
+    | expr_list expr { $2 :: $1 }
 
 config_expr: RS ASSIGN expr { RSAssign($3) }
 | FS ASSIGN expr 			{ FSAssign($3) }
@@ -83,6 +92,11 @@ stmt: expr SEMI 		{ Expr $1 }
 | RETURN expr SEMI 		{ Return $2 } 
 | LCURLY stmt_list RCURLY 	{ Block(List.rev $2) }
 | WHILE LPAREN expr RPAREN stmt { While($3, $5) }
+| MAP LTRI typ COMMA typ RTRI ID ASSIGN EMPTYMAP { InitEmptyMap($3, $5, $7) }
+| FOR LPAREN expr SEMI expr SEMI expr RPAREN stmt { For($3, $5, $7, $9) }
+| FOR LPAREN typ ID IN ID RPAREN stmt { EnhancedFor($3, $4, $6) }
+/*| INTARR ID ASSIGN LSQUARE expr_list RSQUARE { InitIntArrLit($2, $5) }*/
+/*| MAP LTRI typ COMMA typ RTRI ID ASSIGN LCURLY expr_list RCURLY { InitMapLit($3, $5, $7, $10) }*/
 
 expr: LITERAL { Literal($1) } 
 | TRUE { BoolLit(true) } 
@@ -114,6 +128,12 @@ expr: LITERAL { Literal($1) }
 | LPAREN expr RPAREN { $2 } 
 | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
 | IF LPAREN expr RPAREN stmt ELSE stmt { If($3, $5, $7) }
+| NF { NumFields() }
+| DOLLAR expr { Unop(Access, $2) }
+| INTARR ID ASSIGN EMPTYARR { Unop(InitIntArr, $2) }
+| STRINGARR ID ASSIGN EMPTYARR { Unop(InitStrArr, $2) }
+| BOOLARR ID ASSIGN EMPTYARR { Unop(InitBoolArr, $2) }
+| RGXARR ID ASSIGN EMPTYARR { Unop(InitRgxArr, $2) }
 
 actuals_opt: { [] } 
 | actuals_list { List.rev $1 } 
