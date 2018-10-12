@@ -24,6 +24,7 @@
 %left TIMES DIVIDE
 %right NOT
 
+(* DECLARATIONS *)
 
 program: config_block begin_block loop_block end_block EOF
 
@@ -76,17 +77,15 @@ formals_opt:
 
 formals_list:
 	typ ID				{ [($1, $2)] }
-	| formal_list COMMA typ ID 	{ ($3, $4) :: $1 }
+	| formals_list COMMA typ ID 	{ ($3, $4) :: $1 }
 
 var_decl:
 	typ ID SEMI { ($1, $2) }
 
-
-/* STATEMENTS */
-
+(* STATEMENTS *)
 
 stmt_list: 
-/* nothing */ { [] } 
+		 { [] } 
 | stmt_list stmt { $2 :: $1 } 
 
 stmt: 
@@ -96,7 +95,7 @@ expr SEMI { Expr $1 }
 | FOR LPAREN expr SEMI expr SEMI expr RPAREN stmt { For($3, $5, $7, $9) } 
 | WHILE LPAREN expr RPAREN stmt { While($3, $5) }
 
-/* EXPRESSIONS */
+(* EXPRESSIONS *)
 
 expr: 
   	LITERAL { Literal($1) } 
@@ -126,12 +125,12 @@ expr:
 | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
 
 actuals_opt: 
-  /* nothing */ { [] } 
-| actuals_list { List.rev $1 } 
+		{ [] } 
+| actuals_list 	{ List.rev $1 } 
 
 actuals_list: 
-  expr { [$1] } 
-| actuals_list COMMA expr { $3 :: $1 }
+  expr 				{ [$1] } 
+  | actuals_list COMMA expr 	{ $3 :: $1 }
 
 
 
