@@ -16,6 +16,10 @@ type expr = Binop of expr * op * expr
 | InitMapLit of typ * typ * string * list
 | AssignElement of string * expr * expr
 | GetElement of string * expr
+| InitIntArrLit of string * list
+| InitBoolArrLit of string * list
+| InitStringArrLit of string * list 
+
 type config_expr = RSAssign of config_expr * expr
 | FSAssign of config_expr * expr
 

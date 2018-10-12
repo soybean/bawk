@@ -95,7 +95,6 @@ stmt: expr SEMI 		{ Expr $1 }
 | RETURN expr SEMI 		{ Return $2 } 
 | LCURLY stmt_list RCURLY 	{ Block(List.rev $2) }
 | WHILE LPAREN expr RPAREN stmt { While($3, $5) }
-| MAP LTRI typ COMMA typ RTRI ID ASSIGN EMPTYMAP { InitEmptyMap($3, $5, $7) }
 | FOR LPAREN expr SEMI expr SEMI expr RPAREN stmt { For($3, $5, $7, $9) }
 | FOR LPAREN typ ID IN ID RPAREN stmt { EnhancedFor($3, $4, $6) }
 | IF LPAREN expr RPAREN stmt ELSE stmt { If($3, $5, $7) }
@@ -127,7 +126,11 @@ expr: LITERAL { Literal($1) }
 | expr RGXSTRCMP expr { Binop ($1, Rgxcomp, $3)}
 | expr RGXSTRNOT expr { Binop ($1, Rgxnot, $3)}
 | INTARR ID ASSIGN LSQUARE expr_list RSQUARE { InitIntArrLit($2, $5) }
-| MAP LTRI typ COMMA typ RTRI ID ASSIGN LCURLY expr_list RCURLY { InitMapLit($3, $5, $7, $10) }
+| BOOLARR ID ASSIGN LSQUARE expr_list RSQUARE { InitBoolArrLit($2, $5) }
+| RGXARR ID ASSIGN LSQUARE expr_list RSQUARE { InitRgxArrLit($2, $5) }
+| STRINGARR ID ASSIGN LSQUARE expr_list RSQUARE { InitStringArrLit($2, $5) }
+| MAP LTRI typ COMMA typ RTRI ID ASSIGN EMPTYMAP { InitEmptyMap($3, $5, $7) }
+| MAP LTRI typ COMMA typ RTRI ID ASSIGN LCURLY expr_list RCURLY { InitMapLit($3, $5, $7, $10) } /* Initialize map literal */
 | ID LSQUARE expr RSQUARE ASSIGN expr { AssignElement($1, $3, $6) }
 | ID LSQUARE expr RSQUARE { GetElement($1, $3) }
 | NOT expr { Unop(Not, $2) }
