@@ -1,5 +1,5 @@
 # Programming Languages & Translators, Fall 2018
-Melanie Sawyer, Ashley An, Victoria Yang, Christine Hsu
+Ashley An, Christine Hsu, Melanie Sawyer, Victoria Yang
 
 
 ## bawk: bad awk
