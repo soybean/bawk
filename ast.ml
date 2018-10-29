@@ -10,15 +10,14 @@ type expr = Binop of expr * op * expr
 | Id of string
 | Assign of string * expr
 | Call of string * expr list
-| Rgx of rgx
+| Rgx of string
 | Unop of uop * expr
-| InitIntArrLit of string * list
-| InitMapLit of typ * typ * string * list
+| InitIntArrLit of string * expr list
+| InitMapLit of typ * typ * string * expr list
 | AssignElement of string * expr * expr
 | GetElement of string * expr
-| InitIntArrLit of string * list
-| InitBoolArrLit of string * list
-| InitStringArrLit of string * list 
+| InitBoolArrLit of string * expr list
+| InitStringArrLit of string * expr list 
 
 type config_expr = RSAssign of config_expr * expr
 | FSAssign of config_expr * expr
@@ -45,3 +44,4 @@ type func_decl = {
 }
 
 type program = bind list * func_decl list
+
