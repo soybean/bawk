@@ -22,6 +22,7 @@ type expr = Binop of expr * op * expr
 type config_expr = RSAssign of config_expr * expr
 | FSAssign of config_expr * expr
 
+
 type stmt = Return of expr
 | Expr of expr
 | Block of stmt list
@@ -30,8 +31,6 @@ type stmt = Return of expr
 | InitEmptyMap of typ * typ * string
 | For of expr * expr * expr * stmt
 | EnhancedFor of typ * string * stmt
-| InitIntArrLit of string * list
-| InitMapLit of typ * typ * string * list
 | AssignElement of string * expr * expr
 | GetElement of string * expr
 
@@ -43,5 +42,12 @@ type func_decl = {
   body     : stmt list;
 }
 
-type program = bind list * func_decl list
+(*type begin_list =*) 
+type begin_list = bind list * func_decl list
 
+type program = config_expr list * (bind list * func_decl list) list * (bind list * stmt list) list * (bind list * stmt list) list
+(*type program = func_decl list * bind list * func_decl list * bind list * func_decl list * bind list * func_decl list * bind list*)
+(*type program = bind list * func_decl list*)
+
+
+let string_of_program(config, beginBlock, loop, endBlock) = "HI"

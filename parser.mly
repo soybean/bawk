@@ -38,14 +38,14 @@
 %%
 program: config_block begin_block loop_block end_block EOF { ($1, $2, $3, $4) }
 
-begin_block: BEGIN LCURLY func_list global_vars_list RCURLY 
-{ [func_list, global_vars_list] }
+begin_block: BEGIN LCURLY global_vars_list func_list RCURLY 
+{ [global_vars_list, func_list] }
 
-loop_block: LOOP LCURLY stmt_list local_vars_list RCURLY 
-{ [ stmt_list, local_vars_list] }
+loop_block: LOOP LCURLY local_vars_list stmt_list RCURLY 
+{ [local_vars_list, stmt_list] }
 
-end_block: END LCURLY stmt_list local_vars_list RCURLY 
-{ [stmt_list, local_vars_list] }
+end_block: END LCURLY local_vars_list stmt_list RCURLY 
+{ [local_vars_list, stmt_list] }
 
 config_block:							{ [] }
 | CONFIG LCURLY config_expr_list RCURLY	{ [config_expr_list] }
@@ -73,16 +73,16 @@ func: FUNCTION ID LPAREN formals_opt RPAREN typ LCURLY local_vars_list stmt_list
 formals_opt: 	{ [] }
 | formals_list	{ List.rev $1 }
 
-formals_list: typ ID		{ [($1, $2)] }
+formals_list: typ ID 		{ [($1, $2)] } 
 | formals_list COMMA typ ID 	{ ($3, $4) :: $1 }
 
 var_decl: typ ID SEMI { ($1, $2) }
 
 config_expr_list: 				{ [] }
-| config_expr_list config_expr	{ $2 :: $1 }
+| config_expr_list COMMA config_expr	{ $3 :: $1 }
 
-expr_list: /* Nothing */ { [] }
-    | expr_list COMMA expr { $3 :: $1 }
+expr_list: /* Nothing  { [] }
+    | */expr_list COMMA expr { $3 :: $1 }
 
 config_expr: RS ASSIGN expr { RSAssign($3) }
 
@@ -99,6 +99,7 @@ stmt: expr SEMI 		{ Expr $1 }
 | FOR LPAREN typ ID IN ID RPAREN stmt { EnhancedFor($3, $4, $6) }
 | IF LPAREN expr RPAREN stmt ELSE stmt { If($3, $5, $7) }
 | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
+/*| typ ID ASSIGN expr { Assign($1, $2, $4) } */
 
 expr: LITERAL { Literal($1) } 
 | TRUE { BoolLit(true) } 
@@ -130,11 +131,10 @@ expr: LITERAL { Literal($1) }
 | RGXARR ID ASSIGN LSQUARE expr_list RSQUARE { InitRgxArrLit($2, $5) }
 | STRINGARR ID ASSIGN LSQUARE expr_list RSQUARE { InitStringArrLit($2, $5) }
 | MAP LTRI typ COMMA typ RTRI ID ASSIGN EMPTYMAP { InitEmptyMap($3, $5, $7) }
-| MAP LTRI typ COMMA typ RTRI ID ASSIGN LCURLY expr_list RCURLY { InitMapLit($3, $5, $7, $10) } /* Initialize map literal */
+| MAP LTRI typ COMMA typ RTRI ID ASSIGN LCURLY expr_list RCURLY { InitMapLit($3, $5, $7, $10) }
 | ID LSQUARE expr RSQUARE ASSIGN expr { AssignElement($1, $3, $6) }
 | ID LSQUARE expr RSQUARE { GetElement($1, $3) }
 | NOT expr { Unop(Not, $2) }
-| ID ASSIGN expr { Assign($1, $3) } 
 | LPAREN expr RPAREN { $2 } 
 | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
 | NF { NumFields() }
@@ -144,6 +144,7 @@ expr: LITERAL { Literal($1) }
 | BOOLARR ID ASSIGN EMPTYARR { Unop(InitBoolArr, $2) }
 | RGXARR ID ASSIGN EMPTYARR { Unop(InitRgxArr, $2) }
 | MINUS expr %prec NEG { Unop(Neg, $2) }
+| ID ASSIGN expr { Assign($1, $3) } 
 
 actuals_opt: { [] } 
 | actuals_list { List.rev $1 } 
