@@ -119,8 +119,8 @@ expr: LITERAL { Literal($1) }
 | expr OR expr { Binop($1, Or, $3) }
 | expr PLUSEQ expr { Binop($1, Pluseq, $3) } 
 | expr MINUSEQ expr { Binop($1, Minuseq, $3) }
-| expr INCREMENT { Binop($1, Add, 1) }
-| expr DECREMENT { Binop($1, Sub, 1) }
+| expr INCREMENT { Unop(Increment, $1) }
+| expr DECREMENT { Unop(Decrement, $1) }
 | expr STRCAT expr { Binop($1, Strcat, $3) }
 | expr RGXEQ expr { Binop ($1, Rgxeq, $3) }
 | expr RGXNEQ expr { Binop ($1, Rgxneq, $3)}
@@ -137,7 +137,7 @@ expr: LITERAL { Literal($1) }
 | NOT expr { Unop(Not, $2) }
 | LPAREN expr RPAREN { $2 } 
 | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
-| NF { NumFields() }
+/*| NF { NumFields() }*/
 | DOLLAR expr { Unop(Access, $2) }
 | INTARR ID ASSIGN EMPTYARR { Unop(InitIntArr, $2) }
 | STRINGARR ID ASSIGN EMPTYARR { Unop(InitStrArr, $2) }
