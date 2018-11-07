@@ -36,19 +36,19 @@
 %type <Ast.program> program
 
 %%
-program: config_block begin_block loop_block end_block EOF { ($1, $2, $3, $4) }
+program: begin_block loop_block end_block EOF { ($1, $2, $3) }
 
 begin_block: BEGIN LCURLY global_vars_list func_list RCURLY 
-{ [global_vars_list, func_list] }
+{ ($3, $4) }
 
 loop_block: LOOP LCURLY local_vars_list stmt_list RCURLY 
-{ [local_vars_list, stmt_list] }
+{ ($3, $4) }
 
 end_block: END LCURLY local_vars_list stmt_list RCURLY 
-{ [local_vars_list, stmt_list] }
+{ ($3, $4) }
 
 config_block:							{ [] }
-| CONFIG LCURLY config_expr_list RCURLY	{ [config_expr_list] }
+| CONFIG LCURLY config_expr_list RCURLY	{ [$3] }
 
 typ: STRING	{ String }
 | INT 		{ Int }
@@ -96,7 +96,7 @@ stmt: expr SEMI 		{ Expr $1 }
 | LCURLY stmt_list RCURLY 	{ Block(List.rev $2) }
 | WHILE LPAREN expr RPAREN stmt { While($3, $5) }
 | FOR LPAREN expr SEMI expr SEMI expr RPAREN stmt { For($3, $5, $7, $9) }
-| FOR LPAREN typ ID IN ID RPAREN stmt { EnhancedFor($3, $4, $6) }
+| FOR LPAREN typ ID IN ID RPAREN stmt { EnhancedFor($3, $4, $8) }
 | IF LPAREN expr RPAREN stmt ELSE stmt { If($3, $5, $7) }
 | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
 /*| typ ID ASSIGN expr { Assign($1, $2, $4) } */

@@ -19,8 +19,8 @@ type expr = Binop of expr * op * expr
 | InitBoolArrLit of string * expr list
 | InitStringArrLit of string * expr list 
 
-type config_expr = RSAssign of config_expr * expr
-| FSAssign of config_expr * expr
+type config_expr = RSAssign of expr
+| FSAssign of expr
 
 
 type stmt = Return of expr
@@ -42,12 +42,19 @@ type func_decl = {
   body     : stmt list;
 }
 
-(*type begin_list =*) 
+
 type begin_list = bind list * func_decl list
 
-type program = config_expr list * (bind list * func_decl list) list * (bind list * stmt list) list * (bind list * stmt list) list
+type loop_list = bind list * stmt list
+
+type end_list = bind list * stmt list
+
+
+type program = begin_list * loop_list * end_list
+
+
 (*type program = func_decl list * bind list * func_decl list * bind list * func_decl list * bind list * func_decl list * bind list*)
 (*type program = bind list * func_decl list*)
 
 
-let string_of_program(config, beginBlock, loop, endBlock) = "HI"
+let string_of_program(beginBlock, loop, endBlock) = "HI"
