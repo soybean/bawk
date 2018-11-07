@@ -129,7 +129,7 @@ expr: LITERAL { Literal($1) }
 | INTARR ID ASSIGN LSQUARE expr_list RSQUARE { InitIntArrLit($2, $5) }
 | BOOLARR ID ASSIGN LSQUARE expr_list RSQUARE { InitBoolArrLit($2, $5) }
 | RGXARR ID ASSIGN LSQUARE expr_list RSQUARE { InitRgxArrLit($2, $5) }
-| STRINGARR ID ASSIGN LSQUARE expr_list RSQUARE { InitStringArrLit($2, $5) }
+| STRINGARR ID ASSIGN LSQUARE expr_list RSQUARE { InitStrArrLit($2, $5) }
 | MAP LTRI typ COMMA typ RTRI ID ASSIGN EMPTYMAP { InitEmptyMap($3, $5, $7) }
 | MAP LTRI typ COMMA typ RTRI ID ASSIGN LCURLY expr_list RCURLY { InitMapLit($3, $5, $7, $10) }
 | ID LSQUARE expr RSQUARE ASSIGN expr { AssignElement($1, $3, $6) }
@@ -137,12 +137,12 @@ expr: LITERAL { Literal($1) }
 | NOT expr { Unop(Not, $2) }
 | LPAREN expr RPAREN { $2 } 
 | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
-/*| NF { NumFields() }*/
+| NF { NumFields }
 | DOLLAR expr { Unop(Access, $2) }
-| INTARR ID ASSIGN EMPTYARR { Unop(InitIntArr, $2) }
-| STRINGARR ID ASSIGN EMPTYARR { Unop(InitStrArr, $2) }
-| BOOLARR ID ASSIGN EMPTYARR { Unop(InitBoolArr, $2) }
-| RGXARR ID ASSIGN EMPTYARR { Unop(InitRgxArr, $2) }
+| INTARR ID ASSIGN EMPTYARR { InitIntArrLit($2, []) }
+| STRINGARR ID ASSIGN EMPTYARR { InitStrArrLit($2, []) }
+| BOOLARR ID ASSIGN EMPTYARR { InitBoolArrLit($2, []) }
+| RGXARR ID ASSIGN EMPTYARR { InitRgxArrLit($2, []) }
 | MINUS expr %prec NEG { Unop(Neg, $2) }
 | ID ASSIGN expr { Assign($1, $3) } 
 
