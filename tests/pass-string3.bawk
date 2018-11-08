@@ -1,0 +1,13 @@
+CONFIG {}
+
+BEGIN {
+  function string concat(string a, string b) {
+    return a & b;
+  }
+}
+
+LOOP {
+  prints(concat("hello ", "world"));
+}
+
+END {}

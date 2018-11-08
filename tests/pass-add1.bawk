@@ -1,0 +1,13 @@
+BEGIN {
+  function int add(int x, int y) {
+    return x + y;
+  }
+}
+
+LOOP {
+  print(add(1, 2));
+}
+
+END {}
+
+CONFIG{}

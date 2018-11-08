@@ -1,0 +1,15 @@
+BEGIN {
+  function bool cond() {
+    bool b;
+    b = true;
+    return x;
+  }
+}
+
+LOOP {
+  if (cond()) {
+    print(10);
+  }
+}
+
+END {}

@@ -1,0 +1,19 @@
+BEGIN {
+  function int cond(bool b) {
+    int x;
+    if (b) {
+      x = 10;
+    }
+    else {
+      x = 5;
+    }
+    return x;
+  }
+}
+
+LOOP {
+  print(cond(true));
+  print(cond(false));
+}
+
+END {}

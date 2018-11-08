@@ -1,0 +1,11 @@
+BEGIN {
+  function void add(int x, int y) {
+    print(x + y);
+  }
+}
+
+LOOP {
+  add(1, 2);
+}
+
+END {}

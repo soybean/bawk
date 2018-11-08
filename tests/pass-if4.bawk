@@ -1,0 +1,13 @@
+BEGIN {}
+
+LOOP {
+  if(false) {
+    print(10);
+  } 
+  else {
+    print(5);
+  }
+  print(2);
+}
+
+END {}

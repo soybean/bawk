@@ -1,0 +1,10 @@
+BEGIN {}
+
+LOOP {
+  if(false) {
+    print(10);
+  } 
+  print(2);
+}
+
+END {}

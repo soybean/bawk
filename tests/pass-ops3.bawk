@@ -1,0 +1,27 @@
+BEGIN {}
+
+LOOP {
+  prints("hello " & "world");
+  print(99);
+  printb("hello" == "world");
+  printb("hello" == "hello");
+  print(99);
+  printb("hello" != "world");
+  printb("hello" != "hello");
+  print(99);
+  printb("hello" < "world");
+  printb("world" < "hello");
+  print(99);
+  printb("hello" <= "world");
+  printb("hello" <= "hello");
+  printb("world" <= "hello:);
+  print(99);
+  printb("hello" > "world");
+  printb("world" > "hello");
+  print(99);
+  printb("hello" >= "world");
+  printb("hello" >= "hello");
+  printb("world" >= "hello"); 
+}
+
+END {}

@@ -1,0 +1,13 @@
+CONFIG {}
+
+BEGIN {
+  function string foo() {
+    return "hello";
+  }
+}
+
+LOOP {
+  prints(foo());
+}
+
+END {}
