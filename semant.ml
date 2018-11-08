@@ -12,10 +12,13 @@ module StringMap = Map.Make(String)
 
 let check (globals, functions) =
 
-  (* Verify a list of bindings has no void types or duplicate names *)
+  (* Verify a list of bindings has no void types or rgx types or duplicate names *)
   let check_binds (kind : string) (binds : bind list) =
     List.iter (function
 	(Void, b) -> raise (Failure ("illegal void " ^ kind ^ " " ^ b))
+      | _ -> ()) binds;
+    List.iter (function
+	(Rgx, b) -> raise (Failure ("illegal rgx " ^ kind ^ " " ^ b))
       | _ -> ()) binds;
     let rec dups = function
         [] -> ()
