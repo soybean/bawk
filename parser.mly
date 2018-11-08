@@ -36,7 +36,9 @@
 %type <Ast.program> program
 
 %%
-program: begin_block loop_block end_block EOF { ($1, $2, $3) }
+program: 
+    begin_block loop_block end_block config_block EOF { ($1, $2, $3, $4) }
+    | begin_block loop_block end_block EOF { ($1, $2, $3, []) }
 
 begin_block: BEGIN LCURLY global_vars_list func_list RCURLY 
 { ($3, $4) }
@@ -48,7 +50,7 @@ end_block: END LCURLY local_vars_list stmt_list RCURLY
 { ($3, $4) }
 
 config_block:							{ [] }
-| CONFIG LCURLY config_expr_list RCURLY	{ [$3] }
+| CONFIG LCURLY config_expr_list RCURLY	{ ($3) }
 
 typ: STRING	{ String }
 | INT 		{ Int }
