@@ -53,7 +53,7 @@ rule token = parse
 | "bool[]"   { BOOLARR }
 | "rgx[]"    { RGXARR }
 | "[]"       { EMPTYARR }
-| "{}"       { EMPTYMAP }
+| "<>"       { EMPTYMAP }
 | "map"      { MAP }
 | "CONFIG"   { CONFIG }
 | "RS"       { RS }
