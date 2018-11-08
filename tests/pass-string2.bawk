@@ -1,5 +1,3 @@
-CONFIG {}
-
 BEGIN {
   function string foo() {
     return "hello";
@@ -11,3 +9,5 @@ LOOP {
 }
 
 END {}
+
+CONFIG {}
