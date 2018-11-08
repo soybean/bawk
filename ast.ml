@@ -52,12 +52,14 @@ type loop_list = bind list * stmt list
 
 type end_list = bind list * stmt list
 
+type config_list = config_expr list
 
-type program = begin_list * loop_list * end_list
+
+type program = begin_list * loop_list * end_list * config_list
 
 
 (*type program = func_decl list * bind list * func_decl list * bind list * func_decl list * bind list * func_decl list * bind list*)
 (*type program = bind list * func_decl list*)
 
 
-let string_of_program(beginBlock, loop, endBlock) = "HI"
+let string_of_program(beginBlock, loop, endBlock, configBlock) = "HI"
