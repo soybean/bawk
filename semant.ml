@@ -41,27 +41,22 @@ let check (globals, functions) =
 			                         (String, "int_to_string", [(Int, "a")]);
 						 (String, "bool_to_string", [(Bool, "a")]);
 						 (String, "rgx_to_string", [(Rgx, "a")]);
-						 (Int, "length_int", [(InitIntArrLit, "a")]);
-						 (Int, "length_string", [(InitStrArrLit, "a")]);
-						 (Int, "length_bool", [(InitBoolArrLit, "a")]);
-						 (Int, "length_rgx", [(InitRgxArrLit, "a")]);
+						 (Int, "length", [(ArrayLit, "a")]);
 						 (Int, "size", [(InitMapLit, "a")]);
 						 (Void, "print", [(String, "a")]);
 						 (Void, "println", [(String, "a")]);
-						 (Bool, "contains_int", [(Int, "a");(InitIntArrLit, "b")]);
-						 (Bool, "contains_string", [(String, "a");(InitStrArrLit, "b")]);
-						 (Bool, "contains_bool", [(Bool, "a");(InitBoolArrLit, "b")]);
-						 (Bool, "contains_rgx", [(Rgx, "a");(InitRgxArrLit, "b")]);
-						 (Int, "index_of_int", [(InitIntArrLit, "a");(Int, "b")]);
-						 (Int, "index_of_string", [(InitStrArrLit, "a");(String, "b")]);
-						 (Int, "index_of_bool", [(InitBoolArrLit, "a");(Bool, "b")]);
-						 (Int, "index_of_rgx", [(InitRgxArrLit, "a");(Rgx, "b")])]
+						 (Bool, "contains_int", [(Int, "a");(ArrayLit, "b")]);
+						 (Bool, "contains_string", [(String, "a");(ArrayLit, "b")]);
+						 (Bool, "contains_bool", [(Bool, "a");(ArrayLit, "b")]);
+						 (Bool, "contains_rgx", [(Rgx, "a");(ArrayLit, "b")]);
+						 (Int, "index_of_int", [(ArrayLit, "a");(Int, "b")]);
+						 (Int, "index_of_string", [(ArrayLit, "a");(String, "b")]);
+						 (Int, "index_of_bool", [(ArrayLit, "a");(Bool, "b")]);
+						 (Int, "index_of_rgx", [(ArrayLit, "a");(Rgx, "b")]);
+						 (ArrayLit, "keys", [(InitMapLit, "a")]);
+						 (ArrayLit, "values", [(InitMapLit, "a")]]
   in  
-
-(*//TODO: 
-arr keys(map a)
-arr values(map a)
-*)
+  
    (* Add function name to symbol table *)
   let add_func map fd = 
     let built_in_err = "function " ^ fd.fname ^ " may not be defined"
