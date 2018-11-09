@@ -44,7 +44,8 @@ let check (globals, functions) =
 			                         (String, "int_to_string", String);
 						 (Int, "length", InitIntArrLit);
 						 (Int, "size", InitMapLit);
-						 (Void, "print", String)]
+						 (Void, "print", String);
+						 (Void, "println", String)]
   in  
 
 (*//TODO: Functions I Am Unsure About:
@@ -52,7 +53,6 @@ arr keys(map a)
 arr values(map a)
 bool contains(var1, arr[] a)
 int indexOf(arr[] a, var)
-void println(string x, string y, string z...) 
 *)
   
   (* Return a function from our symbol table *)
