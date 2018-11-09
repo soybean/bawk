@@ -33,33 +33,27 @@ let check (globals, functions) =
   check_binds "global" globals;
 
   (**** Check functions ****)
-
   (* Collect function declarations for built-in functions: no bodies *)
   let built_in_decls = 
-    let add_bind map (name, ty) = StringMap.add name {
-      typ = Void;
+    let add_bind map (ftyp, name, flist) = StringMap.add name {
+      typ = ftyp;
       fname = name; 
-      formals = [(ty, "x")];
+      formals = flist;
       locals = []; body = [] } map
-    in List.fold_left add_bind StringMap.empty [ ("print", Int);
-			                         ("printf", Float) ]
-  in
+    in List.fold_left add_bind StringMap.empty [ (Int, "string_to_int", Int);
+			                         (String, "int_to_string", String);
+						 (Int, "length", InitIntArrLit);
+						 (Int, "size", InitMapLit);
+						 (Void, "print", String)]
+  in  
 
-  (* Add function name to symbol table *)
-  let add_func map fd = 
-    let built_in_err = "function " ^ fd.fname ^ " may not be defined"
-    and dup_err = "duplicate function " ^ fd.fname
-    and make_err er = raise (Failure er)
-    and n = fd.fname (* Name of the function *)
-    in match fd with (* No duplicate functions or redefinitions of built-ins *)
-         _ when StringMap.mem n built_in_decls -> make_err built_in_err
-       | _ when StringMap.mem n map -> make_err dup_err  
-       | _ ->  StringMap.add n fd map 
-  in
-
-  (* Collect all function names into one symbol table *)
-  let function_decls = List.fold_left add_func built_in_decls functions
-  in
+(*//TODO: Functions I Am Unsure About:
+arr keys(map a)
+arr values(map a)
+bool contains(var1, arr[] a)
+int indexOf(arr[] a, var)
+void println(string x, string y, string z...) 
+*)
   
   (* Return a function from our symbol table *)
   let find_func s = 
