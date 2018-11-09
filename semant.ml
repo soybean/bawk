@@ -35,8 +35,8 @@ let check (globals, functions) =
       fname = name; 
       formals = flist;
       locals = []; body = [] } map
-    in List.fold_left add_bind StringMap.empty [ (Int, "string_to_int", [(Int, "a")]);
-			                         (String, "int_to_string", [(String, "a")]);
+    in List.fold_left add_bind StringMap.empty [ (Int, "string_to_int", [(String, "a")]);
+			                         (String, "int_to_string", [(Int, "a")]);
 						 (String, "bool_to_string", [(Bool, "a")]);
 						 (String, "rgx_to_string", [(Rgx, "a")]);
 						 (Int, "length_int", [(InitIntArrLit, "a")]);
