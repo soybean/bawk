@@ -14,12 +14,8 @@ type expr = Binop of expr * op * expr
 | Call of string * expr list
 | Rgx of string
 | Unop of uop * expr
-| InitIntArrLit of string * expr list
-| InitStrArrLit of string * expr list
-| InitBoolArrLit of string * expr list
-| InitRgxArrLit of string * expr list
 | ArrayLit of expr list
-| InitMapLit of typ * typ * string * expr list
+| MapLit of typ * typ * string * expr * expr
 | InitEmptyMap of typ * typ * string
 | ArrayAssignElement of string * expr * expr
 | ArrayGetElement of string * expr

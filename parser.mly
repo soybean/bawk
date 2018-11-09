@@ -100,7 +100,7 @@ config_expr: RS ASSIGN expr SEMI 	{ RSAssign($3) }
 stmt_list: 			{ [] } 
 | stmt_list stmt 	{ $2 :: $1 } 
 
-map_literal: literal COLON literal { [$1, $3] }
+/*map_literal: literal COLON literal { ($1, $3) }*/
 
 literal:
  LITERAL { Literal($1) }
@@ -119,7 +119,6 @@ stmt: expr SEMI 		{ Expr $1 }
 
 expr:
 literal     { ($1) }
-| map_literal   { ($1) }
 | TRUE { BoolLit(true) } 
 | FALSE { BoolLit(false) } 
 | ID { Id($1) } 
@@ -146,7 +145,7 @@ literal     { ($1) }
 | expr RGXSTRNOT expr { Binop ($1, Rgxnot, $3)}
 | LSQUARE actuals_opt RSQUARE { ArrayLit($2) }
 | MAP LT typ COMMA typ GT ID ASSIGN EMPTYMAP { InitEmptyMap($3, $5, $7) }
-| MAP LT typ COMMA typ GT ID ASSIGN LCURLY map_literal RCURLY { InitMapLit($3, $5, $7, $10) }
+| MAP LT typ COMMA typ GT ID ASSIGN LCURLY literal COLON literal RCURLY { MapLit($3, $5, $7, $10, $12) }
 | ID LSQUARE expr RSQUARE ASSIGN expr { ArrayAssignElement($1, $3, $6) }
 | ID LSQUARE expr RSQUARE { ArrayGetElement($1, $3) }
 | NOT expr { Unop(Not, $2) }
