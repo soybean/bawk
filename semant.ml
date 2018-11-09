@@ -75,7 +75,7 @@ int indexOf(arr[] a, var)
     in   
 
     (* Build local symbol table of variables for this function *)
-    let symbols = List.fold_left (fun m (ftyp, name, flist) -> StringMap.add name flist m)
+    let symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m) (* this might need to be changed later*)
 	                StringMap.empty (globals @ func.formals @ func.locals )
     in
 
