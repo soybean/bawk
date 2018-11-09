@@ -53,6 +53,7 @@ end_block: END LCURLY local_vars_list stmt_list RCURLY
 
 config_block:							{ [] }
 | CONFIG LCURLY config_expr_list RCURLY	{ ($3) }
+| CONFIG EMPTYMAP { ([]) }
 
 primitive: STRING		{ String }
 | INT 			{ Int }
