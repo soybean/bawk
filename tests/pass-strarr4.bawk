@@ -1,0 +1,10 @@
+BEGIN {}
+
+LOOP {
+  string[] a; 
+  a = ["a", "b", "c"];
+  a[0] = "p";
+  print(a[0]);
+}
+
+END {}

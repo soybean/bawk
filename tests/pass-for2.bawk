@@ -2,7 +2,8 @@ BEGIN {}
 
 LOOP {
   int i;
-  int[] arr = [];
+  int[] arr;
+  arr = [];
 
   for (i in arr) {
     print(int_to_string(i));

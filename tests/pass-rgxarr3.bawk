@@ -1,0 +1,9 @@
+BEGIN {}
+
+LOOP {
+  rgx[] a; 
+  a = ["[0]*", "[1]*", "[1]*"];
+  print(rgx_to_string(a[0]));
+}
+
+END {}

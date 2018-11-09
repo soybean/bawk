@@ -1,0 +1,14 @@
+BEGIN {
+  function string[] foo (string[] a) {
+    return a;
+  }
+}
+
+LOOP {
+  string[] a;
+  a = ["a", "b", "c"];
+  a = foo(a);
+  print(a[0]);
+}
+
+END {}

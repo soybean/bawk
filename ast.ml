@@ -2,7 +2,7 @@ type op = Add | Sub | Mult | Div | Assn | Equal | Neq | Less | Leq | Greater |
 		  Geq | And | Or | Pluseq | Minuseq | Strcat | Rgxeq | Rgxneq | 
 		  Rgxcomp | Rgxnot
 type uop = Not | Access | Neg | AssignElement | GetElement | Increment | Decrement
-type typ = Int | Bool | Void | String | Rgx
+type typ = Int | Bool | Void | String | Rgx | ArrayType of typ
 type bind = typ * string 
 type expr = Binop of expr * op * expr
 | BoolLit of bool
@@ -14,10 +14,7 @@ type expr = Binop of expr * op * expr
 | Call of string * expr list
 | Rgx of string
 | Unop of uop * expr
-| InitIntArrLit of string * expr list
-| InitStrArrLit of string * expr list
-| InitBoolArrLit of string * expr list
-| InitRgxArrLit of string * expr list
+| ArrayLit of expr list
 | InitMapLit of typ * typ * string * expr list
 | InitEmptyMap of typ * typ * string
 | AssignElement of string * expr * expr
