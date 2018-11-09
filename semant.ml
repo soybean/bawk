@@ -12,13 +12,10 @@ module StringMap = Map.Make(String)
 
 let check (globals, functions) =
 
-  (* Verify a list of bindings has no void types or rgx types or duplicate names *)
+  (* Verify a list of bindings has no void types or duplicate names *)
   let check_binds (kind : string) (binds : bind list) =
     List.iter (function
 	(Void, b) -> raise (Failure ("illegal void " ^ kind ^ " " ^ b))
-      | _ -> ()) binds;
-    List.iter (function
-	(Rgx, b) -> raise (Failure ("illegal rgx " ^ kind ^ " " ^ b))
       | _ -> ()) binds;
     let rec dups = function
         [] -> ()
@@ -42,17 +39,26 @@ let check (globals, functions) =
       locals = []; body = [] } map
     in List.fold_left add_bind StringMap.empty [ (Int, "string_to_int", [(Int, "a")]);
 			                         (String, "int_to_string", [(String, "a")]);
-						 (Int, "length", [(InitIntArrLit, "a")]);
+						 (Int, "length_int", [(InitIntArrLit, "a")]);
+						 (Int, "length_string", [(InitStrArrLit, "a")]);
+						 (Int, "length_bool", [(InitBoolArrLit, "a")]);
+						 (Int, "length_rgx", [(InitRgxArrLit, "a")]);
 						 (Int, "size", [(InitMapLit, "a")]);
 						 (Void, "print", [(String, "a")]);
-						 (Void, "println", [(String, "a")])]
+						 (Void, "println", [(String, "a")]);
+						 (Bool, "contains_int", [(Int, "a");(InitIntArrLit, "b")]);
+						 (Bool, "contains_string", [(String, "a");(InitStrArrLit, "b")]);
+						 (Bool, "contains_bool", [(Bool, "a");(InitBoolArrLit, "b")]);
+						 (Bool, "contains_rgx", [(Rgx, "a");(InitRgxArrLit, "b")]);
+						 (Int, "index_of_int", [(InitIntArrLit, "a");(Int, "b")]);
+						 (Int, "index_of_string", [(InitStrArrLit, "a");(String, "b")]);
+						 (Int, "index_of_bool", [(InitBoolArrLit, "a");(Bool, "b")]);
+						 (Int, "index_of_rgx", [(InitRgxArrLit, "a");(Rgx, "b")])]
   in  
 
 (*//TODO: 
 arr keys(map a)
 arr values(map a)
-bool contains(var1, arr[] a)
-int indexOf(arr[] a, var)
 *)
   
   (* Return a function from our symbol table *)
