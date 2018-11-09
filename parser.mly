@@ -1,6 +1,6 @@
 %{ open Ast %}
 
-%token LPAREN RPAREN LCURLY RCURLY LSQUARE RSQUARE SEMI COMMA
+%token LPAREN RPAREN LCURLY RCURLY LSQUARE RSQUARE SEMI COMMA COLON
 %token PLUS MINUS DIVIDE MULTIPLY ASSIGN STRCAT
 %token EQUALS NEQ LT LEQ GT GEQ AND OR NOT
 %token PLUSEQ MINUSEQ INCREMENT DECREMENT
@@ -42,12 +42,15 @@ program: begin_block loop_block end_block config_block EOF { ($1, $2, $3, $4) }
 
 begin_block: BEGIN LCURLY global_vars_list func_list RCURLY 
 { ($3, $4) }
+| BEGIN EMPTYMAP { ([], []) }
 
 loop_block: LOOP LCURLY local_vars_list stmt_list RCURLY 
 { ($3, $4) }
+| LOOP EMPTYMAP { ([], []) }
 
 end_block: END LCURLY local_vars_list stmt_list RCURLY 
 { ($3, $4) }
+| END EMPTYMAP { ([], []) }
 
 config_block:							{ [] }
 | CONFIG LCURLY config_expr_list RCURLY	{ ($3) }
@@ -93,6 +96,13 @@ config_expr: RS ASSIGN expr { RSAssign($3) }
 stmt_list: 		{ [] } 
 | stmt_list stmt 	{ $2 :: $1 } 
 
+map_literal: literal COLON literal { [$1, $3] }
+
+literal:
+ LITERAL { Literal($1) }
+| STRING_LITERAL { StringLiteral($1) }
+| RGX_LITERAL { RgxLiteral($1) }
+
 stmt: expr SEMI 		{ Expr $1 } 
 | RETURN expr SEMI 		{ Return $2 } 
 | LCURLY stmt_list RCURLY 	{ Block(List.rev $2) }
@@ -103,9 +113,9 @@ stmt: expr SEMI 		{ Expr $1 }
 | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
 /*| typ ID ASSIGN expr { Assign($1, $2, $4) } */
 
-expr: LITERAL { Literal($1) } 
-| STRING_LITERAL { StringLiteral($1) }
-| RGX_LITERAL { RgxLiteral($1) }
+expr:
+literal     { ($1) }
+| map_literal   { ($1) }
 | TRUE { BoolLit(true) } 
 | FALSE { BoolLit(false) } 
 | ID { Id($1) } 
@@ -135,7 +145,7 @@ expr: LITERAL { Literal($1) }
 | RGXARR ID ASSIGN LSQUARE expr_list RSQUARE { InitRgxArrLit($2, $5) }
 | STRINGARR ID ASSIGN LSQUARE expr_list RSQUARE { InitStrArrLit($2, $5) }
 | MAP LT typ COMMA typ GT ID ASSIGN EMPTYMAP { InitEmptyMap($3, $5, $7) }
-| MAP LT typ COMMA typ GT ID ASSIGN LCURLY expr_list RCURLY { InitMapLit($3, $5, $7, $10) }
+| MAP LT typ COMMA typ GT ID ASSIGN LCURLY map_literal RCURLY { InitMapLit($3, $5, $7, $10) }
 | ID LSQUARE expr RSQUARE ASSIGN expr { AssignElement($1, $3, $6) }
 | ID LSQUARE expr RSQUARE { GetElement($1, $3) }
 | NOT expr { Unop(Not, $2) }

@@ -18,7 +18,7 @@ type expr = Binop of expr * op * expr
 | InitStrArrLit of string * expr list
 | InitBoolArrLit of string * expr list
 | InitRgxArrLit of string * expr list
-| InitMapLit of typ * typ * string * expr list
+| InitMapLit of typ * typ * string * (expr * expr) list
 | InitEmptyMap of typ * typ * string
 | AssignElement of string * expr * expr
 | GetElement of string * expr
