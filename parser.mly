@@ -15,6 +15,7 @@
 %token DOLLAR
 
 %token <int> LITERAL
+%token <string> STRING_LITERAL
 %token <string> ID
 %token EOF
 
@@ -102,6 +103,7 @@ stmt: expr SEMI 		{ Expr $1 }
 /*| typ ID ASSIGN expr { Assign($1, $2, $4) } */
 
 expr: LITERAL { Literal($1) } 
+| STRING_LITERAL { StringLiteral($1) }
 | TRUE { BoolLit(true) } 
 | FALSE { BoolLit(false) } 
 | ID { Id($1) } 
