@@ -40,15 +40,15 @@ let check (globals, functions) =
       fname = name; 
       formals = flist;
       locals = []; body = [] } map
-    in List.fold_left add_bind StringMap.empty [ (Int, "string_to_int", Int);
-			                         (String, "int_to_string", String);
-						 (Int, "length", InitIntArrLit);
-						 (Int, "size", InitMapLit);
-						 (Void, "print", String);
-						 (Void, "println", String)]
+    in List.fold_left add_bind StringMap.empty [ (Int, "string_to_int", [(Int, "a")]);
+			                         (String, "int_to_string", [(String, "a")]);
+						 (Int, "length", [(InitIntArrLit, "a")]);
+						 (Int, "size", [(InitMapLit, "a")]);
+						 (Void, "print", [(String, "a")]);
+						 (Void, "println", [(String, "a")])]
   in  
 
-(*//TODO: Functions I Am Unsure About:
+(*//TODO: 
 arr keys(map a)
 arr values(map a)
 bool contains(var1, arr[] a)
@@ -75,7 +75,7 @@ int indexOf(arr[] a, var)
     in   
 
     (* Build local symbol table of variables for this function *)
-    let symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
+    let symbols = List.fold_left (fun m (ftyp, name, flist) -> StringMap.add name flist m)
 	                StringMap.empty (globals @ func.formals @ func.locals )
     in
 
@@ -88,7 +88,6 @@ int indexOf(arr[] a, var)
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
         Literal  l -> (Int, SLiteral l)
-      | Fliteral l -> (Float, SFliteral l)
       | BoolLit l  -> (Bool, SBoolLit l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
