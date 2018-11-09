@@ -81,16 +81,15 @@ formals_list: typ ID 		{ [($1, $2)] }
 var_decl: typ ID SEMI { ($1, $2) }
 
 config_expr_list: 				{ [] }
-| config_expr_list COMMA config_expr	{ $3 :: $1 }
+| config_expr_list config_expr	{ $2 :: $1 }
 
 expr_list: /* Nothing  { [] }
     | */expr_list COMMA expr { $3 :: $1 }
 
-config_expr: RS ASSIGN expr { RSAssign($3) }
+config_expr: RS ASSIGN expr SEMI 	{ RSAssign($3) }
+| FS ASSIGN expr SEMI 				{ FSAssign($3) }
 
-| FS ASSIGN expr 			{ FSAssign($3) }
-
-stmt_list: 		{ [] } 
+stmt_list: 			{ [] } 
 | stmt_list stmt 	{ $2 :: $1 } 
 
 stmt: expr SEMI 		{ Expr $1 } 
