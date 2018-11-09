@@ -15,8 +15,8 @@ BEGIN {
 }
 
 LOOP {
-  print(cond(true));
-  print(cond(false));
+  print(int_to_string(cond(true)));
+  print(int_to_string(cond(false)));
 }
 
 END {}

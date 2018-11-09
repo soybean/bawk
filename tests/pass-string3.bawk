@@ -5,7 +5,7 @@ BEGIN {
 }
 
 LOOP {
-  prints(concat("hello ", "world"));
+  print(concat("hello ", "world"));
 }
 
 END {}

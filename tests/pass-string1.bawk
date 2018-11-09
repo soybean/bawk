@@ -3,7 +3,7 @@ BEGIN {}
 LOOP {
   string s;
   s = "hello";
-  prints(s);
+  print(s);
 }
 
 END {}

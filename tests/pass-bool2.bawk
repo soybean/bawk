@@ -2,13 +2,13 @@ BEGIN {
   function bool cond() {
     bool b;
     b = true;
-    return x;
+    return b;
   }
 }
 
 LOOP {
   if (cond()) {
-    print(10);
+    print(int_to_string(10));
   }
 }
 

@@ -2,9 +2,9 @@ BEGIN {}
 
 LOOP {
   if(false) {
-    print(10);
+    print(int_to_string(10));
   } 
-  print(2);
+  print(int_to_string(2));
 }
 
 END {}

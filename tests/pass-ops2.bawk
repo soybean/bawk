@@ -1,23 +1,23 @@
 BEGIN {}
 
 LOOP {
-  printb(true);
-  printb(false);
-  printb(true && true);
-  printb(true && false);
-  printb(false && true);
-  printb(false && false);
-  printb(true || true);
-  printb(true || false);
-  printb(false || true);
-  printb(false || false);
-  printb(!false);
-  printb(!true);
-  print(-10);
-  print(--42);
-  print(++42);
-  print(42--);
-  print(42++);
+  print(bool_to_string(true));
+  print(bool_to_string(false));
+  print(bool_to_string(true && true));
+  print(bool_to_string(true && false));
+  print(bool_to_string(false && true));
+  print(bool_to_string(false && false));
+  print(bool_to_string(true || true));
+  print(bool_to_string(true || false));
+  print(bool_to_string(false || true));
+  print(bool_to_string(false || false));
+  print(bool_to_string(!false));
+  print(bool_to_string(!true));
+  print(int_to_string(-10));
+  print(int_to_string(--42));
+  print(int_to_string(++42));
+  print(int_to_string(42--));
+  print(int_to_string(42++));
 }
 
 END {}

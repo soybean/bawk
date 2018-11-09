@@ -5,7 +5,7 @@ BEGIN {
 }
 
 LOOP {
-  prints(foo());
+  print(foo());
 }
 
 END {}

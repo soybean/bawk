@@ -4,7 +4,7 @@ LOOP {
   bool b;
   b = true;
   if (b) {
-    print(10);
+    print(int_to_string(10));
   } 
 }
 

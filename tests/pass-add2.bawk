@@ -1,6 +1,6 @@
 BEGIN {
   function void add(int x, int y) {
-    print(x + y);
+    print(int_to_string(x + y));
   }
 }
 

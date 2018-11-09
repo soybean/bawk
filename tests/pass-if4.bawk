@@ -2,12 +2,12 @@ BEGIN {}
 
 LOOP {
   if(false) {
-    print(10);
+    print(int_to_string(10));
   } 
   else {
-    print(5);
+    print(int_to_string(5));
   }
-  print(2);
+  print(int_to_string(2));
 }
 
 END {}
