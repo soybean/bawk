@@ -66,9 +66,9 @@ local_vars_list:
 				{ [] }
 | local_vars_list var_decl	{ $2 :: $1 }
 
-func: FUNCTION ID LPAREN formals_opt RPAREN typ LCURLY local_vars_list stmt_list RCURLY 
-{ { fname = $2; formals = $4; ret_type = $6; 
-	locals = $8;  body = List.rev $9 } } 
+func: FUNCTION typ ID LPAREN formals_opt RPAREN typ LCURLY local_vars_list stmt_list RCURLY 
+{ { fname = $3; formals = $5; ret_type = $7; 
+	locals = $9;  body = List.rev $10 } } 
 
 formals_opt: 	{ [] }
 | formals_list	{ List.rev $1 }
