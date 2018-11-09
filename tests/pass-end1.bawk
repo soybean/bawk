@@ -1,0 +1,15 @@
+BEGIN {
+  function int add(int x, int y) {
+    return x + y;
+  }
+}
+
+LOOP {
+  print(int_to_string(add(1, 2)));
+}
+
+END {
+  print(int_to_string(100));
+}
+
+CONFIG {}

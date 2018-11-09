@@ -1,0 +1,13 @@
+BEGIN {
+  function bool foo(rgx a, string b) {
+    return a ~ b;
+  }
+}
+
+LOOP {
+  print(foo("[0-9]*", "[0-9]*"));
+}
+
+END {}
+
+CONFIG {}

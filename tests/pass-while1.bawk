@@ -1,0 +1,13 @@
+BEGIN {}
+
+LOOP {
+  int i;
+  i = 5;
+  while (i > 0) {
+    print(int_to_string(i));
+    i = i - 1;
+  }
+  print(int_to_string(42));
+}
+
+END {}

@@ -1,0 +1,17 @@
+BEGIN {
+  int a;
+  int b;
+
+  function int add(int x, int y) {
+    return x + y;
+  }
+}
+
+LOOP {
+  a = 1;
+  b = 2;
+  print(int_to_string(add(a, b)));
+}
+
+END {}
+

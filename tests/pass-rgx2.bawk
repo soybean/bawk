@@ -1,0 +1,13 @@
+BEGIN {
+  function rgx foo() {
+    return "[0-9]*";
+  }
+}
+
+LOOP {
+  print(foo());
+}
+
+END {}
+
+CONFIG {}

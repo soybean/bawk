@@ -2,7 +2,6 @@ BEGIN {}
 
 LOOP {
   int x;
-  x = 2;
   x = x + 2;
   print(int_to_string(x));  
 }

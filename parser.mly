@@ -97,7 +97,7 @@ stmt: expr SEMI 		{ Expr $1 }
 | LCURLY stmt_list RCURLY 	{ Block(List.rev $2) }
 | WHILE LPAREN expr RPAREN stmt { While($3, $5) }
 | FOR LPAREN expr SEMI expr SEMI expr RPAREN stmt { For($3, $5, $7, $9) }
-| FOR LPAREN typ ID IN ID RPAREN stmt { EnhancedFor($3, $4, $8) }
+| FOR LPAREN ID IN ID RPAREN stmt { EnhancedFor($3, $7) }
 | IF LPAREN expr RPAREN stmt ELSE stmt { If($3, $5, $7) }
 | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
 /*| typ ID ASSIGN expr { Assign($1, $2, $4) } */

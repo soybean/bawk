@@ -1,0 +1,7 @@
+BEGIN {}
+
+LOOP {
+  map<int,string> m = {};
+}
+
+END {}
