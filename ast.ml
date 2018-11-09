@@ -8,6 +8,7 @@ type expr = Binop of expr * op * expr
 | BoolLit of bool
 | Literal of int
 | StringLiteral of string
+| RgxLiteral of string
 | Id of string
 | Assign of string * expr
 | Call of string * expr list
