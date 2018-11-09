@@ -2,7 +2,7 @@ BEGIN {}
 
 LOOP {
   map<int,string> m; 
-  m = <>;
+  m = {};
   print(int_to_string(size(m)));
 }
 
