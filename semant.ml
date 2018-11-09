@@ -60,14 +60,27 @@ let check (globals, functions) =
 arr keys(map a)
 arr values(map a)
 *)
+in
+   (* Add function name to symbol table *)
+  let add_func map fd = 
+    let built_in_err = "function " ^ fd.fname ^ " may not be defined"
+    and dup_err = "duplicate function " ^ fd.fname
+    and make_err er = raise (Failure er)
+    and n = fd.fname (* Name of the function *)
+    in match fd with (* No duplicate functions or redefinitions of built-ins *)
+         _ when StringMap.mem n built_in_decls -> make_err built_in_err
+       | _ when StringMap.mem n map -> make_err dup_err  
+       | _ ->  StringMap.add n fd map 
+  in
+   (* Collect all function names into one symbol table *)
+  let function_decls = List.fold_left add_func built_in_decls functions
+  in
   
   (* Return a function from our symbol table *)
   let find_func s = 
     try StringMap.find s function_decls
     with Not_found -> raise (Failure ("unrecognized function " ^ s))
   in
-
-  let _ = find_func "main" in (* Ensure "main" is defined *)
 
   let check_function func =
     (* Make sure no formals or locals are void or duplicates *)
