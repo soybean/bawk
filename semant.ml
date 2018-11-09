@@ -37,6 +37,8 @@ let check (globals, functions) =
       locals = []; body = [] } map
     in List.fold_left add_bind StringMap.empty [ (Int, "string_to_int", [(Int, "a")]);
 			                         (String, "int_to_string", [(String, "a")]);
+						 (String, "bool_to_string", [(Bool, "a")]);
+						 (String, "rgx_to_string", [(Rgx, "a")]);
 						 (Int, "length_int", [(InitIntArrLit, "a")]);
 						 (Int, "length_string", [(InitStrArrLit, "a")]);
 						 (Int, "length_bool", [(InitBoolArrLit, "a")]);
