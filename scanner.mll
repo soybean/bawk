@@ -10,8 +10,6 @@ rule token = parse
 | "}"        { RCURLY }
 | "["        { LSQUARE }
 | "]"        { RSQUARE }
-| "<"        { LTRI }
-| ">"        { RTRI }
 | ";"        { SEMI }
 | "&"        { STRCAT }
 | ","        { COMMA }

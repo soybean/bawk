@@ -11,7 +11,7 @@
 %token RS FS NF
 %token IF ELSE WHILE FOR IN
 %token INTARR STRINGARR BOOLARR RGXARR EMPTYARR
-%token MAP LTRI RTRI EMPTYMAP
+%token MAP EMPTYMAP
 %token DOLLAR
 
 %token <int> LITERAL
@@ -130,8 +130,8 @@ expr: LITERAL { Literal($1) }
 | BOOLARR ID ASSIGN LSQUARE expr_list RSQUARE { InitBoolArrLit($2, $5) }
 | RGXARR ID ASSIGN LSQUARE expr_list RSQUARE { InitRgxArrLit($2, $5) }
 | STRINGARR ID ASSIGN LSQUARE expr_list RSQUARE { InitStrArrLit($2, $5) }
-| MAP LTRI typ COMMA typ RTRI ID ASSIGN EMPTYMAP { InitEmptyMap($3, $5, $7) }
-| MAP LTRI typ COMMA typ RTRI ID ASSIGN LCURLY expr_list RCURLY { InitMapLit($3, $5, $7, $10) }
+| MAP LT typ COMMA typ GT ID ASSIGN EMPTYMAP { InitEmptyMap($3, $5, $7) }
+| MAP LT typ COMMA typ GT ID ASSIGN LCURLY expr_list RCURLY { InitMapLit($3, $5, $7, $10) }
 | ID LSQUARE expr RSQUARE ASSIGN expr { AssignElement($1, $3, $6) }
 | ID LSQUARE expr RSQUARE { GetElement($1, $3) }
 | NOT expr { Unop(Not, $2) }
