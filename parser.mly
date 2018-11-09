@@ -137,8 +137,8 @@ expr: LITERAL { Literal($1) }
 | LSQUARE actuals_opt RSQUARE { ArrayLit($2) }
 | MAP LT typ COMMA typ GT ID ASSIGN EMPTYMAP { InitEmptyMap($3, $5, $7) }
 | MAP LT typ COMMA typ GT ID ASSIGN LCURLY actuals_list RCURLY { InitMapLit($3, $5, $7, $10) }
-| ID LSQUARE expr RSQUARE ASSIGN expr { AssignElement($1, $3, $6) }
-| ID LSQUARE expr RSQUARE { GetElement($1, $3) }
+| ID LSQUARE expr RSQUARE ASSIGN expr { ArrayAssignElement($1, $3, $6) }
+| ID LSQUARE expr RSQUARE { ArrayGetElement($1, $3) }
 | NOT expr { Unop(Not, $2) }
 | LPAREN expr RPAREN { $2 } 
 | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
