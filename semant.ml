@@ -60,7 +60,6 @@ let check (globals, functions) =
 arr keys(map a)
 arr values(map a)
 *)
-in
    (* Add function name to symbol table *)
   let add_func map fd = 
     let built_in_err = "function " ^ fd.fname ^ " may not be defined"
