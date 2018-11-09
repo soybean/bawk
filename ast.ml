@@ -7,6 +7,7 @@ type bind = typ * string
 type expr = Binop of expr * op * expr
 | BoolLit of bool
 | Literal of int
+| StringLiteral of string
 | Id of string
 | Assign of string * expr
 | Call of string * expr list
