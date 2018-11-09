@@ -1,5 +1,3 @@
-(* Semantic checking for the MicroC compiler *)
-
 open Ast
 open Sast
 
@@ -12,13 +10,10 @@ module StringMap = Map.Make(String)
 
 let check (globals, functions) =
 
-  (* Verify a list of bindings has no void types or rgx types or duplicate names *)
+  (* Verify a list of bindings has no void types or duplicate names *)
   let check_binds (kind : string) (binds : bind list) =
     List.iter (function
 	(Void, b) -> raise (Failure ("illegal void " ^ kind ^ " " ^ b))
-      | _ -> ()) binds;
-    List.iter (function
-	(Rgx, b) -> raise (Failure ("illegal rgx " ^ kind ^ " " ^ b))
       | _ -> ()) binds;
     let rec dups = function
         [] -> ()
@@ -33,33 +28,36 @@ let check (globals, functions) =
   check_binds "global" globals;
 
   (**** Check functions ****)
-
   (* Collect function declarations for built-in functions: no bodies *)
   let built_in_decls = 
-    let add_bind map (name, ty) = StringMap.add name {
-      typ = Void;
+    let add_bind map (ftyp, name, flist) = StringMap.add name {
+      typ = ftyp;
       fname = name; 
-      formals = [(ty, "x")];
+      formals = flist;
       locals = []; body = [] } map
-    in List.fold_left add_bind StringMap.empty [ ("print", Int);
-			                         ("printf", Float) ]
-  in
+    in List.fold_left add_bind StringMap.empty [ (Int, "string_to_int", [(Int, "a")]);
+			                         (String, "int_to_string", [(String, "a")]);
+						 (Int, "length_int", [(InitIntArrLit, "a")]);
+						 (Int, "length_string", [(InitStrArrLit, "a")]);
+						 (Int, "length_bool", [(InitBoolArrLit, "a")]);
+						 (Int, "length_rgx", [(InitRgxArrLit, "a")]);
+						 (Int, "size", [(InitMapLit, "a")]);
+						 (Void, "print", [(String, "a")]);
+						 (Void, "println", [(String, "a")]);
+						 (Bool, "contains_int", [(Int, "a");(InitIntArrLit, "b")]);
+						 (Bool, "contains_string", [(String, "a");(InitStrArrLit, "b")]);
+						 (Bool, "contains_bool", [(Bool, "a");(InitBoolArrLit, "b")]);
+						 (Bool, "contains_rgx", [(Rgx, "a");(InitRgxArrLit, "b")]);
+						 (Int, "index_of_int", [(InitIntArrLit, "a");(Int, "b")]);
+						 (Int, "index_of_string", [(InitStrArrLit, "a");(String, "b")]);
+						 (Int, "index_of_bool", [(InitBoolArrLit, "a");(Bool, "b")]);
+						 (Int, "index_of_rgx", [(InitRgxArrLit, "a");(Rgx, "b")])]
+  in  
 
-  (* Add function name to symbol table *)
-  let add_func map fd = 
-    let built_in_err = "function " ^ fd.fname ^ " may not be defined"
-    and dup_err = "duplicate function " ^ fd.fname
-    and make_err er = raise (Failure er)
-    and n = fd.fname (* Name of the function *)
-    in match fd with (* No duplicate functions or redefinitions of built-ins *)
-         _ when StringMap.mem n built_in_decls -> make_err built_in_err
-       | _ when StringMap.mem n map -> make_err dup_err  
-       | _ ->  StringMap.add n fd map 
-  in
-
-  (* Collect all function names into one symbol table *)
-  let function_decls = List.fold_left add_func built_in_decls functions
-  in
+(*//TODO: 
+arr keys(map a)
+arr values(map a)
+*)
   
   (* Return a function from our symbol table *)
   let find_func s = 
@@ -81,7 +79,7 @@ let check (globals, functions) =
     in   
 
     (* Build local symbol table of variables for this function *)
-    let symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
+    let symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m) (* this might need to be changed later*)
 	                StringMap.empty (globals @ func.formals @ func.locals )
     in
 
@@ -94,7 +92,6 @@ let check (globals, functions) =
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
         Literal  l -> (Int, SLiteral l)
-      | Fliteral l -> (Float, SFliteral l)
       | BoolLit l  -> (Bool, SBoolLit l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
@@ -107,7 +104,7 @@ let check (globals, functions) =
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
-            Neg when t = Int || t = Float -> t
+            Neg when t = Int 
           | Not when t = Bool -> Bool
           | _ -> raise (Failure ("illegal unary operator " ^ 
                                  string_of_uop op ^ string_of_typ t ^
@@ -121,10 +118,9 @@ let check (globals, functions) =
           (* Determine expression type based on operator and operand types *)
           let ty = match op with
             Add | Sub | Mult | Div when same && t1 = Int   -> Int
-          | Add | Sub | Mult | Div when same && t1 = Float -> Float
           | Equal | Neq            when same               -> Bool
           | Less | Leq | Greater | Geq
-                     when same && (t1 = Int || t1 = Float) -> Bool
+                     when same && (t1 = Int) -> Bool
           | And | Or when same && t1 = Bool -> Bool
           | _ -> raise (
 	      Failure ("illegal binary operator " ^
