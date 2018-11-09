@@ -46,15 +46,10 @@ type func_decl = {
   body     : stmt list;
 }
 
-
 type begin_list = bind list * func_decl list
-
 type loop_list = bind list * stmt list
-
 type end_list = bind list * stmt list
-
 type config_list = config_expr list
-
 
 type program = begin_list * loop_list * end_list * config_list
 
