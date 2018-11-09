@@ -104,6 +104,7 @@ let check (globals, functions) =
     let rec expr = function
         Literal  l -> (Int, SLiteral l)
       | BoolLit l  -> (Bool, SBoolLit l)
+      | Rgx l  -> (Rgx, SRgx l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
       | Assign(var, e) as ex -> 
