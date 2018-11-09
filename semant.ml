@@ -7,6 +7,8 @@ module StringMap = Map.Make(String)
    throws an exception if something is wrong.
 
    Check each global variable, then check each function *)
+let builtin_keywords = 
+	["for";"in";"if";"else";"while";"CONFIG";"BEGIN";"LOOP";"END";"function";"return";"RS";"FS";"NF";"$";"true";"false"];
 
 let check (globals, functions) =
 
