@@ -1,0 +1,13 @@
+BEGIN {
+  function bool[] foo () {
+    bool[] a; 
+    a = [true, false, false];
+    return a;
+  }
+}
+
+LOOP {
+  print(bool_to_string(a[0]));
+}
+
+END {}

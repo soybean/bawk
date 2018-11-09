@@ -1,0 +1,9 @@
+BEGIN {}
+
+LOOP {
+  int[] a; 
+  a = [];
+  print(int_to_string(length_int(a)));
+}
+
+END {}

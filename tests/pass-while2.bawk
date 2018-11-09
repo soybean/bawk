@@ -1,5 +1,5 @@
 BEGIN {
-  int foo(int a)
+  function int foo(int a)
   {
     int j;
     j = 0;

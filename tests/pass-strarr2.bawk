@@ -1,7 +1,8 @@
 BEGIN {}
 
 LOOP {
-  int[] a = [];
+  string[] a; 
+  a = ["a", "b", "c"];
   print(int_to_string(length_int(a)));
 }
 

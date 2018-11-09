@@ -7,6 +7,8 @@ module StringMap = Map.Make(String)
    throws an exception if something is wrong.
 
    Check each global variable, then check each function *)
+let builtin_keywords = 
+	["for";"in";"if";"else";"while";"CONFIG";"BEGIN";"LOOP";"END";"function";"return";"RS";"FS";"NF";"$";"true";"false"];
 
 let check (globals, functions) =
 
@@ -35,37 +37,46 @@ let check (globals, functions) =
       fname = name; 
       formals = flist;
       locals = []; body = [] } map
-    in List.fold_left add_bind StringMap.empty [ (Int, "string_to_int", [(Int, "a")]);
-			                         (String, "int_to_string", [(String, "a")]);
-						 (Int, "length_int", [(InitIntArrLit, "a")]);
-						 (Int, "length_string", [(InitStrArrLit, "a")]);
-						 (Int, "length_bool", [(InitBoolArrLit, "a")]);
-						 (Int, "length_rgx", [(InitRgxArrLit, "a")]);
+    in List.fold_left add_bind StringMap.empty [ (Int, "string_to_int", [(String, "a")]);
+			                         (String, "int_to_string", [(Int, "a")]);
+						 (String, "bool_to_string", [(Bool, "a")]);
+						 (String, "rgx_to_string", [(Rgx, "a")]);
+						 (Int, "length", [(ArrayLit, "a")]);
 						 (Int, "size", [(InitMapLit, "a")]);
 						 (Void, "print", [(String, "a")]);
 						 (Void, "println", [(String, "a")]);
-						 (Bool, "contains_int", [(Int, "a");(InitIntArrLit, "b")]);
-						 (Bool, "contains_string", [(String, "a");(InitStrArrLit, "b")]);
-						 (Bool, "contains_bool", [(Bool, "a");(InitBoolArrLit, "b")]);
-						 (Bool, "contains_rgx", [(Rgx, "a");(InitRgxArrLit, "b")]);
-						 (Int, "index_of_int", [(InitIntArrLit, "a");(Int, "b")]);
-						 (Int, "index_of_string", [(InitStrArrLit, "a");(String, "b")]);
-						 (Int, "index_of_bool", [(InitBoolArrLit, "a");(Bool, "b")]);
-						 (Int, "index_of_rgx", [(InitRgxArrLit, "a");(Rgx, "b")])]
+						 (Bool, "contains_int", [(Int, "a");(ArrayLit, "b")]);
+						 (Bool, "contains_string", [(String, "a");(ArrayLit, "b")]);
+						 (Bool, "contains_bool", [(Bool, "a");(ArrayLit, "b")]);
+						 (Bool, "contains_rgx", [(Rgx, "a");(ArrayLit, "b")]);
+						 (Int, "index_of_int", [(ArrayLit, "a");(Int, "b")]);
+						 (Int, "index_of_string", [(ArrayLit, "a");(String, "b")]);
+						 (Int, "index_of_bool", [(ArrayLit, "a");(Bool, "b")]);
+						 (Int, "index_of_rgx", [(ArrayLit, "a");(Rgx, "b")]);
+						 (ArrayLit, "keys", [(InitMapLit, "a")]);
+						 (ArrayLit, "values", [(InitMapLit, "a")]]
   in  
-
-(*//TODO: 
-arr keys(map a)
-arr values(map a)
-*)
+  
+   (* Add function name to symbol table *)
+  let add_func map fd = 
+    let built_in_err = "function " ^ fd.fname ^ " may not be defined"
+    and dup_err = "duplicate function " ^ fd.fname
+    and make_err er = raise (Failure er)
+    and n = fd.fname (* Name of the function *)
+    in match fd with (* No duplicate functions or redefinitions of built-ins *)
+         _ when StringMap.mem n built_in_decls -> make_err built_in_err
+       | _ when StringMap.mem n map -> make_err dup_err  
+       | _ ->  StringMap.add n fd map 
+  in
+   (* Collect all function names into one symbol table *)
+  let function_decls = List.fold_left add_func built_in_decls functions
+  in
   
   (* Return a function from our symbol table *)
   let find_func s = 
     try StringMap.find s function_decls
     with Not_found -> raise (Failure ("unrecognized function " ^ s))
   in
-
-  let _ = find_func "main" in (* Ensure "main" is defined *)
 
   let check_function func =
     (* Make sure no formals or locals are void or duplicates *)

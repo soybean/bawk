@@ -1,0 +1,13 @@
+BEGIN {
+  function int[] foo () {
+    int[] a; 
+    a = [1, 2, 3];
+    return a;
+  }
+}
+
+LOOP {
+  print(int_to_string(a[0]));
+}
+
+END {}

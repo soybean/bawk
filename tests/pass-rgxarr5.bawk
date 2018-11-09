@@ -1,0 +1,13 @@
+BEGIN {
+  function rgx[] foo () {
+    rgx[] a; 
+    a = ["[0]*", "[1]*", "[1]*"];
+    return a;
+  }
+}
+
+LOOP {
+  print(rgx_to_string(a[0]));
+}
+
+END {}

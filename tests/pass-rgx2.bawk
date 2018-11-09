@@ -5,7 +5,7 @@ BEGIN {
 }
 
 LOOP {
-  print(foo());
+  print(rgx_to_string(foo()));
 }
 
 END {}

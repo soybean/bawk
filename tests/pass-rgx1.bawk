@@ -3,7 +3,7 @@ BEGIN {}
 LOOP {
   rgx r; 
   r = "[0-9]*";
-  print(r);
+  print(rgx_to_string(r));
 }
 
 END {}
