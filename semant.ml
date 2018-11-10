@@ -105,7 +105,7 @@ let check (globals, functions) =
         Literal  l -> (Int, SLiteral l)
       | BoolLit l  -> (Bool, SBoolLit l)
       | Rgx l  -> (Rgx, SRgx l)
-      | Noexpr     -> (Void, SNoexpr)
+  (*    | Noexpr     -> (Void, SNoexpr) *)
       | Id s       -> (type_of_identifier s, SId s)
       | Assign(var, e) as ex -> 
           let lt = type_of_identifier var
@@ -116,7 +116,7 @@ let check (globals, functions) =
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
-            Neg when t = Int 
+            Neg | Increment | Decrement | Access when t = Int 
           | Not when t = Bool -> Bool
           | _ -> raise (Failure ("illegal unary operator " ^ 
                                  string_of_uop op ^ string_of_typ t ^
