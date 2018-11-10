@@ -10,7 +10,6 @@
 %token INT BOOL VOID STRING RGX TRUE FALSE
 %token RS FS NF
 %token IF ELSE WHILE FOR IN
-%token INTARR STRINGARR BOOLARR RGXARR EMPTYARR
 %token MAP EMPTYMAP
 %token DOLLAR
 
@@ -52,11 +51,14 @@ end_block: END LCURLY local_vars_list stmt_list RCURLY
 config_block:							{ [] }
 | CONFIG LCURLY config_expr_list RCURLY	{ ($3) }
 
-typ: STRING	{ String }
-| INT 		{ Int }
-| BOOL		{ Bool }
-| VOID          { Void }
+primitive: STRING		{ String }
+| INT 			{ Int }
+| BOOL			{ Bool }
 | RGX           { Rgx }
+
+typ: primitive	{ $1 }
+| VOID          { Void }
+| primitive LSQUARE RSQUARE { ArrayType($1) }
 
 func_list: 		{ [] }
 | func_list func	{ $2 :: $1 }
@@ -130,23 +132,16 @@ expr: LITERAL { Literal($1) }
 | expr RGXNEQ expr { Binop ($1, Rgxneq, $3)}
 | expr RGXSTRCMP expr { Binop ($1, Rgxcomp, $3)}
 | expr RGXSTRNOT expr { Binop ($1, Rgxnot, $3)}
-| INTARR ID ASSIGN LSQUARE expr_list RSQUARE { InitIntArrLit($2, $5) }
-| BOOLARR ID ASSIGN LSQUARE expr_list RSQUARE { InitBoolArrLit($2, $5) }
-| RGXARR ID ASSIGN LSQUARE expr_list RSQUARE { InitRgxArrLit($2, $5) }
-| STRINGARR ID ASSIGN LSQUARE expr_list RSQUARE { InitStrArrLit($2, $5) }
+| LSQUARE actuals_opt RSQUARE { ArrayLit($2) }
 | MAP LT typ COMMA typ GT ID ASSIGN EMPTYMAP { InitEmptyMap($3, $5, $7) }
 | MAP LT typ COMMA typ GT ID ASSIGN LCURLY expr_list RCURLY { InitMapLit($3, $5, $7, $10) }
-| ID LSQUARE expr RSQUARE ASSIGN expr { AssignElement($1, $3, $6) }
-| ID LSQUARE expr RSQUARE { GetElement($1, $3) }
+| ID LSQUARE expr RSQUARE ASSIGN expr { ArrayAssignElement($1, $3, $6) }
+| ID LSQUARE expr RSQUARE { ArrayGetElement($1, $3) }
 | NOT expr { Unop(Not, $2) }
 | LPAREN expr RPAREN { $2 } 
 | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
 | NF { NumFields }
 | DOLLAR expr { Unop(Access, $2) }
-| INTARR ID ASSIGN EMPTYARR { InitIntArrLit($2, []) }
-| STRINGARR ID ASSIGN EMPTYARR { InitStrArrLit($2, []) }
-| BOOLARR ID ASSIGN EMPTYARR { InitBoolArrLit($2, []) }
-| RGXARR ID ASSIGN EMPTYARR { InitRgxArrLit($2, []) }
 | MINUS expr %prec NEG { Unop(Neg, $2) }
 | ID ASSIGN expr { Assign($1, $3) } 
 
