@@ -1,7 +1,7 @@
 type op = Add | Sub | Mult | Div | Assn | Equal | Neq | Less | Leq | Greater | 
 		  Geq | And | Or | Pluseq | Minuseq | Strcat | Rgxeq | Rgxneq | 
 		  Rgxcomp | Rgxnot
-type uop = Not | Access | Neg | ArrayAssignElement | ArrayGetElement | Increment | Decrement
+type uop = Not | Access | Neg | Increment | Decrement
 type typ = Int | Bool | Void | String | Rgx | ArrayType of typ
 type bind = typ * string 
 type expr = Binop of expr * op * expr
