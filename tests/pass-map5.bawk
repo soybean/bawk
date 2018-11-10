@@ -1,0 +1,13 @@
+BEGIN {
+  function map<int,string> foo () {
+    map<int,string> m; 
+    m = {1 : "a", 2 : "b", 3 : "c"};
+    return m;
+  }
+}
+
+LOOP {
+  print(m{1});
+}
+
+END {}

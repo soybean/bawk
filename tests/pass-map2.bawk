@@ -1,0 +1,9 @@
+BEGIN {}
+
+LOOP {
+  map<int,string> m; 
+  m = {1 : "a", 2 : "b", 3 : "c"};
+  print(int_to_string(size(m)));
+}
+
+END {}
