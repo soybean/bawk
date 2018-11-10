@@ -31,7 +31,7 @@ type stmt = Return of expr
 | If of expr * stmt * stmt
 | InitEmptyMap of typ * typ * string
 | For of expr * expr * expr * stmt
-| EnhancedFor of typ * string * stmt
+| EnhancedFor of string * stmt
 | AssignElement of string * expr * expr
 | GetElement of string * expr
 

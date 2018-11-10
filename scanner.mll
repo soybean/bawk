@@ -56,6 +56,7 @@ rule token = parse
 | "END"      { END }
 | "true"     { TRUE }
 | "false"    { FALSE }
+| "in"       { IN }
 | ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }
 | "\"" [^'\"']* "\"" as lxm { STRING_LITERAL(lxm) }
 | "\'" [^'\"']* "\'" as lxm { RGX_LITERAL(lxm) }
