@@ -129,7 +129,10 @@ let check (globals, functions) =
           let same = t1 = t2 in
           (* Determine expression type based on operator and operand types *)
           let ty = match op with
-            Add | Sub | Mult | Div when same && t1 = Int   -> Int
+            Add | Sub | Mult | Div | Pluseq | Minuseq when same && t1 = Int   -> Int
+	  | Strcat when same && t1 = String -> String
+	  | Rgxeq | Rgxneq when same && t1 = Rgx -> Bool
+	  | Rgxstrcomp | Rgxnot when ((t1 = Rgx) && (t2 = String)) || ((t1 = String) && (t2 = Rgx)) -> Bool 
           | Equal | Neq            when same               -> Bool
           | Less | Leq | Greater | Geq
                      when same && (t1 = Int) -> Bool
