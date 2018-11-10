@@ -39,17 +39,21 @@
 %%
 program: begin_block loop_block end_block config_block EOF { ($1, $2, $3, $4) }
 
-begin_block: BEGIN LCURLY global_vars_list func_list RCURLY 
-{ ($3, $4) }
+begin_block: 
+    BEGIN LCURLY global_vars_list func_list RCURLY  { ($3, $4) }
+    | BEGIN EMPTYMAP { ([], []) }
 
 loop_block: LOOP LCURLY local_vars_list stmt_list RCURLY 
 { ($3, $4) }
+| LOOP EMPTYMAP { ([], []) }
 
 end_block: END LCURLY local_vars_list stmt_list RCURLY 
 { ($3, $4) }
+| END EMPTYMAP { ([], []) }
 
 config_block:							{ [] }
 | CONFIG LCURLY config_expr_list RCURLY	{ ($3) }
+| CONFIG EMPTYMAP { [] }
 
 primitive: STRING		{ String }
 | INT 			{ Int }

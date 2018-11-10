@@ -46,7 +46,7 @@ rule token = parse
 | "!%"       { RGXNEQ }
 | "~"        { RGXSTRCMP }
 | "!~"       { RGXSTRNOT }
-| "<>"       { EMPTYMAP }
+| "{}"       { EMPTYMAP }
 | "map"      { MAP }
 | "CONFIG"   { CONFIG }
 | "RS"       { RS }
