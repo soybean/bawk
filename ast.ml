@@ -50,5 +50,5 @@ type program = begin_list * loop_list * end_list * config_list
 
 (* Pretty-printing functions *)
 
-let string_of_program(beginBlock, loop, endBlock, configBlock) = "HI"
+let string_of_program(beginBlock, loop, endBlock, configBlock) = "HI\n"
 
