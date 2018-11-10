@@ -32,8 +32,6 @@ type stmt = Return of expr
 | InitEmptyMap of typ * typ * string
 | For of expr * expr * expr * stmt
 | EnhancedFor of string * stmt
-| AssignElement of string * expr * expr
-| GetElement of string * expr
 
 type func_decl = {
   ret_type : typ;
