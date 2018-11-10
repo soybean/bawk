@@ -102,13 +102,14 @@ stmt_list: 		{ [] }
 
 stmt: expr SEMI 		{ Expr $1 } 
 | RETURN expr SEMI 		{ Return $2 } 
-| LCURLY stmt_list RCURLY 	{ Block(List.rev $2) }
-| WHILE LPAREN expr RPAREN stmt { While($3, $5) }
-| FOR LPAREN expr SEMI expr SEMI expr RPAREN stmt { For($3, $5, $7, $9) }
-| FOR LPAREN ID IN ID RPAREN stmt { EnhancedFor($3, $7) }
-| IF LPAREN expr RPAREN stmt ELSE stmt { If($3, $5, $7) }
-| IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
+| WHILE LPAREN expr RPAREN code_block { While($3, $5) }
+| FOR LPAREN expr SEMI expr SEMI expr RPAREN code_block { For($3, $5, $7, $9) }
+| FOR LPAREN ID IN ID RPAREN code_block { EnhancedFor($3, $7) }
+| IF LPAREN expr RPAREN code_block ELSE code_block { If($3, $5, $7) }
+| IF LPAREN expr RPAREN code_block %prec code_block { If($3, $5, Block([])) }
 /*| typ ID ASSIGN expr { Assign($1, $2, $4) } */
+
+code_block: LCURLY stmt_list RCURLY 	{ Block(List.rev $2) }
 
 expr: LITERAL { Literal($1) } 
 | STRING_LITERAL { StringLiteral($1) }
