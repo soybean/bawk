@@ -99,12 +99,20 @@ let check (globals, functions) =
       try StringMap.find s symbols
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
-
+(* TBD:
+ArrayLit of expr list
+| InitMapLit of typ * typ * string * expr list
+| InitEmptyMap of typ * typ * string
+| ArrayAssignElement of string * expr * expr
+| ArrayGetElement of string * expr
+| NumFields*)
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
         Literal  l -> (Int, SLiteral l)
+      | StringLiteral l -> (String, SStringLiteral l)
       | BoolLit l  -> (Bool, SBoolLit l)
       | Rgx l  -> (Rgx, SRgx l)
+      | RgxLiteral l -> (RgxLiteral, SRgxLiteral l)
   (*    | Noexpr     -> (Void, SNoexpr) *)
       | Id s       -> (type_of_identifier s, SId s)
       | Assign(var, e) as ex -> 
