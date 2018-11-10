@@ -1,8 +1,8 @@
 type op = Add | Sub | Mult | Div | Assn | Equal | Neq | Less | Leq | Greater | 
 		  Geq | And | Or | Pluseq | Minuseq | Strcat | Rgxeq | Rgxneq | 
 		  Rgxcomp | Rgxnot
-type uop = Not | Access | Neg | ArrayAssignElement | ArrayGetElement | Increment | Decrement
-type typ = Int | Bool | Void | String | Rgx | ArrayType of typ
+type uop = Not | Access | Neg | AssignElement | GetElement | Increment | Decrement
+type typ = Int | Bool | Void | String | Rgx
 type bind = typ * string 
 type expr = Binop of expr * op * expr
 | BoolLit of bool
@@ -14,11 +14,14 @@ type expr = Binop of expr * op * expr
 | Call of string * expr list
 | Rgx of string
 | Unop of uop * expr
-| ArrayLit of expr list
-| MapLit of typ * typ * string * expr * expr
+| InitIntArrLit of string * expr list
+| InitStrArrLit of string * expr list
+| InitBoolArrLit of string * expr list
+| InitRgxArrLit of string * expr list
+| InitMapLit of typ * typ * string * expr list
 | InitEmptyMap of typ * typ * string
-| ArrayAssignElement of string * expr * expr
-| ArrayGetElement of string * expr
+| AssignElement of string * expr * expr
+| GetElement of string * expr
 | NumFields
 
 type config_expr = RSAssign of expr
@@ -32,9 +35,9 @@ type stmt = Return of expr
 | If of expr * stmt * stmt
 | InitEmptyMap of typ * typ * string
 | For of expr * expr * expr * stmt
-| EnhancedFor of string * stmt
-| ArrayAssignElement of string * expr * expr
-| ArrayGetElement of string * expr
+| EnhancedFor of typ * string * stmt
+| AssignElement of string * expr * expr
+| GetElement of string * expr
 
 type func_decl = {
   ret_type : typ;
@@ -54,3 +57,4 @@ type program = begin_list * loop_list * end_list * config_list
 (* Pretty-printing functions *)
 
 let string_of_program(beginBlock, loop, endBlock, configBlock) = "HI"
+

@@ -1,6 +1,6 @@
 %{ open Ast %}
 
-%token LPAREN RPAREN LCURLY RCURLY LSQUARE RSQUARE SEMI COMMA COLON
+%token LPAREN RPAREN LCURLY RCURLY LSQUARE RSQUARE SEMI COMMA
 %token PLUS MINUS DIVIDE MULTIPLY ASSIGN STRCAT
 %token EQUALS NEQ LT LEQ GT GEQ AND OR NOT
 %token PLUSEQ MINUSEQ INCREMENT DECREMENT
@@ -10,6 +10,7 @@
 %token INT BOOL VOID STRING RGX TRUE FALSE
 %token RS FS NF
 %token IF ELSE WHILE FOR IN
+%token INTARR STRINGARR BOOLARR RGXARR EMPTYARR
 %token MAP EMPTYMAP
 %token DOLLAR
 
@@ -41,28 +42,21 @@ program: begin_block loop_block end_block config_block EOF { ($1, $2, $3, $4) }
 
 begin_block: BEGIN LCURLY global_vars_list func_list RCURLY 
 { ($3, $4) }
-| BEGIN EMPTYMAP { ([], []) }
 
 loop_block: LOOP LCURLY local_vars_list stmt_list RCURLY 
 { ($3, $4) }
-| LOOP EMPTYMAP { ([], []) }
 
 end_block: END LCURLY local_vars_list stmt_list RCURLY 
 { ($3, $4) }
-| END EMPTYMAP { ([], []) }
 
 config_block:							{ [] }
 | CONFIG LCURLY config_expr_list RCURLY	{ ($3) }
-| CONFIG EMPTYMAP { ([]) }
 
-primitive: STRING		{ String }
-| INT 			{ Int }
-| BOOL			{ Bool }
-| RGX           { Rgx }
-
-typ: primitive	{ $1 }
+typ: STRING	{ String }
+| INT 		{ Int }
+| BOOL		{ Bool }
 | VOID          { Void }
-| primitive LSQUARE RSQUARE { ArrayType($1) }
+| RGX           { Rgx }
 
 func_list: 		{ [] }
 | func_list func	{ $2 :: $1 }
@@ -87,39 +81,31 @@ formals_list: typ ID 		{ [($1, $2)] }
 var_decl: typ ID SEMI { ($1, $2) }
 
 config_expr_list: 				{ [] }
-| config_expr_list config_expr	{ $2 :: $1 }
+| config_expr_list COMMA config_expr	{ $3 :: $1 }
 
-actuals_opt: /* Nothing */  	{ [] }
-| actuals_list    				{ List.rev $1 }
+expr_list: /* Nothing  { [] }
+    | */expr_list COMMA expr { $3 :: $1 }
 
-actuals_list: expr  { [$1] }
-| actuals_list COMMA expr { $3 :: $1 }
+config_expr: RS ASSIGN expr { RSAssign($3) }
 
-config_expr: RS ASSIGN expr SEMI 	{ RSAssign($3) }
-| FS ASSIGN expr SEMI 				{ FSAssign($3) }
+| FS ASSIGN expr 			{ FSAssign($3) }
 
-stmt_list: 			{ [] } 
+stmt_list: 		{ [] } 
 | stmt_list stmt 	{ $2 :: $1 } 
-
-/*map_literal: literal COLON literal { ($1, $3) }*/
-
-literal:
- LITERAL { Literal($1) }
-| STRING_LITERAL { StringLiteral($1) }
-| RGX_LITERAL { RgxLiteral($1) }
 
 stmt: expr SEMI 		{ Expr $1 } 
 | RETURN expr SEMI 		{ Return $2 } 
 | LCURLY stmt_list RCURLY 	{ Block(List.rev $2) }
 | WHILE LPAREN expr RPAREN stmt { While($3, $5) }
 | FOR LPAREN expr SEMI expr SEMI expr RPAREN stmt { For($3, $5, $7, $9) }
-| FOR LPAREN ID IN ID RPAREN stmt { EnhancedFor($3, $7) }
+| FOR LPAREN typ ID IN ID RPAREN stmt { EnhancedFor($3, $4, $8) }
 | IF LPAREN expr RPAREN stmt ELSE stmt { If($3, $5, $7) }
 | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
 /*| typ ID ASSIGN expr { Assign($1, $2, $4) } */
 
-expr:
-literal     { ($1) }
+expr: LITERAL { Literal($1) } 
+| STRING_LITERAL { StringLiteral($1) }
+| RGX_LITERAL { RgxLiteral($1) }
 | TRUE { BoolLit(true) } 
 | FALSE { BoolLit(false) } 
 | ID { Id($1) } 
@@ -144,16 +130,23 @@ literal     { ($1) }
 | expr RGXNEQ expr { Binop ($1, Rgxneq, $3)}
 | expr RGXSTRCMP expr { Binop ($1, Rgxcomp, $3)}
 | expr RGXSTRNOT expr { Binop ($1, Rgxnot, $3)}
-| LSQUARE actuals_opt RSQUARE { ArrayLit($2) }
+| INTARR ID ASSIGN LSQUARE expr_list RSQUARE { InitIntArrLit($2, $5) }
+| BOOLARR ID ASSIGN LSQUARE expr_list RSQUARE { InitBoolArrLit($2, $5) }
+| RGXARR ID ASSIGN LSQUARE expr_list RSQUARE { InitRgxArrLit($2, $5) }
+| STRINGARR ID ASSIGN LSQUARE expr_list RSQUARE { InitStrArrLit($2, $5) }
 | MAP LT typ COMMA typ GT ID ASSIGN EMPTYMAP { InitEmptyMap($3, $5, $7) }
-| MAP LT typ COMMA typ GT ID ASSIGN LCURLY literal COLON literal RCURLY { MapLit($3, $5, $7, $10, $12) }
-| ID LSQUARE expr RSQUARE ASSIGN expr { ArrayAssignElement($1, $3, $6) }
-| ID LSQUARE expr RSQUARE { ArrayGetElement($1, $3) }
+| MAP LT typ COMMA typ GT ID ASSIGN LCURLY expr_list RCURLY { InitMapLit($3, $5, $7, $10) }
+| ID LSQUARE expr RSQUARE ASSIGN expr { AssignElement($1, $3, $6) }
+| ID LSQUARE expr RSQUARE { GetElement($1, $3) }
 | NOT expr { Unop(Not, $2) }
 | LPAREN expr RPAREN { $2 } 
 | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
 | NF { NumFields }
 | DOLLAR expr { Unop(Access, $2) }
+| INTARR ID ASSIGN EMPTYARR { InitIntArrLit($2, []) }
+| STRINGARR ID ASSIGN EMPTYARR { InitStrArrLit($2, []) }
+| BOOLARR ID ASSIGN EMPTYARR { InitBoolArrLit($2, []) }
+| RGXARR ID ASSIGN EMPTYARR { InitRgxArrLit($2, []) }
 | MINUS expr %prec NEG { Unop(Neg, $2) }
 | ID ASSIGN expr { Assign($1, $3) } 
 
