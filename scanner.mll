@@ -59,7 +59,7 @@ rule token = parse
 | "in"       { IN }
 | ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }
 | "\"" [^'\"']* "\"" as lxm { STRING_LITERAL(lxm) }
-| "\'" [^'\"']* "\'" as lxm { RGX_LITERAL(lxm) }
+| "\'" [^'\'']* "\'" as lxm { RGX_LITERAL(lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 | eof { EOF }
 | _ as char { raise (Failure("illegal character " ^
