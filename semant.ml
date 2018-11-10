@@ -113,7 +113,6 @@ ArrayLit of expr list
       | BoolLit l  -> (Bool, SBoolLit l)
       | Rgx l  -> (Rgx, SRgx l)
       | RgxLiteral l -> (RgxLiteral, SRgxLiteral l)
-  (*    | Noexpr     -> (Void, SNoexpr) *)
       | Id s       -> (type_of_identifier s, SId s)
       | Assign(var, e) as ex -> 
           let lt = type_of_identifier var
@@ -172,9 +171,7 @@ ArrayLit of expr list
       in if t' != Bool then raise (Failure err) else (t', e') 
     in
 
-(*TODO:
-| InitEmptyMap of typ * typ * string
-| EnhancedFor of string * stmt*)
+(*TODO: InitEmptyMap of typ * typ * string*)
     (* Return a semantically-checked statement i.e. containing sexprs *)
     let rec check_stmt = function
         Expr e -> SExpr (expr e)
@@ -182,7 +179,7 @@ ArrayLit of expr list
       | For(e1, e2, e3, st) ->
 	  SFor(expr e1, check_bool_expr e2, expr e3, check_stmt st)
       | EnhancedFor(s1, st) ->
-          SEnhancedFor(String s1, check_stmt st)
+          SEnhancedFor((String, SStringLiteral), check_stmt st) (*unsure about this one? should it be expr*)
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
       | Return e -> let (t, e') = expr e in
         if t = func.typ then SReturn (t, e') 
