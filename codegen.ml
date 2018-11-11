@@ -29,17 +29,32 @@ let translate (begin_block, loop_block, end_block, config_block) =
   	let printf_func : L.llvalue = 
       L.declare_function "printf" printf_t the_module in
 
-    let build_end_block =
-    	let builder = L.builder_at_end context (L.entry_block the_function) in
-    	
+    let build_end_block end_block =
+    	let builder = L.builder context in
+
     	let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
 
     	let rec expr builder = function
     		A.Call ("print", [e]) ->
     			L.build_call printf_func [| string_format_str builder; (expr builder e)|] "printf" builder
 
-    	in
-	
-    build_end_block
+    	in 
 
-    in the_module
+    	let add_terminal builder instr =
+	     	match L.block_terminator (L.insertion_block builder) with
+			Some _ -> ()
+	    	| None -> ignore (instr builder) in
+
+    	let rec stmt builder = function
+    		A.Expr ex -> ignore(expr builder ex); builder
+    		| A.Block sl -> List.fold_left stmt builder sl
+
+    	in
+
+    	add_terminal builder L.build_ret_void
+
+    	(* let builder = stmt builder (snd end_block) *)
+
+    in build_end_block end_block;
+
+    the_module
