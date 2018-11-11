@@ -1,54 +1,53 @@
 open Ast
 
-type sbind = typ * string 
-type sexpr = typ * sx and
-sx = SBinop of sexpr * op * sexpr
+type sexpr = typ * sx
+and sx =
 | SBoolLit of bool
 | SLiteral of int
+| SStringLiteral of string
+| SRgxLiteral of string
 | SId of string
 | SAssign of string * sexpr
 | SCall of string * sexpr list
 | SRgx of string
 | SUnop of uop * sexpr
-| SInitIntArrLit of string * sexpr list
-| SInitStrArrLit of string * sexpr list
-| SInitBoolArrLit of string * sexpr list
-| SInitRgxArrLit of string * sexpr list
-| SInitMapLit of typ * typ * string * sexpr list
+| SArrayLit of sexpr list
+| SMapLit of typ * typ * string * sexpr * sexpr
 | SInitEmptyMap of typ * typ * string
-| SAssignElement of string * sexpr * sexpr
-| SGetElement of string * sexpr
+| SArrayAssignElement of string * sexpr * sexpr
+| SArrayGetElement of string * sexpr
 | SNumFields
 
 type sconfig_expr = SRSAssign of sexpr
 | SFSAssign of sexpr
 
+
 type sstmt = SReturn of sexpr
-| SExpr of sexpr
-| SBlock of Sstmt list
+| Sxpr of sexpr
+| SBlock of sstmt list
 | SWhile of sexpr * sstmt
-| SIf of expr * sstmt * sstmt
+| SIf of sexpr * sstmt * sstmt
 | SInitEmptyMap of typ * typ * string
-| SFor of sexpr * sexpr * sexpr * sstmt
-| SEnhancedFor of typ * string * sstmt
-| SAssignElement of string * sexpr * sexpr
-| SGetElement of string * sexpr
+| SFor of sexpr * sexpr * expr * sstmt
+| SEnhancedFor of string * sstmt
+| SArrayAssignElement of string * sexpr * sexpr
+| SArrayGetElement of string * sexpr
 
 type sfunc_decl = {
   sret_type : typ;
   sfname    : string;
-  sformals  : sbind list;
-  slocals   : sbind list;
+  sformals  : bind list;
+  slocals   : bind list;
   sbody     : sstmt list;
 }
 
-
-type sbegin_list = sbind list * sfunc_decl list
-
-type sloop_list = sbind list * sstmt list
-
-type send_list = sbind list * sstmt list
-
-type sconfig_list = sconfig_expr list
+type sbegin_list = bind list * func_decl list
+type sloop_list = bind list * stmt list
+type send_list = bind list * stmt list
+type sconfig_list = config_expr list
 
 type sprogram = sbegin_list * sloop_list * send_list * sconfig_list
+
+(* Pretty-printing functions *)
+
+let string_of_sprogram(beginBlock, loop, endBlock, configBlock) = "HI"
