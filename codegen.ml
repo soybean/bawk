@@ -4,6 +4,7 @@ module A = Ast
 module StringMap = Map.Make(String)
 
 let translate (begin_block, loop_block, end_block, config_block) =
+
   	let context    = L.global_context () in
 
 	(* Create the LLVM compilation module into which
@@ -29,6 +30,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
   	let printf_func : L.llvalue = 
       L.declare_function "printf" printf_t the_module in
 
+
+
     let build_end_block end_block =
     	let builder = L.builder context in
 
@@ -51,12 +54,11 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
     	in
 
-    	add_terminal builder L.build_ret_void
-
     	(* let builder = stmt builder (snd end_block) *)
 
-    in build_end_block end_block;
+    	add_terminal builder L.build_ret_void
 
+    in build_end_block end_block;
 
     the_module
 
