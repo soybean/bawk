@@ -30,10 +30,10 @@ let translate (begin_block, loop_block, end_block, config_block) =
   	let printf_func : L.llvalue = 
       L.declare_function "printf" printf_t the_module in
 
-
+    let main_function = L.define_function "main" void_t the_module in 
 
     let build_end_block end_block =
-    	let builder = L.builder context in
+    	let builder = L.builder_at_end context (L.entry_block main_function) in 
 
     	let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
 
@@ -47,6 +47,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	     	match L.block_terminator (L.insertion_block builder) with
 			Some _ -> ()
 	    	| None -> ignore (instr builder) in
+
 
     	let rec stmt builder = function
     		A.Expr ex -> ignore(expr builder ex); builder
