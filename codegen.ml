@@ -15,6 +15,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	let i32_t      = L.i32_type    context
 	and i8_t       = L.i8_type     context
 	and i1_t       = L.i1_type     context
+	and str_t 	   = L.pointer_type ( L.i8_type context ) 
 	and void_t     = L.void_type   context in
 
 	(* Return the LLVM type for a MicroC type *)
@@ -22,6 +23,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	  A.Int   -> i32_t
 	| A.Bool  -> i1_t
 	| A.Void  -> void_t
+	| A.String -> str_t
 
 	in
 
@@ -44,7 +46,9 @@ let translate (begin_block, loop_block, end_block, config_block) =
     	let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
 
     	let rec expr builder = function
-    		A.Call ("print", [e]) ->
+    		A.StringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
+				L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
+    		| A.Call ("print", [e]) ->
     			L.build_call printf_func [| string_format_str builder; (expr builder e)|] "printf" builder
 
     	in 
