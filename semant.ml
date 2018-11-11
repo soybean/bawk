@@ -99,12 +99,20 @@ let check (globals, functions) =
       try StringMap.find s symbols
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
-
+(* TBD:
+ArrayLit of expr list
+| InitMapLit of typ * typ * string * expr list
+| InitEmptyMap of typ * typ * string
+| ArrayAssignElement of string * expr * expr
+| ArrayGetElement of string * expr
+| NumFields*)
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
         Literal  l -> (Int, SLiteral l)
+      | StringLiteral l -> (String, SStringLiteral l)
       | BoolLit l  -> (Bool, SBoolLit l)
-      | Noexpr     -> (Void, SNoexpr)
+      | Rgx l  -> (Rgx, SRgx l)
+      | RgxLiteral l -> (RgxLiteral, SRgxLiteral l)
       | Id s       -> (type_of_identifier s, SId s)
       | Assign(var, e) as ex -> 
           let lt = type_of_identifier var
@@ -115,7 +123,7 @@ let check (globals, functions) =
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
-            Neg when t = Int 
+            Neg | Increment | Decrement | Access when t = Int 
           | Not when t = Bool -> Bool
           | _ -> raise (Failure ("illegal unary operator " ^ 
                                  string_of_uop op ^ string_of_typ t ^
@@ -128,7 +136,10 @@ let check (globals, functions) =
           let same = t1 = t2 in
           (* Determine expression type based on operator and operand types *)
           let ty = match op with
-            Add | Sub | Mult | Div when same && t1 = Int   -> Int
+            Add | Sub | Mult | Div | Pluseq | Minuseq when same && t1 = Int   -> Int
+	  | Strcat when same && t1 = String -> String
+	  | Rgxeq | Rgxneq when same && t1 = Rgx -> Bool
+	  | Rgxstrcomp | Rgxnot when ((t1 = Rgx) && (t2 = String)) || ((t1 = String) && (t2 = Rgx)) -> Bool 
           | Equal | Neq            when same               -> Bool
           | Less | Leq | Greater | Geq
                      when same && (t1 = Int) -> Bool
@@ -160,12 +171,15 @@ let check (globals, functions) =
       in if t' != Bool then raise (Failure err) else (t', e') 
     in
 
+(*TODO: InitEmptyMap of typ * typ * string*)
     (* Return a semantically-checked statement i.e. containing sexprs *)
     let rec check_stmt = function
         Expr e -> SExpr (expr e)
       | If(p, b1, b2) -> SIf(check_bool_expr p, check_stmt b1, check_stmt b2)
       | For(e1, e2, e3, st) ->
 	  SFor(expr e1, check_bool_expr e2, expr e3, check_stmt st)
+      | EnhancedFor(s1, st) ->
+          SEnhancedFor((String, SStringLiteral), check_stmt st) (*unsure about this one? should it be expr*)
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
       | Return e -> let (t, e') = expr e in
         if t = func.typ then SReturn (t, e') 
@@ -195,3 +209,44 @@ let check (globals, functions) =
     }
   in (globals, List.map check_function functions)
 
+
+
+(* Semantic checking for the MicroC compiler *)
+
+open Ast
+open Sast
+
+module StringMap = Map.Make(String)
+
+(* ------------------ *)
+(* CHANGING CHECK TO TAKE IN 4 PARAMETERS *)
+
+(* Semantic checking of the AST. Returns an SAST if successful,
+   throws an exception if something is wrong.
+
+   Check each global variable, then check each function *)
+(* Each block is a tuple *)
+(* Have check_begin, check_loop, ...*)
+let check (begin_block, loop_block, end_block, config_block) =
+  
+  (* CHECK BEGIN BLOCK *)
+  let check_begin block =
+    let check_binds (kind : string) (binds : bind list) =
+      List.iter (function
+        (Void, b) -> raise (Failure ("illegal void " ^ kind ^ " " ^ b))
+      | _ -> ()) binds;
+    let rec dups = function
+        [] -> ()
+      | ((_,n1) :: (_,n2) :: _) when n1 = n2 ->
+    raise (Failure ("duplicate " ^ kind ^ " " ^ n1))
+      | _ :: t -> dups t
+    in dups (List.sort (fun (_,a) (_,b) -> compare a b) binds)
+
+    in check_binds "globals" (fst block);
+
+    let check_function func = 
+      check_binds "formals" func.formals;
+      check_binds "locals" func.locals;
+      
+
+  in check_begin begin_block;

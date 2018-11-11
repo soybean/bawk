@@ -1,0 +1,9 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+  print("Hello World!");
+}
+
+CONFIG {}

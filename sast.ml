@@ -50,4 +50,4 @@ type sprogram = sbegin_list * sloop_list * send_list * sconfig_list
 
 (* Pretty-printing functions *)
 
-let string_of_sprogram(beginBlock, loop, endBlock, configBlock) = "HI"
+(* let string_of_sprogram(beginBlock, loop, endBlock, configBlock) = "PASS" *)

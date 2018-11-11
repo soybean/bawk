@@ -1,7 +1,7 @@
 type op = Add | Sub | Mult | Div | Assn | Equal | Neq | Less | Leq | Greater | 
 		  Geq | And | Or | Pluseq | Minuseq | Strcat | Rgxeq | Rgxneq | 
 		  Rgxcomp | Rgxnot
-type uop = Not | Access | Neg | ArrayAssignElement | ArrayGetElement | Increment | Decrement
+type uop = Not | Access | Neg | Increment | Decrement
 type typ = Int | Bool | Void | String | Rgx | ArrayType of typ
 type bind = typ * string 
 type expr = Binop of expr * op * expr
@@ -15,7 +15,7 @@ type expr = Binop of expr * op * expr
 | Rgx of string
 | Unop of uop * expr
 | ArrayLit of expr list
-| MapLit of typ * typ * string * expr * expr
+| InitMapLit of typ * typ * string * expr list
 | InitEmptyMap of typ * typ * string
 | ArrayAssignElement of string * expr * expr
 | ArrayGetElement of string * expr
@@ -23,7 +23,6 @@ type expr = Binop of expr * op * expr
 
 type config_expr = RSAssign of expr
 | FSAssign of expr
-
 
 type stmt = Return of expr
 | Expr of expr
@@ -33,8 +32,6 @@ type stmt = Return of expr
 | InitEmptyMap of typ * typ * string
 | For of expr * expr * expr * stmt
 | EnhancedFor of string * stmt
-| ArrayAssignElement of string * expr * expr
-| ArrayGetElement of string * expr
 
 type func_decl = {
   ret_type : typ;
@@ -53,4 +50,5 @@ type program = begin_list * loop_list * end_list * config_list
 
 (* Pretty-printing functions *)
 
-let string_of_program(beginBlock, loop, endBlock, configBlock) = "HI"
+let string_of_program(beginBlock, loop, endBlock, configBlock) = "PASS\n"
+
