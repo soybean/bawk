@@ -39,11 +39,11 @@ let check (globals, functions) =
 			                         (String, "int_to_string", [(Int, "a")]);
 						 (String, "bool_to_string", [(Bool, "a")]);
 						 (String, "rgx_to_string", [(Rgx, "a")]);
-                                                 (Int, "length", [(ArrayType[], "a")]);
+                                                 (Int, "length", [(ArrayType(Int), "a")]);
 						 (Void, "print", [(String, "a")]);
 						 (Void, "println", [(String, "a")]);
-                                                 (Bool, "contains", [(typ, "a");(ArrayType[], "b")]);
-                                                 (Int, "index_of", [(ArrayType[], "a");(typ, "b")])]
+                                                 (Bool, "contains", [(Int, "a");(ArrayType(Int), "b")]);
+                                                 (Int, "index_of", [(ArrayType(Int), "a");(Int, "b")])] (* need to make generic *)
 						(* (Bool, "contains", [(typ, "a");(ArrayLit, "b")]; locals = []; body=[]);
 						 (Int, "index_of", [(ArrayLit, "a");(typ, "b")]; locals = []; body=[]);
 						 (Void, "for", []);(Void, "in", []);(Void, "if", []);
@@ -106,16 +106,16 @@ let check (globals, functions) =
       | StringLiteral l -> (String, SStringLiteral l)
       | BoolLit l  -> (Bool, SBoolLit l)
       | Rgx l  -> (Rgx, SRgx l)
-      | RgxLiteral l -> (RgxLiteral, SRgxLiteral l)
+      | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Id s       -> (type_of_identifier s, SId s)
-      | ArrayLit l -> (ArrayLit, SArrayLit)
-      | NumFields l -> (NumFields, SNumFields)
-      | Assign(var, e) as ex -> 
-          let lt = type_of_identifier var
-          and (rt, e') = expr e in
-          let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
-            string_of_typ rt ^ " in " ^ string_of_expr ex
-          in (check_assign lt rt err, SAssign(var, (rt, e')))
+   (*   | ArrayLit l -> (ArrayType(Int), SArrayLit l) (*needs to be generic*) *)
+      | NumFields -> (Int, SNumFields)
+      | Assign(e1, e2) as ex -> 
+          let (t1, e1') = expr e1
+          and (t2, e2') = expr e2 in
+          let err = "illegal assignment " ^ string_of_typ t1 ^ " = " ^ 
+            string_of_typ t2 ^ " in " ^ string_of_expr ex
+          in (check_assign t1 t2 err, SAssign((t1, e1'), (t2, e2')))
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
