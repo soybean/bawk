@@ -15,8 +15,6 @@ type expr = Binop of expr * op * expr
 | Rgx of string
 | Unop of uop * expr
 | ArrayLit of expr list
-| InitMapLit of typ * typ * string * expr list
-| InitEmptyMap of typ * typ * string
 | ArrayAssignElement of string * expr * expr
 | ArrayGetElement of string * expr
 | NumFields
@@ -29,7 +27,6 @@ type stmt = Return of expr
 | Block of stmt list
 | While of expr * stmt
 | If of expr * stmt * stmt
-| InitEmptyMap of typ * typ * string
 | For of expr * expr * expr * stmt
 | EnhancedFor of string * stmt
 
