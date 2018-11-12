@@ -39,11 +39,11 @@ let check (globals, functions) =
 			                         (String, "int_to_string", [(Int, "a")]);
 						 (String, "bool_to_string", [(Bool, "a")]);
 						 (String, "rgx_to_string", [(Rgx, "a")]);
-						 (Int, "length", [(ArrayLit, "a")]);
+                                                 (Int, "length", [(ArrayType[], "a")]);
 						 (Void, "print", [(String, "a")]);
 						 (Void, "println", [(String, "a")]);
-						 (Bool, "contains", [(typ, "a");(ArrayLit, "b")]);
-                                                 (Int, "index_of", [(ArrayLit, "a");(typ, "b")])]
+                                                 (Bool, "contains", [(typ, "a");(ArrayType[], "b")]);
+                                                 (Int, "index_of", [(ArrayType[], "a");(typ, "b")])]
 						(* (Bool, "contains", [(typ, "a");(ArrayLit, "b")]; locals = []; body=[]);
 						 (Int, "index_of", [(ArrayLit, "a");(typ, "b")]; locals = []; body=[]);
 						 (Void, "for", []);(Void, "in", []);(Void, "if", []);
