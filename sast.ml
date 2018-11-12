@@ -1,7 +1,7 @@
 open Ast
 
 type sexpr = typ * sx
-and sx =
+and sx = SBinop of sexpr * op * sexpr
 | SBoolLit of bool
 | SLiteral of int
 | SStringLiteral of string
@@ -21,14 +21,12 @@ type sconfig_expr = SRSAssign of sexpr
 
 
 type sstmt = SReturn of sexpr
-| Sxpr of sexpr
+| SExpr of sexpr
 | SBlock of sstmt list
 | SWhile of sexpr * sstmt
 | SIf of sexpr * sstmt * sstmt
 | SFor of sexpr * sexpr * expr * sstmt
 | SEnhancedFor of string * sstmt
-| SArrayAssignElement of string * sexpr * sexpr
-| SArrayGetElement of string * sexpr
 
 type sfunc_decl = {
   sret_type : typ;
