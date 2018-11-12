@@ -29,15 +29,21 @@ let check (globals, functions) =
 
   (**** Check functions ****)
   (* Collect function declarations for built-in functions: no bodies *)
-  let built_in_decls = 
-    [ (typ = Int; fname = "string_to_int"; formals = [(String, "a")]; locals = []; body=[]);
-    (typ = String; fname = "int_to_string"; formals = [(Int, "a")]; locals = []; body=[]);
-    (typ = String, fname = "bool_to_string", formals = [(Bool, "a")]; locals = []; body=[]);
-    (typ = String, fname = "rgx_to_string", formals = [(Rgx, "a")]; locals = []; body=[]);
-    (typ = Int, fname = "length", formals = [(ArrayLit, "a")]; locals = []; body=[]);
-    (typ = Int, fname = "size", formals = [(InitMapLit, "a")]; locals = []; body=[]);
-    (typ = Void, fname = "print", formals = [(String, "a")]; locals = []; body=[]);
-    (typ = Void, fname = "println", formals = [(String, "a")]; locals = []; body=[]);
+  let add_bind map (ftyp, name, flist) = StringMap.add name {
+      ret_typ = ftyp;
+      fname = name; 
+      formals = flist;
+      locals = []; body = [] } map
+    in List.fold_left add_bind StringMap.empty [ (Int, "string_to_int", [(String, "a")]);
+			                         (String, "int_to_string", [(Int, "a")]);
+						 (String, "bool_to_string", [(Bool, "a")]);
+						 (String, "rgx_to_string", [(Rgx, "a")]);
+						 (Int, "length", [(ArrayLit, "a")]);
+						 (Int, "size", [(InitMapLit, "a")]);
+						 (Void, "print", [(String, "a")]);
+						 (Void, "println", [(String, "a")]);
+						 (Bool, "contains", [(typ, "a");(ArrayLit, "b")]);
+						 (Int, "index_of", [(ArrayLit, "a");(typ, "b")]);
 						(* (Bool, "contains", [(typ, "a");(ArrayLit, "b")]; locals = []; body=[]);
 						 (Int, "index_of", [(ArrayLit, "a");(typ, "b")]; locals = []; body=[]);
 						 (Void, "for", []);(Void, "in", []);(Void, "if", []);
