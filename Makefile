@@ -1,10 +1,10 @@
-# "make test" Compiles everything and runs the regression tests
+# "make test" removes all previously generated files, compiles everything, and runs the regression tests
 
 .PHONY : test
 test : all test-script.sh
 	./test-script.sh
 
-# "make all" builds the executable
+# "make all" removes all previously generated files and builds the executable
 
 .PHONY : all
 all : clean bawk.native

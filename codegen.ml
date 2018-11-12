@@ -34,23 +34,24 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
     (* Main LLVM function where all code is stuffed *)
     let ftype = L.function_type void_t [||] in
-	let main_func = L.define_function "main" ftype the_module in
-	let builder = L.builder_at_end context (L.entry_block main_func) in
+	  let main_func = L.define_function "main" ftype the_module in
+	  let builder = L.builder_at_end context (L.entry_block main_func) in
 
-	(*Build end block*)
+	(* Build end block *)
     let build_end_block end_block =
 
     	let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
 
+    	(* TODO: add all other patterns to expr and stmt *)
     	let rec expr builder = function
     		A.StringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
 				L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
+			| A.BoolLit b  -> L.const_int i1_t (if b then 1 else 0)
     		| A.Call ("print", [e]) ->
     			L.build_call printf_func [| string_format_str builder; (expr builder e)|] "printf" builder
 
     	in 
 
-    	(* TODO: add all other patterns to expr and stmt *)
     	let add_terminal builder instr =
 	     	match L.block_terminator (L.insertion_block builder) with
 			Some _ -> ()
