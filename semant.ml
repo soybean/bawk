@@ -122,7 +122,7 @@ ArrayLit of expr list
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
-            Neg | Increment | Decrement | Access when t = Int 
+            Neg | Increment | Decrement | Access when t = Int -> Int 
           | Not when t = Bool -> Bool
           | _ -> raise (Failure ("illegal unary operator " ^ 
                                  string_of_uop op ^ string_of_typ t ^
