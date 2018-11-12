@@ -27,7 +27,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
 	in
 
-	let printf_t : L.lltype = 
+	  let printf_t : L.lltype = 
       L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   	let printf_func : L.llvalue = 
       L.declare_function "printf" printf_t the_module in
@@ -37,7 +37,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	  let main_func = L.define_function "main" ftype the_module in
 	  let builder = L.builder_at_end context (L.entry_block main_func) in
 
-	(* Build end block *)
+    (* Build end block *)
     let build_end_block end_block =
 
     	let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
