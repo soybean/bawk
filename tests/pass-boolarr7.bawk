@@ -1,0 +1,26 @@
+BEGIN {}
+
+LOOP {
+  bool[][] m;
+  bool[][][] a;
+  bool[][][][] b;
+
+  m = [[false, false], [false, false]];
+  m[0][0] = true;
+  print(bool_to_string(m[0][0]));
+
+  a = 
+  [
+    [ [true, false], [false, false] ], [ [false, false], [false, false] ]
+  ];
+  print(bool_to_string(a[0][0][0]));
+
+  b = 
+  [
+    [ [ [true, false], [false, false] ], [ [false, false], [false, false] ] ], 
+    [ [ [false, false], [false, false] ], [ [false, false], [false, false] ] ]
+  ];
+  print(bool_to_string(b[0][0][0][0]));
+}
+
+END {}
