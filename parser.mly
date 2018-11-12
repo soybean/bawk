@@ -136,7 +136,7 @@ expr: LITERAL { Literal($1) }
 | NF { NumFields }
 | DOLLAR expr { Unop(Access, $2) }
 | MINUS expr %prec NEG { Unop(Neg, $2) }
-| ID ASSIGN expr { Assign($1, $3) }
+| expr ASSIGN expr { Assign($1, $3) }
 
 actuals_opt: { [] } 
 | actuals_list { List.rev $1 } 
