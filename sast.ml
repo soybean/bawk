@@ -12,8 +12,6 @@ and sx =
 | SRgx of string
 | SUnop of uop * sexpr
 | SArrayLit of sexpr list
-| SMapLit of typ * typ * string * sexpr * sexpr
-| SInitEmptyMap of typ * typ * string
 | SArrayAssignElement of string * sexpr * sexpr
 | SArrayGetElement of string * sexpr
 | SNumFields
@@ -27,7 +25,6 @@ type sstmt = SReturn of sexpr
 | SBlock of sstmt list
 | SWhile of sexpr * sstmt
 | SIf of sexpr * sstmt * sstmt
-| SInitEmptyMap of typ * typ * string
 | SFor of sexpr * sexpr * expr * sstmt
 | SEnhancedFor of string * sstmt
 | SArrayAssignElement of string * sexpr * sexpr

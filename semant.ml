@@ -7,8 +7,6 @@ module StringMap = Map.Make(String)
    throws an exception if something is wrong.
 
    Check each global variable, then check each function *)
-let builtin_keywords = 
-	["for";"in";"if";"else";"while";"CONFIG";"BEGIN";"LOOP";"END";"function";"return";"RS";"FS";"NF";"$";"true";"false"];
 
 let check (globals, functions) =
 
@@ -45,17 +43,16 @@ let check (globals, functions) =
 						 (Int, "size", [(InitMapLit, "a")]);
 						 (Void, "print", [(String, "a")]);
 						 (Void, "println", [(String, "a")]);
-						 (Bool, "contains_int", [(Int, "a");(ArrayLit, "b")]);
-						 (Bool, "contains_string", [(String, "a");(ArrayLit, "b")]);
-						 (Bool, "contains_bool", [(Bool, "a");(ArrayLit, "b")]);
-						 (Bool, "contains_rgx", [(Rgx, "a");(ArrayLit, "b")]);
-						 (Int, "index_of_int", [(ArrayLit, "a");(Int, "b")]);
-						 (Int, "index_of_string", [(ArrayLit, "a");(String, "b")]);
-						 (Int, "index_of_bool", [(ArrayLit, "a");(Bool, "b")]);
-						 (Int, "index_of_rgx", [(ArrayLit, "a");(Rgx, "b")]);
-						 (ArrayLit, "keys", [(InitMapLit, "a")]);
-						 (ArrayLit, "values", [(InitMapLit, "a")]]
-  in  
+						 (Bool, "contains", [(typ, "a");(ArrayLit, "b")]);
+						 (Int, "index_of", [(ArrayLit, "a");(typ, "b")]);
+						 (Void, "for", []);(Void, "in", []);(Void, "if", []);
+						 (Void, "else", []);(Void, "while", []);(Void, "CONFIG", []);
+						 (Void, "BEGIN", []); (Void, "LOOP", []);(Void, "END", []);
+						 (Void, "function", []); (Void, "return", []);(Void, "RS", []);
+						 (Void, "FS", []); (Void, "NF", []);(Void, "$", []); (Void, "true", []);
+						 (Void, "false", [])]
+  in 
+	
   
    (* Add function name to symbol table *)
   let add_func map fd = 
@@ -100,12 +97,8 @@ let check (globals, functions) =
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
 (* TBD:
-ArrayLit of expr list
-| InitMapLit of typ * typ * string * expr list
-| InitEmptyMap of typ * typ * string
 | ArrayAssignElement of string * expr * expr
-| ArrayGetElement of string * expr
-| NumFields*)
+| ArrayGetElement of string * expr*)
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
         Literal  l -> (Int, SLiteral l)
@@ -114,6 +107,8 @@ ArrayLit of expr list
       | Rgx l  -> (Rgx, SRgx l)
       | RgxLiteral l -> (RgxLiteral, SRgxLiteral l)
       | Id s       -> (type_of_identifier s, SId s)
+      | ArrayLit l -> (ArrayLit, SArrayLit)
+      | NumFields l -> (NumFields, SNumFields)
       | Assign(var, e) as ex -> 
           let lt = type_of_identifier var
           and (rt, e') = expr e in
@@ -123,7 +118,7 @@ ArrayLit of expr list
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
-            Neg | Increment | Decrement | Access when t = Int 
+            Neg | Increment | Decrement | Access when t = Int -> Int 
           | Not when t = Bool -> Bool
           | _ -> raise (Failure ("illegal unary operator " ^ 
                                  string_of_uop op ^ string_of_typ t ^
@@ -171,7 +166,6 @@ ArrayLit of expr list
       in if t' != Bool then raise (Failure err) else (t', e') 
     in
 
-(*TODO: InitEmptyMap of typ * typ * string*)
     (* Return a semantically-checked statement i.e. containing sexprs *)
     let rec check_stmt = function
         Expr e -> SExpr (expr e)
@@ -211,7 +205,7 @@ ArrayLit of expr list
 
 
 
-(* Semantic checking for the MicroC compiler *)
+(* Semantic checking for the MicroC compiler 
 
 open Ast
 open Sast
@@ -250,3 +244,4 @@ let check (begin_block, loop_block, end_block, config_block) =
       
 
   in check_begin begin_block;
+*)

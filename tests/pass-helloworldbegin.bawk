@@ -1,0 +1,10 @@
+BEGIN {
+print("Hello World!");
+}
+
+LOOP {}
+
+END {
+}
+
+CONFIG {}
