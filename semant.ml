@@ -97,10 +97,8 @@ let check (globals, functions) =
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
 (* TBD:
-ArrayLit of expr list
 | ArrayAssignElement of string * expr * expr
-| ArrayGetElement of string * expr
-| NumFields*)
+| ArrayGetElement of string * expr*)
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
         Literal  l -> (Int, SLiteral l)
@@ -109,6 +107,8 @@ ArrayLit of expr list
       | Rgx l  -> (Rgx, SRgx l)
       | RgxLiteral l -> (RgxLiteral, SRgxLiteral l)
       | Id s       -> (type_of_identifier s, SId s)
+      | ArrayLit l -> (ArrayLit, SArrayLit)
+      | NumFields l -> (NumFields, SNumFields)
       | Assign(var, e) as ex -> 
           let lt = type_of_identifier var
           and (rt, e') = expr e in
