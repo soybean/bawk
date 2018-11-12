@@ -22,7 +22,7 @@ let () =
   let lexbuf = Lexing.from_channel !channel in
   let ast = Parser.program Scanner.token lexbuf in
     match !action with
-      Ast     -> get_output Sys.argv.(2)
+      Ast     -> ()
       | LLVM_IR -> print_string (Llvm.string_of_llmodule (Codegen.translate ast))
       | Compile -> let m = Codegen.translate ast in
   Llvm_analysis.assert_valid_module m;
