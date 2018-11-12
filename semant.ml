@@ -30,8 +30,8 @@ let check (globals, functions) =
   (**** Check functions ****)
   (* Collect function declarations for built-in functions: no bodies *)
   let built_in_decls = 
-    let add_bind map (ftyp, name, flist) = StringMap.add name {
-      typ = ftyp;
+  let add_bind map (ftyp, name, flist) = StringMap.add name {
+      ret_type = ftyp;
       fname = name; 
       formals = flist;
       locals = []; body = [] } map
@@ -40,19 +40,18 @@ let check (globals, functions) =
 						 (String, "bool_to_string", [(Bool, "a")]);
 						 (String, "rgx_to_string", [(Rgx, "a")]);
 						 (Int, "length", [(ArrayLit, "a")]);
-						 (Int, "size", [(InitMapLit, "a")]);
 						 (Void, "print", [(String, "a")]);
 						 (Void, "println", [(String, "a")]);
 						 (Bool, "contains", [(typ, "a");(ArrayLit, "b")]);
-						 (Int, "index_of", [(ArrayLit, "a");(typ, "b")]);
-						 (ArrayLit, "keys", [(InitMapLit, "a")]);
-						 (ArrayLit, "values", [(InitMapLit, "a")]);
+                                                 (Int, "index_of", [(ArrayLit, "a");(typ, "b")])]
+						(* (Bool, "contains", [(typ, "a");(ArrayLit, "b")]; locals = []; body=[]);
+						 (Int, "index_of", [(ArrayLit, "a");(typ, "b")]; locals = []; body=[]);
 						 (Void, "for", []);(Void, "in", []);(Void, "if", []);
 						 (Void, "else", []);(Void, "while", []);(Void, "CONFIG", []);
 						 (Void, "BEGIN", []); (Void, "LOOP", []);(Void, "END", []);
 						 (Void, "function", []); (Void, "return", []);(Void, "RS", []);
 						 (Void, "FS", []); (Void, "NF", []);(Void, "$", []); (Void, "true", []);
-						 (Void, "false", []);]
+						 (Void, "false", []) *) 
   in 
 	
   
@@ -99,12 +98,8 @@ let check (globals, functions) =
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
 (* TBD:
-ArrayLit of expr list
-| InitMapLit of typ * typ * string * expr list
-| InitEmptyMap of typ * typ * string
 | ArrayAssignElement of string * expr * expr
-| ArrayGetElement of string * expr
-| NumFields*)
+| ArrayGetElement of string * expr*)
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
         Literal  l -> (Int, SLiteral l)
@@ -113,6 +108,8 @@ ArrayLit of expr list
       | Rgx l  -> (Rgx, SRgx l)
       | RgxLiteral l -> (RgxLiteral, SRgxLiteral l)
       | Id s       -> (type_of_identifier s, SId s)
+      | ArrayLit l -> (ArrayLit, SArrayLit)
+      | NumFields l -> (NumFields, SNumFields)
       | Assign(var, e) as ex -> 
           let lt = type_of_identifier var
           and (rt, e') = expr e in
@@ -170,7 +167,6 @@ ArrayLit of expr list
       in if t' != Bool then raise (Failure err) else (t', e') 
     in
 
-(*TODO: InitEmptyMap of typ * typ * string*)
     (* Return a semantically-checked statement i.e. containing sexprs *)
     let rec check_stmt = function
         Expr e -> SExpr (expr e)
@@ -210,7 +206,7 @@ ArrayLit of expr list
 
 
 
-(* Semantic checking for the MicroC compiler *)
+(* Semantic checking for the MicroC compiler 
 
 open Ast
 open Sast
@@ -249,3 +245,4 @@ let check (begin_block, loop_block, end_block, config_block) =
       
 
   in check_begin begin_block;
+*)

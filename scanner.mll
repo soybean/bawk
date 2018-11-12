@@ -12,6 +12,7 @@ rule token = parse
 | "]"        { RSQUARE }
 | ";"        { SEMI }
 | "&"        { STRCAT }
+| "$"        { DOLLAR }
 | ","        { COMMA }
 | "+"        { PLUS }
 | "-"        { MINUS }
@@ -46,11 +47,10 @@ rule token = parse
 | "!%"       { RGXNEQ }
 | "~"        { RGXSTRCMP }
 | "!~"       { RGXSTRNOT }
-| "{}"       { EMPTYMAP }
-| "map"      { MAP }
 | "CONFIG"   { CONFIG }
 | "RS"       { RS }
 | "FS"       { FS }
+| "NF"       { NF }
 | "BEGIN"    { BEGIN }
 | "LOOP"     { LOOP }
 | "END"      { END }

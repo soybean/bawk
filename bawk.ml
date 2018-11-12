@@ -14,7 +14,7 @@ let () =
       "Check and print the generated LLVM IR (default)");
     ("-f", Arg.String (set_input), "Specifies the input to read");
   ] in  
-  let usage_msg = "usage: ./bawk.native [-a] [file.bawk] [-f] [input]" in
+  let usage_msg = "usage: ./bawk.native [-a|-l|-c] [file.bawk] [-f] [input]" in
   let channel = ref stdin in
 
   Arg.parse speclist (fun filename -> channel := open_in filename) usage_msg;
