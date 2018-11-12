@@ -29,8 +29,9 @@ let check (globals, functions) =
 
   (**** Check functions ****)
   (* Collect function declarations for built-in functions: no bodies *)
+  let built_in_decls = 
   let add_bind map (ftyp, name, flist) = StringMap.add name {
-      ret_typ = ftyp;
+      ret_type = ftyp;
       fname = name; 
       formals = flist;
       locals = []; body = [] } map
@@ -39,11 +40,10 @@ let check (globals, functions) =
 						 (String, "bool_to_string", [(Bool, "a")]);
 						 (String, "rgx_to_string", [(Rgx, "a")]);
 						 (Int, "length", [(ArrayLit, "a")]);
-						 (Int, "size", [(InitMapLit, "a")]);
 						 (Void, "print", [(String, "a")]);
 						 (Void, "println", [(String, "a")]);
 						 (Bool, "contains", [(typ, "a");(ArrayLit, "b")]);
-						 (Int, "index_of", [(ArrayLit, "a");(typ, "b")]);
+                                                 (Int, "index_of", [(ArrayLit, "a");(typ, "b")])]
 						(* (Bool, "contains", [(typ, "a");(ArrayLit, "b")]; locals = []; body=[]);
 						 (Int, "index_of", [(ArrayLit, "a");(typ, "b")]; locals = []; body=[]);
 						 (Void, "for", []);(Void, "in", []);(Void, "if", []);
@@ -51,7 +51,7 @@ let check (globals, functions) =
 						 (Void, "BEGIN", []); (Void, "LOOP", []);(Void, "END", []);
 						 (Void, "function", []); (Void, "return", []);(Void, "RS", []);
 						 (Void, "FS", []); (Void, "NF", []);(Void, "$", []); (Void, "true", []);
-						 (Void, "false", []) *) ]
+						 (Void, "false", []) *) 
   in 
 	
   
