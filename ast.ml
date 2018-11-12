@@ -10,15 +10,12 @@ type expr = Binop of expr * op * expr
 | StringLiteral of string
 | RgxLiteral of string
 | Id of string
-| Assign of string * expr
+| Assign of expr * expr
 | Call of string * expr list
 | Rgx of string
 | Unop of uop * expr
 | ArrayLit of expr list
-| InitMapLit of typ * typ * string * expr list
-| InitEmptyMap of typ * typ * string
-| ArrayAssignElement of string * expr * expr
-| ArrayGetElement of string * expr
+| ArrayDeref of expr * expr
 | NumFields
 
 type config_expr = RSAssign of expr
@@ -29,7 +26,6 @@ type stmt = Return of expr
 | Block of stmt list
 | While of expr * stmt
 | If of expr * stmt * stmt
-| InitEmptyMap of typ * typ * string
 | For of expr * expr * expr * stmt
 | EnhancedFor of string * stmt
 

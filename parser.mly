@@ -10,7 +10,6 @@
 %token INT BOOL VOID STRING RGX TRUE FALSE
 %token RS FS NF
 %token IF ELSE WHILE FOR IN
-%token MAP EMPTYMAP
 %token DOLLAR
 
 %token <int> LITERAL
@@ -29,7 +28,8 @@
 %left PLUS MINUS STRCAT
 %left MULTIPLY DIVIDE
 %right NOT NEG
-%right INCREMENT DECREMENT
+%right INCREMENT DECREMENT 
+%left LSQUARE
 %right DOLLAR
 
 
@@ -41,28 +41,24 @@ program: begin_block loop_block end_block config_block EOF { ($1, $2, $3, $4) }
 
 begin_block: 
     BEGIN LCURLY global_vars_list func_list RCURLY  { ($3, $4) }
-    | BEGIN EMPTYMAP { ([], []) }
 
-loop_block: LOOP LCURLY local_vars_list stmt_list RCURLY 
-{ ($3, $4) }
-| LOOP EMPTYMAP { ([], []) }
+loop_block: LOOP LCURLY local_vars_list stmt_list RCURLY { ($3, $4) }
 
-end_block: END LCURLY local_vars_list stmt_list RCURLY 
-{ ($3, $4) }
-| END EMPTYMAP { ([], []) }
+end_block: END LCURLY local_vars_list stmt_list RCURLY { ($3, $4) }
 
 config_block:							{ [] }
 | CONFIG LCURLY config_expr_list RCURLY	{ ($3) }
-| CONFIG EMPTYMAP { [] }
 
 primitive: STRING		{ String }
 | INT 			{ Int }
 | BOOL			{ Bool }
 | RGX           { Rgx }
 
-typ: primitive	{ $1 }
-| VOID          { Void }
-| primitive LSQUARE RSQUARE { ArrayType($1) }
+typ: VOID          { Void }
+| array_type { ArrayType($1) }
+
+array_type: array_type LSQUARE RSQUARE { $1 }
+| primitive { $1 }
 
 func_list: 		{ [] }
 | func_list func	{ $2 :: $1 }
@@ -86,16 +82,11 @@ formals_list: typ ID 		{ [($1, $2)] }
 
 var_decl: typ ID SEMI { ($1, $2) }
 
-expr_list: /* Nothing  { [] }
-    | */expr_list COMMA expr { $3 :: $1 }
-
 config_expr_list: 				{ [] }
 | config_expr_list config_expr	{ $2 :: $1 }
 
 config_expr: RS ASSIGN expr SEMI 	{ RSAssign($3) }
 | FS ASSIGN expr SEMI 				{ FSAssign($3) }
-
-| FS ASSIGN expr 			{ FSAssign($3) }
 
 stmt_list: 		{ [] } 
 | stmt_list stmt 	{ $2 :: $1 } 
@@ -107,7 +98,6 @@ stmt: expr SEMI 		{ Expr $1 }
 | FOR LPAREN ID IN ID RPAREN code_block { EnhancedFor($3, $7) }
 | IF LPAREN expr RPAREN code_block ELSE code_block { If($3, $5, $7) }
 | IF LPAREN expr RPAREN code_block %prec code_block { If($3, $5, Block([])) }
-/*| typ ID ASSIGN expr { Assign($1, $2, $4) } */
 
 code_block: LCURLY stmt_list RCURLY 	{ Block(List.rev $2) }
 
@@ -139,17 +129,14 @@ expr: LITERAL { Literal($1) }
 | expr RGXSTRCMP expr { Binop ($1, Rgxcomp, $3)}
 | expr RGXSTRNOT expr { Binop ($1, Rgxnot, $3)}
 | LSQUARE actuals_opt RSQUARE { ArrayLit($2) }
-| MAP LT typ COMMA typ GT ID ASSIGN EMPTYMAP { InitEmptyMap($3, $5, $7) }
-| MAP LT typ COMMA typ GT ID ASSIGN LCURLY expr_list RCURLY { InitMapLit($3, $5, $7, $10) }
-| ID LSQUARE expr RSQUARE ASSIGN expr { ArrayAssignElement($1, $3, $6) }
-| ID LSQUARE expr RSQUARE { ArrayGetElement($1, $3) }
+| expr LSQUARE expr RSQUARE { ArrayDeref($1, $3) }
 | NOT expr { Unop(Not, $2) }
 | LPAREN expr RPAREN { $2 } 
 | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
 | NF { NumFields }
 | DOLLAR expr { Unop(Access, $2) }
 | MINUS expr %prec NEG { Unop(Neg, $2) }
-| ID ASSIGN expr { Assign($1, $3) } 
+| expr ASSIGN expr { Assign($1, $3) }
 
 actuals_opt: { [] } 
 | actuals_list { List.rev $1 } 
