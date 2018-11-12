@@ -43,15 +43,13 @@ let check (globals, functions) =
 						 (Void, "print", [(String, "a")]);
 						 (Void, "println", [(String, "a")]);
                                                  (Bool, "contains", [(Int, "a");(ArrayType(Int), "b")]);
-                                                 (Int, "index_of", [(ArrayType(Int), "a");(Int, "b")])] (* need to make generic *)
-						(* (Bool, "contains", [(typ, "a");(ArrayLit, "b")]; locals = []; body=[]);
-						 (Int, "index_of", [(ArrayLit, "a");(typ, "b")]; locals = []; body=[]);
-						 (Void, "for", []);(Void, "in", []);(Void, "if", []);
-						 (Void, "else", []);(Void, "while", []);(Void, "CONFIG", []);
-						 (Void, "BEGIN", []); (Void, "LOOP", []);(Void, "END", []);
-						 (Void, "function", []); (Void, "return", []);(Void, "RS", []);
-						 (Void, "FS", []); (Void, "NF", []);(Void, "$", []); (Void, "true", []);
-						 (Void, "false", []) *) 
+						 (Bool, "contains", [(String, "a");(ArrayType(String), "b")]);
+						 (Bool, "contains", [(Rgx, "a");(ArrayType(Rgx), "b")]);
+						 (Bool, "contains", [(Bool, "a");(ArrayType(Bool), "b")]);
+                                                 (Int, "index_of", [(ArrayType(Int), "a");(Int, "b")]);
+						 (Int, "index_of", [(ArrayType(String), "a");(String, "b")]);
+						 (Int, "index_of", [(ArrayType(Rgx), "a");(Rgx, "b")]);
+						 (Int, "index_of", [(ArrayType(Bool), "a");(Bool, "b")])] (* need to make generic *)
   in 
 	
   
@@ -110,12 +108,12 @@ let check (globals, functions) =
       | Id s       -> (type_of_identifier s, SId s)
    (*   | ArrayLit l -> (ArrayType(Int), SArrayLit l) (*needs to be generic*) *)
       | NumFields -> (Int, SNumFields)
-      | Assign(e1, e2) as ex -> 
-          let (t1, e1') = expr e1
-          and (t2, e2') = expr e2 in
-          let err = "illegal assignment " ^ string_of_typ t1 ^ " = " ^ 
-            string_of_typ t2 ^ " in " ^ string_of_expr ex
-          in (check_assign t1 t2 err, SAssign((t1, e1'), (t2, e2')))
+      | Assign(var, e) as ex -> 
+          let lt = type_of_identifier var
+          and (rt, e') = expr e in
+          let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
+            string_of_typ rt ^ " in " ^ string_of_expr ex
+          in (check_assign lt rt err, SAssign(var, (rt, e')))
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with

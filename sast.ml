@@ -36,10 +36,10 @@ type sfunc_decl = {
   sbody     : sstmt list;
 }
 
-type sbegin_list = bind list * func_decl list
-type sloop_list = bind list * stmt list
-type send_list = bind list * stmt list
-type sconfig_list = config_expr list
+type sbegin_list = bind list * sfunc_decl list
+type sloop_list = bind list * sstmt list
+type send_list = bind list * sstmt list
+type sconfig_list = sconfig_expr list
 
 type sprogram = sbegin_list * sloop_list * send_list * sconfig_list
 
