@@ -45,14 +45,12 @@ let check (globals, functions) =
 						 (Void, "println", [(String, "a")]);
 						 (Bool, "contains", [(typ, "a");(ArrayLit, "b")]);
 						 (Int, "index_of", [(ArrayLit, "a");(typ, "b")]);
-						 (ArrayLit, "keys", [(InitMapLit, "a")]);
-						 (ArrayLit, "values", [(InitMapLit, "a")]);
 						 (Void, "for", []);(Void, "in", []);(Void, "if", []);
 						 (Void, "else", []);(Void, "while", []);(Void, "CONFIG", []);
 						 (Void, "BEGIN", []); (Void, "LOOP", []);(Void, "END", []);
 						 (Void, "function", []); (Void, "return", []);(Void, "RS", []);
 						 (Void, "FS", []); (Void, "NF", []);(Void, "$", []); (Void, "true", []);
-						 (Void, "false", []);]
+						 (Void, "false", [])]
   in 
 	
   
@@ -100,8 +98,6 @@ let check (globals, functions) =
     in
 (* TBD:
 ArrayLit of expr list
-| InitMapLit of typ * typ * string * expr list
-| InitEmptyMap of typ * typ * string
 | ArrayAssignElement of string * expr * expr
 | ArrayGetElement of string * expr
 | NumFields*)
@@ -170,7 +166,6 @@ ArrayLit of expr list
       in if t' != Bool then raise (Failure err) else (t', e') 
     in
 
-(*TODO: InitEmptyMap of typ * typ * string*)
     (* Return a semantically-checked statement i.e. containing sexprs *)
     let rec check_stmt = function
         Expr e -> SExpr (expr e)
@@ -210,7 +205,7 @@ ArrayLit of expr list
 
 
 
-(* Semantic checking for the MicroC compiler *)
+(* Semantic checking for the MicroC compiler 
 
 open Ast
 open Sast
@@ -249,3 +244,4 @@ let check (begin_block, loop_block, end_block, config_block) =
       
 
   in check_begin begin_block;
+*)
