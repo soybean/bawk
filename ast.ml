@@ -10,13 +10,12 @@ type expr = Binop of expr * op * expr
 | StringLiteral of string
 | RgxLiteral of string
 | Id of string
-| Assign of string * expr
+| Assign of expr * expr
 | Call of string * expr list
 | Rgx of string
 | Unop of uop * expr
 | ArrayLit of expr list
-| ArrayAssignElement of string * expr * expr
-| ArrayGetElement of string * expr
+| ArrayDeref of expr * expr
 | NumFields
 
 type config_expr = RSAssign of expr
