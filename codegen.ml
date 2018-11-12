@@ -32,10 +32,12 @@ let translate (begin_block, loop_block, end_block, config_block) =
   	let printf_func : L.llvalue = 
       L.declare_function "printf" printf_t the_module in
 
+    (* Main LLVM function where all code is stuffed *)
     let ftype = L.function_type void_t [||] in
 	let main_func = L.define_function "main" ftype the_module in
 	let builder = L.builder_at_end context (L.entry_block main_func) in
 
+	(*Build end block*)
     let build_end_block end_block =
 
     	let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
@@ -48,6 +50,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
     	in 
 
+    	(* TODO: add all other patterns to expr and stmt *)
     	let add_terminal builder instr =
 	     	match L.block_terminator (L.insertion_block builder) with
 			Some _ -> ()
