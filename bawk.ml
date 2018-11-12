@@ -19,9 +19,6 @@ let () =
 
   Arg.parse speclist (fun filename -> channel := open_in filename) usage_msg;
 
-  let get_output file = if String.equal "tests/pass-helloworld.bawk" file then print_string "Hello, world!\n" in
-
-  
   let lexbuf = Lexing.from_channel !channel in
   let ast = Parser.program Scanner.token lexbuf in
     match !action with
