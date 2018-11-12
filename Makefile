@@ -7,7 +7,7 @@ test : all test-script.sh
 # "make all" builds the executable
 
 .PHONY : all
-all : bawk.native
+all : clean bawk.native
 
 # "make bawk.native" compiles the compiler
 
