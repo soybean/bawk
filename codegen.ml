@@ -18,7 +18,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	and str_t 	   = L.pointer_type ( L.i8_type context ) 
 	and void_t     = L.void_type   context in
 
-	(* Return the LLVM type for a MicroC type *)
+	(* Return the LLVM type for a bawk type *)
 	let ltype_of_typ = function
 	  A.Int   -> i32_t
 	| A.Bool  -> i1_t
@@ -28,15 +28,26 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	in
 
 	let printf_t : L.lltype = 
-    	L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
-  	let printf_func : L.llvalue = 
-    	L.declare_function "printf" printf_t the_module in
+    L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
+  let printf_func : L.llvalue = 
+    L.declare_function "printf" printf_t the_module in
 
-    let ftype = L.function_type void_t [||] in
+  let ftype = L.function_type void_t [||] in
 
-    let loop_func = L.define_function "loop" ftype the_module in
+  let global_vars : L.llvalue StringMap.t =
+    let global_var m (t, n) =
+      let init = match t with
+        A.Int -> L.const_int (ltype_of_typ t) 0
+        | A.Bool -> L.const_int i1_t 0
+        | A.String -> L.const_bitcast empty_string string_t
 
-    let end_func = L.define_function "end" ftype the_module in
+  let global_vars : L.llvalue StringMap.t =
+    let global_var m (t, n) =
+      let init = match t with
+          A.Float -> L.const_float (ltype_of_typ t) 0.0
+        | _ -> L.const_int (ltype_of_typ t) 0
+      in StringMap.add n (L.define_global n init the_module) m in
+    List.fold_left global_var StringMap.empty globals in
 
     (* Build loop block *)
     let build_loop_block loop_block =
