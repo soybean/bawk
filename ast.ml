@@ -10,7 +10,7 @@ type expr = Binop of expr * op * expr
 | StringLiteral of string
 | RgxLiteral of string
 | Id of string
-| Assign of expr * expr
+| Assign of string * expr
 | Call of string * expr list
 | Rgx of string
 | Unop of uop * expr
