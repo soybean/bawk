@@ -43,11 +43,14 @@ let check (globals, functions) =
 						 (Void, "print", [(String, "a")]);
 						 (Void, "println", [(String, "a")]);
                                                  (Bool, "contains", [(Int, "a");(ArrayType(Int), "b")]);
+						 (Bool, "contains", [(String, "a");(ArrayType(String), "b")]);
+						 (Bool, "contains", [(Rgx, "a");(ArrayType(Rgx), "b")]);
+						 (Bool, "contains", [(Bool, "a");(ArrayType(Bool), "b")]);
                                                  (Int, "index_of", [(ArrayType(Int), "a");(Int, "b")]);
-						 (Int, "index_of", [(ArrayType(String), "a");(String, "b")])] (* need to make generic *)
-						(* (Bool, "contains", [(typ, "a");(ArrayLit, "b")]; locals = []; body=[]);
-						 (Int, "index_of", [(ArrayLit, "a");(typ, "b")]; locals = []; body=[]);
-						 (Void, "for", []);(Void, "in", []);(Void, "if", []);
+						 (Int, "index_of", [(ArrayType(String), "a");(String, "b")]);
+						 (Int, "index_of", [(ArrayType(Rgx), "a");(Rgx, "b")]);
+						 (Int, "index_of", [(ArrayType(Bool), "a");(Bool, "b")])] (* need to make generic *)
+						(* (Void, "for", []);(Void, "in", []);(Void, "if", []);
 						 (Void, "else", []);(Void, "while", []);(Void, "CONFIG", []);
 						 (Void, "BEGIN", []); (Void, "LOOP", []);(Void, "END", []);
 						 (Void, "function", []); (Void, "return", []);(Void, "RS", []);
