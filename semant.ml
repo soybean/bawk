@@ -50,12 +50,6 @@ let check (globals, functions) =
 						 (Int, "index_of", [(ArrayType(String), "a");(String, "b")]);
 						 (Int, "index_of", [(ArrayType(Rgx), "a");(Rgx, "b")]);
 						 (Int, "index_of", [(ArrayType(Bool), "a");(Bool, "b")])] (* need to make generic *)
-						(* (Void, "for", []);(Void, "in", []);(Void, "if", []);
-						 (Void, "else", []);(Void, "while", []);(Void, "CONFIG", []);
-						 (Void, "BEGIN", []); (Void, "LOOP", []);(Void, "END", []);
-						 (Void, "function", []); (Void, "return", []);(Void, "RS", []);
-						 (Void, "FS", []); (Void, "NF", []);(Void, "$", []); (Void, "true", []);
-						 (Void, "false", []) *) 
   in 
 	
   
