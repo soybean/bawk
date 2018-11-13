@@ -1,0 +1,7 @@
+BEGIN {}
+LOOP {
+print("Hello loop!");  
+}
+END {
+print("Hello end!");  
+}
