@@ -88,7 +88,7 @@ let check (globals, functions) =
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
     let check_assign lvaluet rvaluet err =
-    	if lvaluet = rvaluet then rvaluet else raise (Failure err)
+       if lvaluet = rvaluet then lvaluet else raise (Failure err)
     in   
 
     (* Build local symbol table of variables for this function *)
@@ -117,7 +117,7 @@ let check (globals, functions) =
       | Assign(e1, e2) as ex -> 
           let (t1, e1') = expr e1
           and (t2, e2') = expr e2 in
-          let err = "illegal assignment " ^ string_of_typ t1 ^ " = " ^ 
+	  let err = "illegal assignment " ^ string_of_typ t1 ^ " = " ^ 
             string_of_typ t2 ^ " in " ^ string_of_expr ex
           in (check_assign t1 t2 err, SAssign((t1, e1'), (t2, e2')))
       | Unop(op, e) as ex -> 
