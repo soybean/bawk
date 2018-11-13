@@ -112,7 +112,7 @@ let check (globals, functions) =
           let (lt, e1') = expr e1 
           and (rt, e2') = expr e2 in
 	  let err = "illegal assignment " 
-          in (check_assign lt rt err, SAssign((lt, e1'), (rt, e2')))
+          in (check_assign lt rt err, SAssign((lt, e1'), (rt, e2'))) 
        (*   let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
           in (check_assign lt rt err, SAssign((lt, e1'), (rt, e2'))) *)
@@ -135,7 +135,7 @@ let check (globals, functions) =
             Add | Sub | Mult | Div | Pluseq | Minuseq when same && t1 = Int   -> Int
 	  | Strcat when same && t1 = String -> String
 	  | Rgxeq | Rgxneq when same && t1 = Rgx -> Bool
-	  | Rgxstrcomp | Rgxnot when ((t1 = Rgx) && (t2 = String)) || ((t1 = String) && (t2 = Rgx)) -> Bool 
+	  | Rgxcomp | Rgxnot when ((t1 = Rgx) && (t2 = String)) || ((t1 = String) && (t2 = Rgx)) -> Bool 
           | Equal | Neq            when same               -> Bool
           | Less | Leq | Greater | Geq
                      when same && (t1 = Int) -> Bool
@@ -158,7 +158,7 @@ let check (globals, functions) =
             in (check_assign ft et err, e')
           in 
           let args' = List.map2 check_call fd.formals args
-          in (fd.typ, SCall(fname, args'))
+          in (fd.ret_type, SCall(fname, args'))
     in
 
     let check_bool_expr e = 
@@ -174,10 +174,10 @@ let check (globals, functions) =
       | For(e1, e2, e3, st) ->
 	  SFor(expr e1, check_bool_expr e2, expr e3, check_stmt st)
       | EnhancedFor(s1, st) ->
-          SEnhancedFor((String, SStringLiteral), check_stmt st) (*unsure about this one? should it be expr*)
+          SEnhancedFor(s1, check_stmt st) (*unsure about this one? should it be expr*)
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
       | Return e -> let (t, e') = expr e in
-        if t = func.typ then SReturn (t, e') 
+        if t = func.ret_type then SReturn (t, e') 
         else raise (
 	  Failure ("return gives " (*^ string_of_typ t ^ " expected " ^
 		   string_of_typ func.typ ^ " in " ^ string_of_expr e*)))
@@ -194,7 +194,7 @@ let check (globals, functions) =
           in SBlock(check_stmt_list sl)
 
     in (* body of check_function *)
-    { styp = func.typ;
+    { sret_type = func.ret_type;
       sfname = func.fname;
       sformals = func.formals;
       slocals  = func.locals;
