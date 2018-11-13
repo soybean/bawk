@@ -7,7 +7,7 @@ and sx = SBinop of sexpr * op * sexpr
 | SStringLiteral of string
 | SRgxLiteral of string
 | SId of string
-| SAssign of string * sexpr
+| SAssign of sexpr * sexpr
 | SCall of string * sexpr list
 | SRgx of string
 | SUnop of uop * sexpr
