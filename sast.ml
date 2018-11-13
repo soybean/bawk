@@ -7,13 +7,12 @@ and sx = SBinop of sexpr * op * sexpr
 | SStringLiteral of string
 | SRgxLiteral of string
 | SId of string
-| SAssign of string * sexpr
+| SAssign of sexpr * sexpr
 | SCall of string * sexpr list
 | SRgx of string
 | SUnop of uop * sexpr
-| SArrayLit of sexpr list
-| SArrayAssignElement of string * sexpr * sexpr
-| SArrayGetElement of string * sexpr
+| ArrayLit of sexpr list
+| ArrayDeref of sexpr * sexpr
 | SNumFields
 
 type sconfig_expr = SRSAssign of sexpr
@@ -25,7 +24,7 @@ type sstmt = SReturn of sexpr
 | SBlock of sstmt list
 | SWhile of sexpr * sstmt
 | SIf of sexpr * sstmt * sstmt
-| SFor of sexpr * sexpr * expr * sstmt
+| SFor of sexpr * sexpr * sexpr * sstmt
 | SEnhancedFor of string * sstmt
 
 type sfunc_decl = {
