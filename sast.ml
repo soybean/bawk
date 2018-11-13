@@ -25,7 +25,7 @@ type sstmt = SReturn of sexpr
 | SBlock of sstmt list
 | SWhile of sexpr * sstmt
 | SIf of sexpr * sstmt * sstmt
-| SFor of sexpr * sexpr * expr * sstmt
+| SFor of sexpr * sexpr * sexpr * sstmt
 | SEnhancedFor of string * sstmt
 
 type sfunc_decl = {
