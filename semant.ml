@@ -108,12 +108,12 @@ let check (globals, functions) =
       | Id s       -> (type_of_identifier s, SId s)
    (*   | ArrayLit l -> (ArrayType(Int), SArrayLit l) (*needs to be generic*) *)
       | NumFields -> (Int, SNumFields)
-      | Assign(var, e) as ex -> 
-          let lt = type_of_identifier var
-          and (rt, e') = expr e in
+      | Assign(e1, e2) as ex -> 
+          let (lt, e1') = expr e1 
+          and (rt, e2') = expr e2 in
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
-          in (check_assign lt rt err, SAssign(var, (rt, e')))
+          in (check_assign lt rt err, SAssign((lt, e1'), (rt, e2')))
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
@@ -126,7 +126,6 @@ let check (globals, functions) =
       | Binop(e1, op, e2) as e -> 
           let (t1, e1') = expr e1 
           and (t2, e2') = expr e2 in
-          (* All binary operators require operands of the same type *)
           let same = t1 = t2 in
           (* Determine expression type based on operator and operand types *)
           let ty = match op with
