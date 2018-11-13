@@ -1,6 +1,8 @@
 BEGIN {}
 
-LOOP {
+LOOP {}
+
+END {
   int i;
   i = 5;
   while (i > 0) {
@@ -9,5 +11,3 @@ LOOP {
   }
   print(int_to_string(42));
 }
-
-END {}

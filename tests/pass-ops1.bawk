@@ -1,6 +1,8 @@
 BEGIN {}
 
-LOOP {
+LOOP {}
+
+END {
   print(int_to_string(1 + 2));
   print(int_to_string(1 - 2));
   print(int_to_string(-1 + 2));
@@ -25,7 +27,5 @@ LOOP {
   print(int_to_string(99));
   print(bool_to_string(1 >= 2));
   print(bool_to_string(1 >= 1));
-  print(bool_to_string(2 >= 1)); 
+  print(bool_to_string(2 >= 1));
 }
-
-END {}

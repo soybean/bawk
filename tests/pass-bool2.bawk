@@ -6,10 +6,10 @@ BEGIN {
   }
 }
 
-LOOP {
+LOOP {}
+
+END {
   if (cond()) {
     print(int_to_string(10));
   }
 }
-
-END {}

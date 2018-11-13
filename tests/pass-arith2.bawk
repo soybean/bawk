@@ -1,7 +1,7 @@
 BEGIN {}
 
-LOOP {
+LOOP {}
+
+END {
   print(int_to_string(1 + 2 * 3 + 4));
 }
-
-END {}

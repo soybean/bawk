@@ -4,10 +4,10 @@ BEGIN {
   }
 }
 
-LOOP {
+LOOP {}
+
+END {
   print(foo("[0-9]*", "[0-9]*"));
 }
-
-END {}
 
 CONFIG {}

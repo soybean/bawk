@@ -7,11 +7,11 @@ BEGIN {
   }
 }
 
-LOOP {
+LOOP {}
+
+END {
   a = 1;
   b = 2;
   print(int_to_string(add(a, b)));
 }
-
-END {}
 

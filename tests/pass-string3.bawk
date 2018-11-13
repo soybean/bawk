@@ -4,10 +4,10 @@ BEGIN {
   }
 }
 
-LOOP {
+LOOP {}
+
+END {
   print(concat("hello ", "world"));
 }
-
-END {}
 
 CONFIG {}

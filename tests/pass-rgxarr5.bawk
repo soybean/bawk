@@ -6,8 +6,8 @@ BEGIN {
   }
 }
 
-LOOP {
+LOOP {}
+
+END {
   print(rgx_to_string(a[0]));
 }
-
-END {}

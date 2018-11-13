@@ -1,6 +1,8 @@
 BEGIN {}
 
-LOOP {
+LOOP {}
+
+END {
   print(bool_to_string("[0-9]*" % "[0]*"));
   print(bool_to_string("[0-9]*" % "[0-9]*"));
   print(int_to_string(99));
@@ -13,5 +15,3 @@ LOOP {
   print(bool_to_string("[0-9]*" !~ "[0]*"));
   print(bool_to_string("[0-9]*" !~ "[0-9]*"));
 }
-
-END {}

@@ -4,11 +4,11 @@ BEGIN {
   }
 }
 
-LOOP {
+LOOP {}
+
+END {
   string[] a;
   a = ["a", "b", "c"];
   a = foo(a);
   print(a[0]);
 }
-
-END {}

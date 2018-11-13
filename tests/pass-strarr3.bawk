@@ -1,9 +1,9 @@
 BEGIN {}
 
-LOOP {
+LOOP {}
+
+END {
   string[] a; 
   a = ["a", "b", "c"];
   print(a[0]);
 }
-
-END {}
