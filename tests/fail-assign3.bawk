@@ -1,0 +1,14 @@
+BEGIN {
+  function void myvoid()
+  {
+    return;
+  }
+}
+
+LOOP {}
+
+END {
+  int i;
+
+  i = myvoid(); # Fail: assigning a void to an integer
+}

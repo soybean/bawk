@@ -4,12 +4,12 @@ BEGIN {
   }
 }
 
-LOOP {
+LOOP {}
+
+END {
   # this should not print
   # print(int_to_string(add(1, 2)));
   print(int_to_string(add(1, 2)));
 }
-
-END {}
 
 CONFIG {}
