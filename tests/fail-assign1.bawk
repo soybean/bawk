@@ -1,5 +1,0 @@
-BEGIN {}
-LOOP {
-true = "abc";  
-}
-END {}
