@@ -11,9 +11,8 @@ and sx = SBinop of sexpr * op * sexpr
 | SCall of string * sexpr list
 | SRgx of string
 | SUnop of uop * sexpr
-| SArrayLit of sexpr list
-| SArrayAssignElement of string * sexpr * sexpr
-| SArrayGetElement of string * sexpr
+| ArrayLit of sexpr list
+| ArrayDeref of sexpr * sexpr
 | SNumFields
 
 type sconfig_expr = SRSAssign of sexpr
