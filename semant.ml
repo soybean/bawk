@@ -43,7 +43,8 @@ let check (globals, functions) =
 						 (Void, "print", [(String, "a")]);
 						 (Void, "println", [(String, "a")]);
                                                  (Bool, "contains", [(Int, "a");(ArrayType(Int), "b")]);
-                                                 (Int, "index_of", [(ArrayType(Int), "a");(Int, "b")])] (* need to make generic *)
+                                                 (Int, "index_of", [(ArrayType(Int), "a");(Int, "b")]);
+						 (Int, "index_of", [(ArrayType(String), "a");(String, "b")])] (* need to make generic *)
 						(* (Bool, "contains", [(typ, "a");(ArrayLit, "b")]; locals = []; body=[]);
 						 (Int, "index_of", [(ArrayLit, "a");(typ, "b")]; locals = []; body=[]);
 						 (Void, "for", []);(Void, "in", []);(Void, "if", []);
