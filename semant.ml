@@ -107,6 +107,7 @@ let check (globals, functions) =
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
+      | ArrayLit(l) -> expr (List.nth l 0)
     (*  | ArrayLit l -> (ArrayType(type_of_identifier l), SArrayLit l) *)
       (*    let t = type_of_identifier l in
           let ty = match t with
