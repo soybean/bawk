@@ -1,0 +1,10 @@
+BEGIN {
+  function int foo(int a)
+  {
+    return a;
+  }
+}
+
+LOOP {}
+
+END {}
