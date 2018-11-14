@@ -105,6 +105,7 @@ let check (globals, functions) =
       | BoolLit l  -> (Bool, SBoolLit l)
       | Rgx l  -> (Rgx, SRgx l)
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
+      | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
     (*  | ArrayLit l -> (ArrayType(type_of_identifier l), SArrayLit l) *)
       (*    let t = type_of_identifier l in
