@@ -100,13 +100,19 @@ let check (globals, functions) =
 | ArrayGetElement of string * expr*)
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
-        Literal  l -> (Int, SLiteral l)
+        Literal l -> (Int, SLiteral l)
       | StringLiteral l -> (String, SStringLiteral l)
       | BoolLit l  -> (Bool, SBoolLit l)
       | Rgx l  -> (Rgx, SRgx l)
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
+      | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-   (*   | ArrayLit l -> (ArrayType(Int), SArrayLit l) (*needs to be generic*) *)
+    (*  | ArrayLit l -> (ArrayType(type_of_identifier l), SArrayLit l) *)
+      (*    let t = type_of_identifier l in
+          let ty = match t with
+          Bool -> (ArrayType(Bool), SArrayLit l)
+        | String -> (ArrayType(String), SArrayLit l)
+        | _ -> raise (Failure ("illegal array literal")) *)
       | NumFields -> (Int, SNumFields)
       | Assign(e1, e2) as ex -> 
           let (lt, e1') = expr e1 
