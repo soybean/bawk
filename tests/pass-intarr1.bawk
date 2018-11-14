@@ -1,9 +1,9 @@
 BEGIN {}
 
-LOOP {
+LOOP {}
+
+END {
   int[] a; 
   a = [];
   print(int_to_string(length_int(a)));
 }
-
-END {}

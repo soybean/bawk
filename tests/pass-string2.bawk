@@ -4,10 +4,10 @@ BEGIN {
   }
 }
 
-LOOP {
+LOOP {}
+
+END {
   print(foo());
 }
-
-END {}
 
 CONFIG {}

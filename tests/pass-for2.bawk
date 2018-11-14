@@ -1,6 +1,8 @@
 BEGIN {}
 
-LOOP {
+LOOP {}
+
+END {
   int i;
   int[] arr;
   arr = [];
@@ -8,7 +10,5 @@ LOOP {
   for (i in arr) {
     print(int_to_string(i));
   }
-  print(int_to_string(42)); 
+  print(int_to_string(42));
 }
-
-END {}

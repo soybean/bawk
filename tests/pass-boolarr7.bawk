@@ -1,6 +1,8 @@
 BEGIN {}
 
-LOOP {
+LOOP {}
+
+END {
   bool[][] m;
   bool[][][] a;
   bool[][][][] b;
@@ -22,5 +24,3 @@ LOOP {
   ];
   print(bool_to_string(b[0][0][0][0]));
 }
-
-END {}

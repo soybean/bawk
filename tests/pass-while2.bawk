@@ -11,8 +11,8 @@ BEGIN {
   }
 }
 
-LOOP {
+LOOP {}
+
+END {
   print(int_to_string(foo(7)));
 }
-
-END {}

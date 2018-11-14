@@ -1,0 +1,32 @@
+BEGIN {
+  int a;
+  int b;
+
+  function void printa()
+  {
+    print(a);
+  }
+
+  function void printbb()
+  {
+    print(b);
+  }
+
+  function void incab()
+  {
+    a = a + 1;
+    b = b + 1;
+  }
+}
+
+LOOP {}
+
+END {
+  a = 42;
+  b = 21;
+  printa();
+  printbb();
+  incab();
+  printa();
+  printbb();
+}

@@ -1,0 +1,15 @@
+BEGIN {
+  function void printem(int a, int b, int c, int d)
+  {
+    print(a);
+    print(b);
+    print(c);
+    print(d);
+  }
+}
+
+LOOP {}
+
+END {
+  printem(42,17,192,8);
+}

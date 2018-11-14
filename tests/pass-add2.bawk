@@ -4,8 +4,8 @@ BEGIN {
   }
 }
 
-LOOP {
+LOOP {}
+
+END {
   add(1, 2);
 }
-
-END {}

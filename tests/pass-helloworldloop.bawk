@@ -1,6 +1,9 @@
 BEGIN {}
+
 LOOP {
-print("Hello World");
+  print("Hello World");
 }
+
 END {}
+
 CONFIG {}

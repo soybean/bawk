@@ -1,6 +1,8 @@
 BEGIN {}
 
-LOOP {
+LOOP {}
+
+END {
   rgx[][] m;
   rgx[][][] a;
   rgx[][][][] b;
@@ -22,5 +24,3 @@ LOOP {
   ];
   print(rgx_to_string(b[0][0][0][0]));
 }
-
-END {}

@@ -1,0 +1,15 @@
+BEGIN {
+  int a;
+
+  function void foo(int c)
+  {
+    a = c + 42;
+  }
+}
+
+LOOP {}
+
+END {
+  foo(73);
+  print(a);
+}

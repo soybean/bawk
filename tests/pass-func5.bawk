@@ -1,0 +1,11 @@
+BEGIN {
+  function void foo() {}
+
+  function int bar(int a, bool b, int c) { return a + c; }
+}
+
+LOOP {}
+
+END {
+  print(bar(17, false, 25));
+}

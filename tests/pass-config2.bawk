@@ -4,11 +4,11 @@ BEGIN {
   }
 }
 
-LOOP {
+LOOP {}
+
+END {
   print(int_to_string(add(1, 2)));
 }
-
-END {}
 
 CONFIG {
   FS = " ";

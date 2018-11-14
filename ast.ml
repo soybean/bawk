@@ -17,6 +17,7 @@ type expr = Binop of expr * op * expr
 | ArrayLit of expr list
 | ArrayDeref of expr * expr
 | NumFields
+| Noexpr
 
 type config_expr = RSAssign of expr
 | FSAssign of expr

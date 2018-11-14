@@ -1,11 +1,11 @@
 BEGIN {}
 
-LOOP {
+LOOP {}
+
+END {
   int i;
   for (i = 0 ; i < 5 ; i = i + 1) {
     print(int_to_string(i));
   }
-  print(int_to_string(42)); 
+  print(int_to_string(42));
 }
-
-END {}

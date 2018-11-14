@@ -1,6 +1,8 @@
 BEGIN {}
 
-LOOP {
+LOOP {}
+
+END {
   if(false) {
     print(int_to_string(10));
   } 
@@ -9,5 +11,3 @@ LOOP {
   }
   print(int_to_string(2));
 }
-
-END {}

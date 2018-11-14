@@ -14,9 +14,9 @@ BEGIN {
   }
 }
 
-LOOP {
+LOOP {}
+
+END {
   print(int_to_string(cond(true)));
   print(int_to_string(cond(false)));
 }
-
-END {}

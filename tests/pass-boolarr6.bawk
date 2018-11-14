@@ -4,11 +4,11 @@ BEGIN {
   }
 }
 
-LOOP {
+LOOP {}
+
+END {
   bool[] a;
   a = [true, false, false];
   a = foo(a);
   print(bool_to_string(a[0]));
 }
-
-END {}

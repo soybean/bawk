@@ -1,11 +1,11 @@
 BEGIN {}
 
-LOOP {
+LOOP {}
+
+END {
   bool b;
   b = true;
   if (b) {
     print(int_to_string(10));
-  } 
+  }
 }
-
-END {}
