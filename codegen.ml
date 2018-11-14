@@ -5,7 +5,7 @@ module StringMap = Map.Make(String)
 
 let translate (begin_block, loop_block, end_block, config_block) =
 
-  	let context    = L.global_context () in
+  let context = L.global_context () in
 
 	(* Create the LLVM compilation module into which
 	 we will generate code *)
@@ -36,6 +36,11 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let main_func = L.define_function "main" ftype the_module in
   let builder = L.builder_at_end context (L.entry_block main_func) in
 
+  (*--- Build begin block: globals ---*)
+
+  (*--- Build begin block: functions ---*)
+
+  (*--- Build loop block ---*)
   let build_loop_block loop_block = 
     let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
     let rec expr builder = function
@@ -57,7 +62,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
   in  
 
-  (* Build end block *)
+  (*--- Build end block ---*)
   let build_end_block end_block =
     let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
 
@@ -81,6 +86,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
     in
 
+    (*--- Add terminal ---*)
+    (* TODO: move this to build_function_body and just call it below for main return *)
     let add_terminal builder instr =
       match L.block_terminator (L.insertion_block builder) with
 	      Some _ -> ()
@@ -88,6 +95,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
   
     in
 
+    (* Call the things that happen in main *)
     build_loop_block loop_block;
     build_end_block end_block;
     add_terminal builder L.build_ret_void;
