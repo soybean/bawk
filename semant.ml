@@ -8,7 +8,7 @@ module StringMap = Map.Make(String)
 
    Check each global variable, then check each function *)
 
-let check (globals, functions) =
+let check (begin_list, loop_list, end_list, config_list) =
 
   (* Verify a list of bindings has no void types or duplicate names *)
   let check_binds (kind : string) (binds : bind list) =
@@ -25,7 +25,8 @@ let check (globals, functions) =
 
   (**** Check global variables ****)
 
-  check_binds "global" globals;
+  let (globals, _) = begin_list in check_binds "global" globals;
+
 
   (**** Check functions ****)
   (* Collect function declarations for built-in functions: no bodies *)
@@ -65,7 +66,8 @@ let check (globals, functions) =
        | _ ->  StringMap.add n fd map 
   in
    (* Collect all function names into one symbol table *)
-  let function_decls = List.fold_left add_func built_in_decls functions
+  let (_, functions) = begin_list in let function_decls = List.fold_left add_func built_in_decls functions
+
   in
   
   (* Return a function from our symbol table *)
@@ -78,6 +80,9 @@ let check (globals, functions) =
     (* Make sure no formals or locals are void or duplicates *)
     check_binds "formal" func.formals;
     check_binds "local" func.locals;
+
+    let (loop_locals,_) = loop_list in check_binds "local" loop_locals;
+    let (end_locals,_) = end_list in check_binds "local" end_locals;
 
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
@@ -210,46 +215,3 @@ let check (globals, functions) =
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
     }
   in (globals, List.map check_function functions)
-
-
-
-(* Semantic checking for the MicroC compiler 
-
-open Ast
-open Sast
-
-module StringMap = Map.Make(String)
-
-(* ------------------ *)
-(* CHANGING CHECK TO TAKE IN 4 PARAMETERS *)
-
-(* Semantic checking of the AST. Returns an SAST if successful,
-   throws an exception if something is wrong.
-
-   Check each global variable, then check each function *)
-(* Each block is a tuple *)
-(* Have check_begin, check_loop, ...*)
-let check (begin_block, loop_block, end_block, config_block) =
-  
-  (* CHECK BEGIN BLOCK *)
-  let check_begin block =
-    let check_binds (kind : string) (binds : bind list) =
-      List.iter (function
-        (Void, b) -> raise (Failure ("illegal void " ^ kind ^ " " ^ b))
-      | _ -> ()) binds;
-    let rec dups = function
-        [] -> ()
-      | ((_,n1) :: (_,n2) :: _) when n1 = n2 ->
-    raise (Failure ("duplicate " ^ kind ^ " " ^ n1))
-      | _ :: t -> dups t
-    in dups (List.sort (fun (_,a) (_,b) -> compare a b) binds)
-
-    in check_binds "globals" (fst block);
-
-    let check_function func = 
-      check_binds "formals" func.formals;
-      check_binds "locals" func.locals;
-      
-
-  in check_begin begin_block;
-*)
