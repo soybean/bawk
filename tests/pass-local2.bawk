@@ -13,5 +13,5 @@ BEGIN {
 LOOP {}
 
 END {
-  print(foo(37, false));
+  print(int_to_string(foo(37, false)));
 }

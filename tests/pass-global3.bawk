@@ -8,5 +8,5 @@ END {
   int i; # Should hide the global i
 
   i = 42;
-  print(i + i);
+  print(int_to_string(i + i));
 }

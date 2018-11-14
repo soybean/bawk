@@ -1,7 +1,7 @@
 BEGIN {
   function void foo(int a)
   {
-    print(a + 3);
+    print(int_to_string(a + 3));
     return;
   }
 }

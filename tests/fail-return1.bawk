@@ -1,0 +1,15 @@
+BEGIN {
+  function void foo()
+  {
+    if (true) {
+      return 42; # Should return void
+    }
+    else {
+      return;
+    }
+  }
+}
+
+LOOP {}
+
+END {}

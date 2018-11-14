@@ -1,0 +1,13 @@
+BEGIN {
+  function int foo(){
+    int i;  
+
+    i = 15;
+    return i;
+    i = 32; # Error: code after a return
+  }
+}
+
+LOOP {}
+
+END {}

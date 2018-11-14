@@ -1,0 +1,12 @@
+BEGIN {
+  function void foo(int a, bool b)
+  {
+  }
+}
+
+LOOP {}
+
+END {
+  foo(42, true);
+  foo(42, 42); # Fail: int, not bool 
+}

@@ -4,12 +4,12 @@ BEGIN {
 
   function void printa()
   {
-    print(a);
+    print(int_to_string(a));
   }
 
   function void printbb()
   {
-    print(b);
+    print(int_to_string(b));
   }
 
   function void incab()

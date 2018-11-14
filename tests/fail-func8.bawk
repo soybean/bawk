@@ -1,0 +1,16 @@
+BEGIN {
+  function void foo(int a, bool b)
+  {
+  }
+
+  function void bar()
+  {
+  }
+}
+
+LOOP {}
+
+END {
+  foo(42, true);
+  foo(42, bar()); # int and void, not int and bool 
+}
