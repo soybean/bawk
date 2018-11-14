@@ -1,0 +1,13 @@
+BEGIN {
+  function void foo(int a)
+  {
+    print(a + 3);
+    return;
+  }
+}
+
+LOOP {}
+
+END {
+  foo(40);
+}
