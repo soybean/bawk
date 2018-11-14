@@ -33,87 +33,64 @@ let translate (begin_block, loop_block, end_block, config_block) =
     L.declare_function "printf" printf_t the_module in
 
   let ftype = L.function_type void_t [||] in
+  let main_func = L.define_function "main" ftype the_module in
+  let builder = L.builder_at_end context (L.entry_block main_func) in
 
-  let global_vars : L.llvalue StringMap.t =
-    let global_var m (t, n) =
-      let init = match t with
-        A.Int -> L.const_int (ltype_of_typ t) 0
-        | A.Bool -> L.const_int i1_t 0
-        | A.String -> L.const_bitcast empty_string string_t
+  let build_loop_block loop_block = 
+    let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
+    let rec expr builder = function
+      A.StringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
+        L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
+      | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
+      | A.Call ("print", [e]) ->
+        L.build_call printf_func [| string_format_str builder; (expr builder e) |] "printf" builder
 
-  let global_vars : L.llvalue StringMap.t =
-    let global_var m (t, n) =
-      let init = match t with
-          A.Float -> L.const_float (ltype_of_typ t) 0.0
-        | _ -> L.const_int (ltype_of_typ t) 0
-      in StringMap.add n (L.define_global n init the_module) m in
-    List.fold_left global_var StringMap.empty globals in
+    in 
 
-    (* Build loop block *)
-    let build_loop_block loop_block =
-    	let loop_builder = L.builder_at_end context (L.entry_block loop_func) in
-    	let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" loop_builder in
-    	(* TODO: add all other patterns to expr and stmt *)
-    	let rec expr builder = function
-    		A.StringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
-				L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
+    let rec stmt builder = function
+      A.Expr ex -> ignore (expr builder ex); builder
+      | A.Block sl -> List.fold_left stmt builder sl
+    
+    in
+
+    stmt builder (Block (snd loop_block))
+
+  in  
+
+  (* Build end block *)
+  let build_end_block end_block =
+    let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
+
+    (* TODO: add all other patterns to expr and stmt *)
+    let rec expr builder = function
+      A.StringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
+			  L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
 			| A.BoolLit b  -> L.const_int i1_t (if b then 1 else 0)
-    		| A.Call ("print", [e]) ->
-    			L.build_call printf_func [| string_format_str loop_builder; (expr loop_builder e)|] "printf" builder
+    	| A.Call ("print", [e]) ->
+    		L.build_call printf_func [| string_format_str builder; (expr builder e)|] "printf" builder
 
-    	in 
+    in 
 
-    	let add_terminal builder instr =
-	     	match L.block_terminator (L.insertion_block loop_builder) with
-			Some _ -> ()
-	    	| None -> ignore (instr loop_builder) in
+    let rec stmt builder = function
+    	A.Expr ex -> ignore(expr builder ex); builder
+    	| A.Block sl -> List.fold_left stmt builder sl
 
+    in
 
-    	let rec stmt builder = function
-    		A.Expr ex -> ignore(expr loop_builder ex); loop_builder
-    		| A.Block sl -> List.fold_left stmt loop_builder sl
+    stmt builder (Block (snd end_block)) 
 
-    	in
+    in
 
-    	let loop_builder = stmt loop_builder (Block (snd loop_block)) in
+    let add_terminal builder instr =
+      match L.block_terminator (L.insertion_block builder) with
+	      Some _ -> ()
+        | None -> ignore (instr builder) 
+  
+    in
 
-    	add_terminal loop_builder L.build_ret_void
-
-
-    in build_loop_block loop_block;
-
-    (* Build end block *)
-    let build_end_block end_block =
-    	let end_builder = L.builder_at_end context (L.entry_block end_func) in
-    	let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" end_builder in
-
-    	(* TODO: add all other patterns to expr and stmt *)
-    	let rec expr builder = function
-    		A.StringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
-				L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
-			| A.BoolLit b  -> L.const_int i1_t (if b then 1 else 0)
-    		| A.Call ("print", [e]) ->
-    			L.build_call printf_func [| string_format_str end_builder; (expr end_builder e)|] "printf" builder
-
-    	in 
-
-    	let add_terminal builder instr =
-	     	match L.block_terminator (L.insertion_block end_builder) with
-			Some _ -> ()
-	    	| None -> ignore (instr end_builder) in
-
-
-    	let rec stmt builder = function
-    		A.Expr ex -> ignore(expr end_builder ex); end_builder
-    		| A.Block sl -> List.fold_left stmt end_builder sl
-
-    	in
-
-    	let end_builder = stmt end_builder (Block (snd end_block)) in 
-
-    	add_terminal end_builder L.build_ret_void
-
-    in build_end_block end_block;
+    build_loop_block loop_block;
+    build_end_block end_block;
+    add_terminal builder L.build_ret_void;
 
     the_module
 
