@@ -1,7 +1,9 @@
 BEGIN {}
+
 LOOP {
-print("Hello loop!");  
+  print("Hello loop!");  
 }
+
 END {
-print("Hello end!");  
+  print("Hello end!");  
 }
