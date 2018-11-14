@@ -14,10 +14,10 @@ and sx = SBinop of sexpr * op * sexpr
 | ArrayLit of sexpr list
 | ArrayDeref of sexpr * sexpr
 | SNumFields
+| SNoexpr
 
 type sconfig_expr = SRSAssign of sexpr
 | SFSAssign of sexpr
-
 
 type sstmt = SReturn of sexpr
 | SExpr of sexpr
@@ -44,4 +44,4 @@ type sprogram = sbegin_list * sloop_list * send_list * sconfig_list
 
 (* Pretty-printing functions *)
 
-(* let string_of_sprogram(beginBlock, loop, endBlock, configBlock) = "PASS" *)
+let string_of_sprogram(beginBlock, loop, endBlock, configBlock) = "PASS\n"
