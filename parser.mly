@@ -128,7 +128,7 @@ expr_opt:
 expr: 
     LITERAL                      { Literal($1) } 
   | STRING_LITERAL               { StringLiteral($1) }
-  | RGX_LITERAL	                 { RgxLiteral($1) }
+  | RGX_LITERAL                  { RgxLiteral($1) }
   | TRUE                         { BoolLit(true) } 
   | FALSE                        { BoolLit(false) } 
   | ID                           { Id($1) } 
