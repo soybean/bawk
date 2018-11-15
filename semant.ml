@@ -100,9 +100,6 @@ let check (begin_list, loop_list, end_list, config_list) =
       try StringMap.find s symbols
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
-(* TBD:
-| ArrayAssignElement of string * expr * expr
-| ArrayGetElement of string * expr*)
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
         Literal l -> (Int, SLiteral l)
@@ -113,12 +110,6 @@ let check (begin_list, loop_list, end_list, config_list) =
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
       | ArrayLit(l) -> expr (List.nth l 0)
-    (*  | ArrayLit l -> (ArrayType(type_of_identifier l), SArrayLit l) *)
-      (*    let t = type_of_identifier l in
-          let ty = match t with
-          Bool -> (ArrayType(Bool), SArrayLit l)
-        | String -> (ArrayType(String), SArrayLit l)
-        | _ -> raise (Failure ("illegal array literal")) *)
       | NumFields -> (Int, SNumFields)
       | Assign(e1, e2) as ex -> 
           let (lt, e1') = expr e1 
