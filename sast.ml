@@ -47,4 +47,4 @@ type sprogram = sbegin_list * sloop_list * send_list * sconfig_list
 
 (* Pretty-printing functions *)
 
-let string_of_sprogram(beginBlock, loop, endBlock, configBlock) = "PASS\n"
+let string_of_sprogram(beginBlock, loopBlock, endBlock, configBlock) = "PASS\n"
