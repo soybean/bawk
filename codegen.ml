@@ -37,8 +37,82 @@ let translate (begin_block, loop_block, end_block, config_block) input_file =
   let builder = L.builder_at_end context (L.entry_block main_func) in
 
   (*--- Build begin block: globals ---*)
+  (* Create a map of global variables after creating each *)
+  let global_vars : L.llvalue StringMap.t =
+    let global_var m (t, n) = 
+      let init = L.const_int (ltype_of_typ t) 0
+      in StringMap.add n (L.define_global n init the_module) m in
+    List.fold_left global_var StringMap.empty (fst begin_block) in
+
 
   (*--- Build begin block: functions ---*)
+  let function_decls : (L.llvalue * A.func_decl) StringMap.t =
+    let function_decl m fdecl =
+      let formal_types =
+	      Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.A.formals)
+      and name = fdecl.A.fname
+      in let ftype = L.function_type (ltype_of_typ fdecl.ret_type) formal_types in
+      StringMap.add name (L.define_function name ftype the_module, fdecl) m in
+   
+    List.fold_left function_decl StringMap.empty (snd begin_block)
+    
+  in
+
+  let build_function_body fdecl =
+    let (the_function, _) = StringMap.find fdecl.A.fname function_decls in
+    let func_builder = L.builder_at_end context (L.entry_block the_function) in
+    let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
+    
+    let local_vars =
+      let add_formal m (t, n) p = 
+        L.set_value_name n p; (* p = LLVM value of param from function declaration we created earlier, n = name from fdecl *)
+	      let local = L.build_alloca (ltype_of_typ t) n builder in
+          ignore (L.build_store p local func_builder);
+	      StringMap.add n local m
+
+      and add_local m (t, n) =
+	      let local_var = L.build_alloca (ltype_of_typ t) n func_builder
+	      in StringMap.add n local_var m
+      
+      in
+
+      let formals = List.fold_left2 add_formal StringMap.empty fdecl.A.formals
+          (Array.to_list (L.params the_function)) in
+
+      List.fold_left add_local formals fdecl.A.locals
+    
+    in
+
+    let lookup n = try StringMap.find n local_vars
+                   with Not_found -> StringMap.find n global_vars
+    
+    in
+
+    let rec expr builder = function
+      A.StringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
+			  L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
+			| A.BoolLit b  -> L.const_int i1_t (if b then 1 else 0)
+    	| A.Call ("print", [e]) ->
+    		L.build_call printf_func [| string_format_str builder; (expr builder e)|] "printf" builder
+    in 
+
+    let add_terminal builder instr =
+      match L.block_terminator (L.insertion_block func_builder) with
+	      Some _ -> ()
+        | None -> ignore (instr func_builder) in
+
+    let rec stmt builder = function
+      A.Expr ex -> ignore(expr func_builder ex); func_builder 
+      | A.Block sl -> List.fold_left stmt func_builder sl 
+    in
+
+    let func_builder = stmt func_builder (Block fdecl.A.body) in
+
+    add_terminal builder (match fdecl.ret_type with
+      A.Void -> L.build_ret_void
+      | t -> L.build_ret (L.const_int (ltype_of_typ t) 0))
+
+  in
 
   (*--- Build loop block ---*)
   let build_loop_block loop_block = 
@@ -73,7 +147,13 @@ let translate (begin_block, loop_block, end_block, config_block) input_file =
 			| A.BoolLit b  -> L.const_int i1_t (if b then 1 else 0)
     	| A.Call ("print", [e]) ->
     		L.build_call printf_func [| string_format_str builder; (expr builder e)|] "printf" builder
-
+      | A.Call (f, args) ->
+         let (fdef, fdecl) = StringMap.find f function_decls in
+	       let llargs = List.rev (List.map (expr builder) (List.rev args)) in
+	        let result = (match fdecl.A.ret_type with 
+                        A.Void -> ""
+                      | _ -> f ^ "_result") in
+         L.build_call fdef (Array.of_list llargs) result builder
     in 
 
     let rec stmt builder = function
@@ -96,6 +176,7 @@ let translate (begin_block, loop_block, end_block, config_block) input_file =
     in
 
     (* Call the things that happen in main *)
+    List.iter build_function_body (snd begin_block);
     build_loop_block loop_block;
     build_end_block end_block;
     add_terminal builder L.build_ret_void;
