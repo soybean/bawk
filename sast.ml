@@ -12,8 +12,8 @@ and sx =
   | SCall of string * sexpr list
   | SRgx of string
   | SUnop of uop * sexpr
-  | ArrayLit of sexpr list
-  | ArrayDeref of sexpr * sexpr
+  | SArrayLit of sexpr list
+  | SArrayDeref of sexpr * sexpr
   | SNumFields
   | SNoexpr
 
@@ -47,4 +47,71 @@ type sprogram = sbegin_list * sloop_list * send_list * sconfig_list
 
 (* Pretty-printing functions *)
 
-let string_of_sprogram(beginBlock, loopBlock, endBlock, configBlock) = "PASS\n"
+let rec string_of_sexpr (t, e) = 
+  "(" ^ string_of_typ t ^ " : " ^ (match e with
+    SBinop(e1, o, e2) ->
+      string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
+  | SBoolLit(true) -> "true"
+  | SBoolLit(false) -> "false"
+  | SLiteral(l) -> string_of_int l
+  | SStringLiteral(s) -> s
+  | SRgxLiteral(r) -> r
+  | SId(s) -> s
+  | SAssign(v, e) -> string_of_sexpr v ^ " = " ^ string_of_sexpr e  
+  | SCall(f, el) ->
+      f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
+  | SRgx(r) -> r
+  | SUnop(o, e) -> string_of_uop o ^ string_of_sexpr e  
+  | SArrayLit(el) -> "[" ^ String.concat ", " (List.map string_of_sexpr el) ^ "]"
+  | SArrayDeref(v, e) -> string_of_sexpr v ^ "[" ^ string_of_sexpr e ^ "]"
+  | SNumFields -> ""
+  | SNoexpr -> ""
+          ) ^ ")"
+
+let string_of_config_sexpr = function
+    SRSAssign(e) -> "RS = " ^ string_of_sexpr e
+  | SFSAssign(e) -> "FS = " ^ string_of_sexpr e
+
+let rec string_of_sstmt = function
+    SReturn(expr) -> "return " ^ string_of_sexpr expr ^ ";\n";
+  | SExpr(expr) -> string_of_sexpr expr ^ ";\n";
+  | SBlock(stmts) ->
+      "{\n" ^ String.concat "" (List.map string_of_sstmt stmts) ^ "}\n"
+  | SWhile(e, s) -> "while (" ^ string_of_sexpr e ^ ") " ^ string_of_sstmt s
+  | SIf(e, s, SBlock([])) -> "if (" ^ string_of_sexpr e ^ ")\n" ^ string_of_sstmt s
+  | SIf(e, s1, s2) ->  "if (" ^ string_of_sexpr e ^ ")\n" ^
+      string_of_sstmt s1 ^ "else\n" ^ string_of_sstmt s2
+  | SFor(e1, e2, e3, s) ->
+      "for (" ^ string_of_sexpr e1  ^ " ; " ^ string_of_sexpr e2 ^ " ; " ^
+      string_of_sexpr e3  ^ ") " ^ string_of_sstmt s
+  | SEnhancedFor(str, s) -> "for (" ^ str ^ " in " ^ string_of_sstmt s ^ ")"
+
+let string_of_sfdecl fdecl =
+  string_of_typ fdecl.sret_type ^ " " ^
+  fdecl.sfname ^ "(" ^ String.concat ", " (List.map snd fdecl.sformals) ^
+  ")\n{\n" ^
+  String.concat "" (List.map string_of_vdecl fdecl.slocals) ^
+  String.concat "" (List.map string_of_sstmt fdecl.sbody) ^
+  "}\n"
+
+let string_of_sbeginBlock (globals, funcs) = 
+  String.concat "" (List.map string_of_vdecl globals) ^ "\n" ^
+  String.concat "\n" (List.map string_of_sfdecl funcs)
+
+let string_of_sloopBlock (locals, stmts) = 
+  String.concat "" (List.map string_of_vdecl locals) ^ "\n" ^
+  String.concat "\n" (List.map string_of_sstmt stmts)
+
+let string_of_sendBlock (locals, stmts) = 
+  String.concat "" (List.map string_of_vdecl locals) ^ "\n" ^
+  String.concat "\n" (List.map string_of_sstmt stmts)
+
+let string_of_sconfigBlock (configs) = 
+  String.concat "" (List.map string_of_config_sexpr configs)
+
+let string_of_sprogram(beginBlock, loopBlock, endBlock, configBlock) =
+  "" ^ string_of_sbeginBlock beginBlock ^ "\n" ^
+  "" ^ string_of_sloopBlock loopBlock ^ "\n" ^
+  "" ^ string_of_sendBlock endBlock ^ "\n" ^
+  "" ^ string_of_sconfigBlock configBlock
+

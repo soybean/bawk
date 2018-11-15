@@ -61,10 +61,10 @@ primitive:
 
 typ: 
     VOID       { Void }
-  | array_type { ArrayType($1) }
+  | array_type { $1 }
 
 array_type: 
-    array_type LSQUARE RSQUARE { $1 }
+    array_type LSQUARE RSQUARE { ArrayType($1) }
   | primitive                  { $1 }
 
 func_list: 		
