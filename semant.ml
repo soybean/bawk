@@ -214,4 +214,6 @@ let check (begin_list, loop_list, end_list, config_list) =
 	SBlock(sl) -> sl
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
     }
-  in (globals, List.map check_function functions)
+  in ((globals, functions), 
+  (loop_locals, let (_, loop_stmts) = loop_list in List.map check_function loop_stmts), 
+  (end_locals, let (_, end_stmts) = end_list in List.map check_function end_stmts), config_list)
