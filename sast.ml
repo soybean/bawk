@@ -87,7 +87,7 @@ let rec string_of_sstmt = function
   | SEnhancedFor(str, s) -> "for (" ^ str ^ " in " ^ string_of_sstmt s ^ ")"
 
 let string_of_sfdecl fdecl =
-  string_of_typ fdecl.sret_type ^ " " ^
+  "function " ^ string_of_typ fdecl.sret_type ^ " " ^
   fdecl.sfname ^ "(" ^ String.concat ", " (List.map snd fdecl.sformals) ^
   ")\n{\n" ^
   String.concat "" (List.map string_of_vdecl fdecl.slocals) ^
@@ -95,19 +95,19 @@ let string_of_sfdecl fdecl =
   "}\n"
 
 let string_of_sbeginBlock (globals, funcs) = 
-  String.concat "" (List.map string_of_vdecl globals) ^ "\n" ^
-  String.concat "\n" (List.map string_of_sfdecl funcs)
+  "BEGIN {\n" ^ String.concat "" (List.map string_of_vdecl globals) ^ "\n" ^
+  String.concat "\n" (List.map string_of_sfdecl funcs) ^ "\n}\n"
 
 let string_of_sloopBlock (locals, stmts) = 
-  String.concat "" (List.map string_of_vdecl locals) ^ "\n" ^
-  String.concat "\n" (List.map string_of_sstmt stmts)
+  "LOOP {\n" ^ String.concat "" (List.map string_of_vdecl locals) ^ "\n" ^
+  String.concat "\n" (List.map string_of_sstmt stmts) ^ "\n}\n"
 
 let string_of_sendBlock (locals, stmts) = 
-  String.concat "" (List.map string_of_vdecl locals) ^ "\n" ^
-  String.concat "\n" (List.map string_of_sstmt stmts)
+  "END {\n" ^ String.concat "" (List.map string_of_vdecl locals) ^ "\n" ^
+  String.concat "\n" (List.map string_of_sstmt stmts) ^ "\n}\n"
 
 let string_of_sconfigBlock (configs) = 
-  String.concat "" (List.map string_of_config_sexpr configs)
+  "CONFIG {\n" ^ String.concat "" (List.map string_of_config_sexpr configs) ^ "\n}\n"
 
 let string_of_sprogram(beginBlock, loopBlock, endBlock, configBlock) =
   "" ^ string_of_sbeginBlock beginBlock ^ "\n" ^

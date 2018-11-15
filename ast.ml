@@ -131,7 +131,7 @@ let rec string_of_typ = function
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 
 let string_of_fdecl fdecl =
-  string_of_typ fdecl.ret_type ^ " " ^
+  "function " ^ string_of_typ fdecl.ret_type ^ " " ^
   fdecl.fname ^ "(" ^ String.concat ", " (List.map snd fdecl.formals) ^
   ")\n{\n" ^
   String.concat "" (List.map string_of_vdecl fdecl.locals) ^
@@ -139,19 +139,19 @@ let string_of_fdecl fdecl =
   "}\n"
 
 let string_of_beginBlock (globals, funcs) = 
-  String.concat "" (List.map string_of_vdecl globals) ^ "\n" ^
-  String.concat "\n" (List.map string_of_fdecl funcs)
+  "BEGIN {\n" ^ String.concat "" (List.map string_of_vdecl globals) ^ "\n" ^
+  String.concat "\n" (List.map string_of_fdecl funcs) ^ "\n}\n"
 
 let string_of_loopBlock (locals, stmts) = 
-  String.concat "" (List.map string_of_vdecl locals) ^ "\n" ^
-  String.concat "\n" (List.map string_of_stmt stmts)
+  "LOOP {\n" ^ String.concat "" (List.map string_of_vdecl locals) ^ "\n" ^
+  String.concat "\n" (List.map string_of_stmt stmts) ^ "\n}\n"
 
 let string_of_endBlock (locals, stmts) = 
-  String.concat "" (List.map string_of_vdecl locals) ^ "\n" ^
-  String.concat "\n" (List.map string_of_stmt stmts)
+  "END {\n" ^ String.concat "" (List.map string_of_vdecl locals) ^ "\n" ^
+  String.concat "\n" (List.map string_of_stmt stmts) ^ "\n}\n"
 
 let string_of_configBlock (configs) = 
-  String.concat "" (List.map string_of_config_expr configs)
+  "CONFIG {\n" ^ String.concat "" (List.map string_of_config_expr configs) ^ "\n}\n"
 
 let string_of_program(beginBlock, loopBlock, endBlock, configBlock) =
   "" ^ string_of_beginBlock beginBlock ^ "\n" ^

@@ -7,7 +7,7 @@ let () =
   let set_input input = input_file := input in
   let speclist = [
     ("-a", Arg.Unit (set_action Ast), "Print the AST");
-    (*("-s", Arg.Unit (set_action Sast), "Print the SAST");*)
+  (*("-s", Arg.Unit (set_action Sast), "Print the SAST");*)
     ("-l", Arg.Unit (set_action LLVM_IR), "Print the generated LLVM IR");
     ("-c", Arg.Unit (set_action Compile),
       "Check and print the generated LLVM IR (default)");
@@ -20,7 +20,7 @@ let () =
   let lexbuf = Lexing.from_channel !channel in
   let ast = Parser.program Scanner.token lexbuf in
 (*match !action with
-    Ast -> print_string (Ast.string_of_program ast)
+  Ast -> print_string (Ast.string_of_program ast)
   | _ -> let sast = Semant.check ast in*)
     match !action with
       Ast     -> ()
