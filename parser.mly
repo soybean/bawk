@@ -41,17 +41,17 @@ program:
   begin_block loop_block end_block config_block EOF { ($1, $2, $3, $4) }
 
 begin_block: 
-  BEGIN LCURLY global_vars_list func_list RCURLY { ($3, $4) }
+  BEGIN LCURLY global_vars_list func_list RCURLY { (List.rev $3, List.rev $4) }
 
 loop_block: 
-  LOOP LCURLY local_vars_list stmt_list RCURLY { ($3, $4) }
+  LOOP LCURLY local_vars_list stmt_list RCURLY { (List.rev $3, List.rev $4) }
 
 end_block: 
-  END LCURLY local_vars_list stmt_list RCURLY { ($3, $4) }
+  END LCURLY local_vars_list stmt_list RCURLY { (List.rev $3, List.rev $4) }
 
 config_block:							
     /* nothing */                         { [] }
-  | CONFIG LCURLY config_expr_list RCURLY { ($3) }
+  | CONFIG LCURLY config_expr_list RCURLY { (List.rev $3) }
 
 primitive: 
     STRING { String }
@@ -84,7 +84,7 @@ func:
     { { fname = $3; 
         formals = $5; 
         ret_type = $2; 
-        locals = $8;  
+        locals = List.rev $8;  
         body = List.rev $9 } } 
 
 formals_opt: 	
