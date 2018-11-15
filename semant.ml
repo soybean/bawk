@@ -116,18 +116,17 @@ let check (begin_list, loop_list, end_list, config_list) =
           and (rt, e2') = expr e2 in
 	  let err = "illegal assignment " 
           in (check_assign lt rt err, SAssign((lt, e1'), (rt, e2'))) 
-       (*   let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
+          let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
-          in (check_assign lt rt err, SAssign((lt, e1'), (rt, e2'))) *)
+          in (check_assign lt rt err, SAssign((lt, e1'), (rt, e2'))) 
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
             Neg | Increment | Decrement | Access when t = Int -> Int 
           | Not when t = Bool -> Bool
-	  | _ -> raise (Failure ("illegal unary operator "))
-       (*   | _ -> raise (Failure ("illegal unary operator " ^ 
+          | _ -> raise (Failure ("illegal unary operator " ^ 
                                  string_of_uop op ^ string_of_typ t ^
-                                 " in " ^ string_of_expr ex)) *)
+                                 " in " ^ string_of_expr ex)) 
           in (ty, SUnop(op, (t, e')))
       | Binop(e1, op, e2) as e -> 
           let (t1, e1') = expr e1 
@@ -144,20 +143,20 @@ let check (begin_list, loop_list, end_list, config_list) =
                      when same && (t1 = Int) -> Bool
           | And | Or when same && t1 = Bool -> Bool
           | _ -> raise (
-	      Failure ("illegal binary operator " (* ^
+	      Failure ("illegal binary operator "  ^
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
-                       string_of_typ t2 ^ " in " ^ string_of_expr e *)))
+                       string_of_typ t2 ^ " in " ^ string_of_expr e))
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
       | Call(fname, args) as call -> 
           let fd = find_func fname in
           let param_length = List.length fd.formals in
           if List.length args != param_length then
-            raise (Failure ("expecting " (*^ string_of_int param_length ^ 
-                            " arguments in " ^ string_of_expr call*)))
+            raise (Failure ("expecting " ^ string_of_int param_length ^ 
+                            " arguments in " ^ string_of_expr call))
           else let check_call (ft, _) e = 
             let (et, e') = expr e in 
-            let err = "illegal argument found " (*^ string_of_typ et ^
-              " expected " ^ string_of_typ ft ^ " in " ^ string_of_expr e *)
+            let err = "illegal argument found " ^ string_of_typ et ^
+              " expected " ^ string_of_typ ft ^ " in " ^ string_of_expr e 
             in (check_assign ft et err, e')
           in 
           let args' = List.map2 check_call fd.formals args
@@ -166,7 +165,7 @@ let check (begin_list, loop_list, end_list, config_list) =
 
     let check_bool_expr e = 
       let (t', e') = expr e
-      and err = "expected Boolean expression in " (*^ string_of_expr e *)
+      and err = "expected Boolean expression in " ^ string_of_expr e 
       in if t' != Bool then raise (Failure err) else (t', e') 
     in
 
@@ -182,8 +181,8 @@ let check (begin_list, loop_list, end_list, config_list) =
       | Return e -> let (t, e') = expr e in
         if t = func.ret_type then SReturn (t, e') 
         else raise (
-	  Failure ("return gives " (*^ string_of_typ t ^ " expected " ^
-		   string_of_typ func.typ ^ " in " ^ string_of_expr e*)))
+	  Failure ("return gives " ^ string_of_typ t ^ " expected " ^
+		   string_of_typ func.typ ^ " in " ^ string_of_expr e))
 	    
 	    (* A block is correct if each statement is correct and nothing
 	       follows any Return statement.  Nested blocks are flattened. *)
