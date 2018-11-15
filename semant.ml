@@ -113,9 +113,7 @@ let check (begin_list, loop_list, end_list, config_list) =
       | NumFields -> (Int, SNumFields)
       | Assign(e1, e2) as ex -> 
           let (lt, e1') = expr e1 
-          and (rt, e2') = expr e2 in
-	  let err = "illegal assignment " 
-          in (check_assign lt rt err, SAssign((lt, e1'), (rt, e2'))) 
+          and (rt, e2') = expr e2 in 
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
           in (check_assign lt rt err, SAssign((lt, e1'), (rt, e2'))) 
@@ -182,7 +180,7 @@ let check (begin_list, loop_list, end_list, config_list) =
         if t = func.ret_type then SReturn (t, e') 
         else raise (
 	  Failure ("return gives " ^ string_of_typ t ^ " expected " ^
-		   string_of_typ func.typ ^ " in " ^ string_of_expr e))
+		   string_of_typ func.ret_type ^ " in " ^ string_of_expr e))
 	    
 	    (* A block is correct if each statement is correct and nothing
 	       follows any Return statement.  Nested blocks are flattened. *)
