@@ -76,9 +76,9 @@ let check (begin_list, loop_list, end_list, config_list) =
     with Not_found -> raise (Failure ("unrecognized function " ^ s))
   in
   
-  let (loop_locals,_) = loop_list in check_binds "local" locals;
+  let (loop_locals,_) = loop_list in check_binds "local" loop_locals;
   
-  let (end_locals,_) = end_list in check_binds "local" locals;
+  let (end_locals,_) = end_list in check_binds "local" end_locals;
 
   let check_function func =
     (* Make sure no formals or locals are void or duplicates *)
@@ -320,5 +320,5 @@ let check (begin_list, loop_list, end_list, config_list) =
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
       
   in ((globals, List.map check_function functions), 
-  (loop_locals, let (_, loop_stmts) = loop_list in stmt loop_stmts), 
-  (end_locals, let (_, end_stmts) = end_list in List.map check_function end_stmts), config_list)
+  (let (_, loop_stmts) = loop_list in stmt loop_stmts), 
+  (let (_, end_stmts) = end_list in stmt end_stmts), config_list)
