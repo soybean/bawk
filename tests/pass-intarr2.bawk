@@ -5,5 +5,5 @@ LOOP {}
 END {
   int[] a; 
   a = [1, 2, 3];
-  print(int_to_string(length_int(a)));
+  print(int_to_string(length(a)));
 }

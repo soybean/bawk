@@ -5,5 +5,5 @@ LOOP {}
 END {
   bool[] a; 
   a = [true, false, false];
-  print(int_to_string(length_int(a)));
+  print(int_to_string(length(a)));
 }
