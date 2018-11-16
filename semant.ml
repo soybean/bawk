@@ -297,11 +297,8 @@ let check (begin_list, loop_list, end_list, config_list) =
       | EnhancedFor(s1, st) ->
           SEnhancedFor(s1, check_stmt st) (*unsure about this one? should it be expr*)
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
-      | Return e -> let (t, e') = expr e in
-        if t = func.ret_type then SReturn (t, e') 
-        else raise (
-	  Failure ("return gives " ^ string_of_typ t ^ " expected " ^
-		   string_of_typ func.ret_type ^ " in " ^ string_of_expr e))
+      | Return e -> raise (
+	  Failure ("return must be in a function"))
 	    
 	    (* A block is correct if each statement is correct and nothing
 	       follows any Return statement.  Nested blocks are flattened. *)
