@@ -205,12 +205,12 @@ let check (begin_list, loop_list, end_list, config_list) =
     }
   in 
     
-   let stmt list =
+  let stmt block_list =
    
-  let (locals,_) = list in 
+          let (locals,_) = block_list in 
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
-  let (_, stmt) = list in 
+  let (_, stmt) = block_list in 
     let check_assign lvaluet rvaluet err =
        if lvaluet = rvaluet then lvaluet else raise (Failure err)
     in   
@@ -320,5 +320,5 @@ let check (begin_list, loop_list, end_list, config_list) =
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
       
   in ((globals, List.map check_function functions), 
-  (let (_, loop_stmts) = loop_list in stmt loop_stmts), 
-  (let (_, end_stmts) = end_list in stmt end_stmts), config_list)
+  (loop_locals, stmt loop_list), 
+  (end_locals, stmt end_list), config_list)
