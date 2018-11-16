@@ -202,6 +202,7 @@ let check (begin_list, loop_list, end_list, config_list) =
 	SBlock(sl) -> sl
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
     }
+  in 
     
    let stmt stmt_list =
     (* Raise an exception if the given rvalue type cannot be assigned to
@@ -318,7 +319,5 @@ let check (begin_list, loop_list, end_list, config_list) =
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
       
   in ((globals, List.map check_function functions), 
-  (loop_locals, let (_, loop_stmts) = loop_list in match check_stmt (loop_stmts)  with
-        SBlock(s1) -> s1
-      | _ -> raise (Failure ("error with loop stmts"))), 
+  (loop_locals, let (_, loop_stmts) = loop_list in stmt loop_stmts), 
   (end_locals, let (_, end_stmts) = end_list in List.map check_function end_stmts), config_list)
