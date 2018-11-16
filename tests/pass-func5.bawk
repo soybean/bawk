@@ -7,5 +7,5 @@ BEGIN {
 LOOP {}
 
 END {
-  print(bar(17, false, 25));
+  print(int_to_string(bar(17, false, 25)));
 }

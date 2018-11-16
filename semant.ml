@@ -174,8 +174,8 @@ let check (begin_list, loop_list, end_list, config_list) =
       | If(p, b1, b2) -> SIf(check_bool_expr p, check_stmt b1, check_stmt b2)
       | For(e1, e2, e3, st) ->
 	  SFor(expr e1, check_bool_expr e2, expr e3, check_stmt st)
-      | EnhancedFor(s1, st) ->
-          SEnhancedFor(s1, check_stmt st) (*unsure about this one? should it be expr*)
+      | EnhancedFor(s1, s2, st) ->
+          SEnhancedFor(s1, s2, check_stmt st) (*unsure about this one? should it be expr*)
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
       | Return e -> let (t, e') = expr e in
         if t = func.ret_type then SReturn (t, e') 
@@ -205,12 +205,12 @@ let check (begin_list, loop_list, end_list, config_list) =
     }
   in 
     
-   let stmt list =
+  let stmt block_list =
    
-  let (locals,_) = list in 
+          let (locals,_) = block_list in 
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
-  let (_, stmt) = list in 
+  let (_, stmt) = block_list in 
     let check_assign lvaluet rvaluet err =
        if lvaluet = rvaluet then lvaluet else raise (Failure err)
     in   
@@ -298,8 +298,8 @@ let check (begin_list, loop_list, end_list, config_list) =
       | If(p, b1, b2) -> SIf(check_bool_expr p, check_stmt b1, check_stmt b2)
       | For(e1, e2, e3, st) ->
 	  SFor(expr e1, check_bool_expr e2, expr e3, check_stmt st)
-      | EnhancedFor(s1, st) ->
-          SEnhancedFor(s1, check_stmt st) (*unsure about this one? should it be expr*)
+      | EnhancedFor(s1, s2, st) ->
+          SEnhancedFor(s1, s2, check_stmt st) (*unsure about this one? should it be expr*)
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
       | Return e -> raise (
 	  Failure ("return must be in a function"))
@@ -320,5 +320,5 @@ let check (begin_list, loop_list, end_list, config_list) =
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
       
   in ((globals, List.map check_function functions), 
-  (let (_, loop_stmts) = loop_list in stmt loop_stmts), 
-  (let (_, end_stmts) = end_list in stmt end_stmts), config_list)
+  (loop_locals, stmt loop_list), 
+  (end_locals, stmt end_list), config_list)
