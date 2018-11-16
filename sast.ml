@@ -69,8 +69,8 @@ let rec string_of_sexpr (t, e) =
           ) ^ ")"
 
 let string_of_config_sexpr = function
-    SRSAssign(e) -> "RS = " ^ string_of_sexpr e
-  | SFSAssign(e) -> "FS = " ^ string_of_sexpr e
+    RSAssign(e) -> "RS = " ^ string_of_expr e ^ "\n"
+  | FSAssign(e) -> "FS = " ^ string_of_expr e ^ "\n"
 
 let rec string_of_sstmt = function
     SReturn(expr) -> "return " ^ string_of_sexpr expr ^ ";\n";
