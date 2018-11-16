@@ -75,6 +75,10 @@ let check (begin_list, loop_list, end_list, config_list) =
     try StringMap.find s function_decls
     with Not_found -> raise (Failure ("unrecognized function " ^ s))
   in
+  
+  let (loop_locals,_) = loop_list in check_binds "local" locals;
+  
+  let (end_locals,_) = end_list in check_binds "local" locals;
 
   let check_function func =
     (* Make sure no formals or locals are void or duplicates *)
@@ -203,7 +207,7 @@ let check (begin_list, loop_list, end_list, config_list) =
     
    let stmt list =
    
-  let (locals,_) = list in check_binds "local" locals;
+  let (locals,_) = list in 
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
   let (_, stmt) = list in 
