@@ -4,6 +4,6 @@ LOOP {}
 
 END {
   rgx r; 
-  r = "[0-9]*";
+  r = '[0-9]*';
   print(rgx_to_string(r));
 }
