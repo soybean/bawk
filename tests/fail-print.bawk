@@ -1,0 +1,8 @@
+BEGIN {
+  # Should be illegal to redefine 
+  function void print() {}
+}
+
+LOOP {}
+
+END {}

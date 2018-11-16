@@ -1,10 +1,10 @@
 BEGIN {
   function void printem(int a, int b, int c, int d)
   {
-    print(a);
-    print(b);
-    print(c);
-    print(d);
+    print(int_to_string(a));
+    print(int_to_string(b));
+    print(int_to_string(c));
+    print(int_to_string(d));
   }
 }
 

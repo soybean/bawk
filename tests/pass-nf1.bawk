@@ -1,7 +1,7 @@
 BEGIN {}
 
 LOOP {
-  print(NF);
+  print(int_to_string(NF));
 }
 
 END {}

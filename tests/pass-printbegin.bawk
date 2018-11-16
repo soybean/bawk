@@ -1,0 +1,9 @@
+BEGIN {
+  function void print_begin () {
+    print("Hello world");
+  }
+}
+LOOP {}
+END {
+  print_begin();  
+}

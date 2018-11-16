@@ -1,0 +1,13 @@
+BEGIN {
+  function int foo() {}
+
+  function void bar() {}
+
+  function int print() {} # Should not be able to define print 
+
+  function void baz() {}
+}
+
+LOOP {}
+
+END {}

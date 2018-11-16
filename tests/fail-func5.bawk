@@ -1,0 +1,15 @@
+BEGIN {
+  function int foo() {}
+
+  function int bar() {
+    int a;
+    void b; # Error: illegal void local b 
+    bool c;
+
+    return 0;
+  }
+}
+
+LOOP {}
+
+END {}

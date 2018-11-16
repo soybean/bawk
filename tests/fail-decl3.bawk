@@ -1,0 +1,7 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+  int FS; # Fail: declaring FS
+}

@@ -1,0 +1,13 @@
+BEGIN {
+  function int foo() {}
+
+  function int bar() {}
+
+  function int baz() {}
+
+  function void bar() {} # Error: duplicate function bar 
+}
+
+LOOP {}
+
+END {}

@@ -4,7 +4,7 @@ BEGIN {
     int i; # Should hide the formal i 
 
     i = 42;
-    print(i + i);
+    print(int_to_string(i + i));
   }
 }
 

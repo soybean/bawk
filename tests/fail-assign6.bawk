@@ -1,0 +1,7 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+  NF = 3; # Fail: assigning a value to NF
+}

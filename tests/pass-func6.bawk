@@ -11,5 +11,5 @@ LOOP {}
 
 END {
   foo(73);
-  print(a);
+  print(int_to_string(a));
 }

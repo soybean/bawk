@@ -1,0 +1,7 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+  int NF; # Fail: declaring a variable called NF
+}

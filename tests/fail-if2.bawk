@@ -1,0 +1,9 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+  if (true) {
+    foo; # Error: undeclared variable 
+  }
+}

@@ -13,5 +13,5 @@ END {
 
   fun(i = 2, i = i+1);
 
-  print(i);
+  print(int_to_string(i));
 }

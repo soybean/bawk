@@ -1,0 +1,11 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+  int i;
+  int x;
+
+  x = 10;
+  for (i in x) {} # Fail: enhanced for loop on an integer
+}

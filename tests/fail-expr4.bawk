@@ -1,0 +1,15 @@
+BEGIN {
+  int a;
+  string b;
+
+  function void foo(int c, string d)    
+  {
+    int d;
+    string e;
+    b + a; # Error: string + int 
+  }
+}
+
+LOOP {}
+
+END {}

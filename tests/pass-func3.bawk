@@ -12,6 +12,5 @@ LOOP {}
 END {
   int d;
   d = add(52, 10);
-  print(d);
-  return 0;
+  print(int_to_string(d));
 }
