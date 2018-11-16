@@ -111,7 +111,7 @@ let check (begin_list, loop_list, end_list, config_list) =
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
       | ArrayLit(l) -> expr (List.nth l 0)
-      | NumFields -> (Int, SNumFields)
+      | NumFields -> (String, SNumFields)
       | Assign(e1, e2) as ex ->
           if e1 = NumFields then raise(Failure ("illegal assignment"))
           else 
