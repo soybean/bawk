@@ -75,9 +75,6 @@ let check (begin_list, loop_list, end_list, config_list) =
     try StringMap.find s function_decls
     with Not_found -> raise (Failure ("unrecognized function " ^ s))
   in
-  
-  let (loop_locals,_) = loop_list in check_binds "local" loop_locals;
-  let (end_locals,_) = end_list in check_binds "local" end_locals;
 
   let check_function func =
     (* Make sure no formals or locals are void or duplicates *)
@@ -203,16 +200,19 @@ let check (begin_list, loop_list, end_list, config_list) =
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
     }
     
-   let stmt stmt_list =
+   let stmt list =
+   
+  let (locals,_) = list in check_binds "local" locals;
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
+  let (_, stmt) = list in 
     let check_assign lvaluet rvaluet err =
        if lvaluet = rvaluet then lvaluet else raise (Failure err)
     in   
 
     (* Build local symbol table of variables for this function *)
     let symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m) (* this might need to be changed later*)
-	                StringMap.empty (globals @ func.formals @ func.locals )
+	                StringMap.empty (globals @ locals)
     in
 
     (* Return a variable from our local symbol table *)
@@ -313,7 +313,7 @@ let check (begin_list, loop_list, end_list, config_list) =
             | []              -> []
           in SBlock(check_stmt_list sl)
 
-    in match check_stmt (Block stmt_list) with
+    in match check_stmt (Block stmt) with
 	SBlock(sl) -> sl
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
       
