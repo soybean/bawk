@@ -111,11 +111,10 @@ let check (begin_list, loop_list, end_list, config_list) =
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
       | ArrayLit(l) -> expr (List.nth l 0)
-      | NumFields -> (String, SNumFields)
+      | NumFields -> (Int, SNumFields)
       | Assign(e1, e2) as ex ->
-          if e1 = NumFields then raise(Failure ("illegal assignment"))
-          else 
-          let (lt, e1') = expr e1 
+          if e1 = NumFields then raise (Failure ("illegal assignment of NF"))
+          else let (lt, e1') = expr e1 
           and (rt, e2') = expr e2 in
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
@@ -240,6 +239,7 @@ let check (begin_list, loop_list, end_list, config_list) =
       | Id s       -> (type_of_identifier s, SId s)
       | ArrayLit(l) -> expr (List.nth l 0)
       | NumFields -> (Int, SNumFields)
+      | Assign(NumFields, e) -> raise (Failure ("illegal assignment of NF"))
       | Assign(e1, e2) as ex -> 
           let (lt, e1') = expr e1 
           and (rt, e2') = expr e2 in 
