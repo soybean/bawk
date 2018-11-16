@@ -1,0 +1,7 @@
+BEGIN {}
+
+BEGIN {} # Fail: two BEGIN blocks
+
+LOOP {}
+
+END {}

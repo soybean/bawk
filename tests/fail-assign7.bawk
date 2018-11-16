@@ -1,0 +1,8 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+  rgx r;
+  r = "hello"; # Fail: assigning string to regex
+}
