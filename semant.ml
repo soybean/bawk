@@ -40,17 +40,11 @@ let check (begin_list, loop_list, end_list, config_list) =
 			                         (String, "int_to_string", [(Int, "a")]);
 						 (String, "bool_to_string", [(Bool, "a")]);
 						 (String, "rgx_to_string", [(Rgx, "a")]);
-                                                 (Int, "length", [(ArrayType(Int), "a")]);
+                                                 (Void, "length", []);
 						 (Void, "print", [(String, "a")]);
                                                  (Void, "println", [(String, "a")]);
-                                                 (Bool, "contains", [(Int, "a");(ArrayType(Int), "b")]);
-						 (Bool, "contains", [(String, "a");(ArrayType(String), "b")]);
-						 (Bool, "contains", [(Rgx, "a");(ArrayType(Rgx), "b")]);
-						 (Bool, "contains", [(Bool, "a");(ArrayType(Bool), "b")]);
-                                                 (Int, "index_of", [(ArrayType(Int), "a");(Int, "b")]);
-						 (Int, "index_of", [(ArrayType(String), "a");(String, "b")]);
-						 (Int, "index_of", [(ArrayType(Rgx), "a");(Rgx, "b")]);
-						 (Int, "index_of", [(ArrayType(Bool), "a");(Bool, "b")])] (* need to make generic *)
+                                                 (Void, "contains", []);
+                                                 (Int, "index_of", [])]
   in 
 	
   
