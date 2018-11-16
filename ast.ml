@@ -103,8 +103,8 @@ let rec string_of_expr = function
   | Noexpr -> ""
 
 let string_of_config_expr = function
-    RSAssign(e) -> "RS = " ^ string_of_expr e
-  | FSAssign(e) -> "FS = " ^ string_of_expr e
+    RSAssign(e) -> "RS = " ^ string_of_expr e ^ "\n"
+  | FSAssign(e) -> "FS = " ^ string_of_expr e ^ "\n"
 
 let rec string_of_stmt = function
     Return(expr) -> "return " ^ string_of_expr expr ^ ";\n";

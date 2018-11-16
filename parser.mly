@@ -11,12 +11,14 @@
 %token RS FS NF
 %token IF ELSE WHILE FOR IN
 %token DOLLAR
-
 %token <int> LITERAL
 %token <string> STRING_LITERAL
 %token <string> RGX_LITERAL
 %token <string> ID
 %token EOF
+
+%start program
+%type <Ast.program> program
 
 %nonassoc NOELSE
 %nonassoc ELSE
@@ -32,11 +34,8 @@
 %left LSQUARE
 %right DOLLAR
 
-
-%start program
-%type <Ast.program> program
-
 %%
+
 program: 
   begin_block loop_block end_block config_block EOF { ($1, $2, $3, $4) }
 
@@ -116,8 +115,8 @@ stmt:
   | WHILE LPAREN expr RPAREN code_block                   { While($3, $5) }
   | FOR LPAREN expr SEMI expr SEMI expr RPAREN code_block { For($3, $5, $7, $9) }
   | FOR LPAREN ID IN ID RPAREN code_block                 { EnhancedFor($3, $7) }
+  | IF LPAREN expr RPAREN code_block %prec NOELSE         { If($3, $5, Block([])) }
   | IF LPAREN expr RPAREN code_block ELSE code_block      { If($3, $5, $7) }
-  | IF LPAREN expr RPAREN code_block %prec code_block     { If($3, $5, Block([])) }
 
 code_block: LCURLY stmt_list RCURLY { Block(List.rev $2) }
 
