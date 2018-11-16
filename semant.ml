@@ -42,7 +42,7 @@ let check (begin_list, loop_list, end_list, config_list) =
 						 (String, "rgx_to_string", [(Rgx, "a")]);
                                                  (Int, "length", [(ArrayType(Int), "a")]);
 						 (Void, "print", [(String, "a")]);
-						 (Void, "println", [(String, "a")]);
+                                                 (Void, "println", [(String, "a")]);
                                                  (Bool, "contains", [(Int, "a");(ArrayType(Int), "b")]);
 						 (Bool, "contains", [(String, "a");(ArrayType(String), "b")]);
 						 (Bool, "contains", [(Rgx, "a");(ArrayType(Rgx), "b")]);
@@ -112,7 +112,9 @@ let check (begin_list, loop_list, end_list, config_list) =
       | Id s       -> (type_of_identifier s, SId s)
       | ArrayLit(l) -> expr (List.nth l 0)
       | NumFields -> (Int, SNumFields)
-      | Assign(e1, e2) as ex ->  
+      | Assign(e1, e2) as ex ->
+          if e1 = NumFields then raise(Failure ("illegal assignment"))
+          else 
           let (lt, e1') = expr e1 
           and (rt, e2') = expr e2 in
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
