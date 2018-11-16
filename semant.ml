@@ -42,7 +42,7 @@ let check (begin_list, loop_list, end_list, config_list) =
 						 (String, "rgx_to_string", [(Rgx, "a")]);
                                                  (Int, "length", [(ArrayType(Int), "a")]);
 						 (Void, "print", [(String, "a")]);
-						 (Void, "println", [(String, "a")]);
+                                                 (Void, "println", [(String, "a")]);
                                                  (Bool, "contains", [(Int, "a");(ArrayType(Int), "b")]);
 						 (Bool, "contains", [(String, "a");(ArrayType(String), "b")]);
 						 (Bool, "contains", [(Rgx, "a");(ArrayType(Rgx), "b")]);
@@ -112,7 +112,8 @@ let check (begin_list, loop_list, end_list, config_list) =
       | Id s       -> (type_of_identifier s, SId s)
       | ArrayLit(l) -> expr (List.nth l 0)
       | NumFields -> (Int, SNumFields)
-      | Assign(e1, e2) as ex ->  
+      | Assign(NumFields, e) -> raise (Failure ("illegal assignment of NF"))
+      | Assign(e1, e2) as ex ->
           let (lt, e1') = expr e1 
           and (rt, e2') = expr e2 in
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
@@ -238,6 +239,7 @@ let check (begin_list, loop_list, end_list, config_list) =
       | Id s       -> (type_of_identifier s, SId s)
       | ArrayLit(l) -> expr (List.nth l 0)
       | NumFields -> (Int, SNumFields)
+      | Assign(NumFields, e) -> raise (Failure ("illegal assignment of NF"))
       | Assign(e1, e2) as ex -> 
           let (lt, e1') = expr e1 
           and (rt, e2') = expr e2 in 
@@ -265,7 +267,7 @@ let check (begin_list, loop_list, end_list, config_list) =
 	  | Rgxcomp | Rgxnot when ((t1 = Rgx) && (t2 = String)) || ((t1 = String) && (t2 = Rgx)) -> Bool 
           | Equal | Neq            when same               -> Bool
           | Less | Leq | Greater | Geq
-                     when same && (t1 = Int) -> Bool
+                     when same && (t1 = Int || t1 = String) -> Bool
           | And | Or when same && t1 = Bool -> Bool
           | _ -> raise (
 	      Failure ("illegal binary operator "  ^
