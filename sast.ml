@@ -84,7 +84,7 @@ let rec string_of_sstmt = function
   | SFor(e1, e2, e3, s) ->
       "for (" ^ string_of_sexpr e1  ^ " ; " ^ string_of_sexpr e2 ^ " ; " ^
       string_of_sexpr e3  ^ ") " ^ string_of_sstmt s
-  | SEnhancedFor(str1, str2, s) -> "for (" ^ str1 ^ " in " ^ str2 ^ ") " ^ string_of_stmt s
+  | SEnhancedFor(str1, str2, s) -> "for (" ^ str1 ^ " in " ^ str2 ^ ") " ^ string_of_sstmt s
 
 let string_of_sfdecl fdecl =
   "function " ^ string_of_typ fdecl.sret_type ^ " " ^

@@ -174,8 +174,8 @@ let check (begin_list, loop_list, end_list, config_list) =
       | If(p, b1, b2) -> SIf(check_bool_expr p, check_stmt b1, check_stmt b2)
       | For(e1, e2, e3, st) ->
 	  SFor(expr e1, check_bool_expr e2, expr e3, check_stmt st)
-      | EnhancedFor(s1, st) ->
-          SEnhancedFor(s1, check_stmt st) (*unsure about this one? should it be expr*)
+      | EnhancedFor(s1, s2, st) ->
+          SEnhancedFor(s1, s2, check_stmt st) (*unsure about this one? should it be expr*)
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
       | Return e -> let (t, e') = expr e in
         if t = func.ret_type then SReturn (t, e') 
@@ -298,8 +298,8 @@ let check (begin_list, loop_list, end_list, config_list) =
       | If(p, b1, b2) -> SIf(check_bool_expr p, check_stmt b1, check_stmt b2)
       | For(e1, e2, e3, st) ->
 	  SFor(expr e1, check_bool_expr e2, expr e3, check_stmt st)
-      | EnhancedFor(s1, st) ->
-          SEnhancedFor(s1, check_stmt st) (*unsure about this one? should it be expr*)
+      | EnhancedFor(s1, s2, st) ->
+          SEnhancedFor(s1, s2, check_stmt st) (*unsure about this one? should it be expr*)
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
       | Return e -> raise (
 	  Failure ("return must be in a function"))
