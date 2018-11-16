@@ -35,7 +35,7 @@ type stmt =
   | While of expr * stmt
   | If of expr * stmt * stmt
   | For of expr * expr * expr * stmt
-  | EnhancedFor of string * stmt
+  | EnhancedFor of string * string * stmt
 
 type func_decl = {
     ret_type : typ;
@@ -99,7 +99,7 @@ let rec string_of_expr = function
   | Unop(o, e) -> string_of_uop o ^ string_of_expr e  
   | ArrayLit(el) -> "[" ^ String.concat ", " (List.map string_of_expr el) ^ "]"
   | ArrayDeref(v, e) -> string_of_expr v ^ "[" ^ string_of_expr e ^ "]"
-  | NumFields -> ""
+  | NumFields -> "NF"
   | Noexpr -> ""
 
 let string_of_config_expr = function
@@ -118,7 +118,7 @@ let rec string_of_stmt = function
   | For(e1, e2, e3, s) ->
       "for (" ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^
       string_of_expr e3  ^ ") " ^ string_of_stmt s
-  | EnhancedFor(str, s) -> "for (" ^ str ^ " in " ^ string_of_stmt s ^ ")"
+  | EnhancedFor(str1, str2, s) -> "for (" ^ str1 ^ " in " ^ str2 ^ ") " ^ string_of_stmt s
 
 let rec string_of_typ = function
     Int -> "int"

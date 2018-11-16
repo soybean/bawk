@@ -114,7 +114,7 @@ stmt:
   | RETURN expr_opt SEMI                                  { Return $2 } 
   | WHILE LPAREN expr RPAREN code_block                   { While($3, $5) }
   | FOR LPAREN expr SEMI expr SEMI expr RPAREN code_block { For($3, $5, $7, $9) }
-  | FOR LPAREN ID IN ID RPAREN code_block                 { EnhancedFor($3, $7) }
+  | FOR LPAREN ID IN ID RPAREN code_block                 { EnhancedFor($3, $5, $7) }
   | IF LPAREN expr RPAREN code_block %prec NOELSE         { If($3, $5, Block([])) }
   | IF LPAREN expr RPAREN code_block ELSE code_block      { If($3, $5, $7) }
 
@@ -145,8 +145,8 @@ expr:
   | expr OR expr                 { Binop($1, Or, $3) }
   | expr PLUSEQ expr             { Binop($1, Pluseq, $3) } 
   | expr MINUSEQ expr            { Binop($1, Minuseq, $3) }
-  | expr INCREMENT               { Unop(Increment, $1) }
-  | expr DECREMENT               { Unop(Decrement, $1) }
+  | INCREMENT expr               { Unop(Increment, $2) }
+  | DECREMENT expr               { Unop(Decrement, $2) }
   | expr STRCAT expr             { Binop($1, Strcat, $3) }
   | expr RGXEQ expr              { Binop ($1, Rgxeq, $3) }
   | expr RGXNEQ expr             { Binop ($1, Rgxneq, $3)}
