@@ -112,16 +112,17 @@ let check (begin_list, loop_list, end_list, config_list) =
       | Id s       -> (type_of_identifier s, SId s)
       | ArrayLit(l) -> expr (List.nth l 0)
       | NumFields -> (Int, SNumFields)
-      | Assign(e1, e2) as ex -> 
+      | Assign(e1, e2) as ex ->  
           let (lt, e1') = expr e1 
-          and (rt, e2') = expr e2 in 
+          and (rt, e2') = expr e2 in
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
           in (check_assign lt rt err, SAssign((lt, e1'), (rt, e2'))) 
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
-            Neg | Increment | Decrement | Access when t = Int -> Int 
+            Neg | Increment | Decrement when t = Int -> Int
+          | Access when t = Int -> String 
           | Not when t = Bool -> Bool
           | _ -> raise (Failure ("illegal unary operator " ^ 
                                  string_of_uop op ^ string_of_typ t ^
@@ -139,7 +140,7 @@ let check (begin_list, loop_list, end_list, config_list) =
 	  | Rgxcomp | Rgxnot when ((t1 = Rgx) && (t2 = String)) || ((t1 = String) && (t2 = Rgx)) -> Bool 
           | Equal | Neq            when same               -> Bool
           | Less | Leq | Greater | Geq
-                     when same && (t1 = Int) -> Bool
+                     when same && (t1 = Int || t1 = String) -> Bool
           | And | Or when same && t1 = Bool -> Bool
           | _ -> raise (
 	      Failure ("illegal binary operator "  ^
@@ -167,6 +168,7 @@ let check (begin_list, loop_list, end_list, config_list) =
       and err = "expected Boolean expression in " ^ string_of_expr e 
       in if t' != Bool then raise (Failure err) else (t', e') 
     in
+
 
     (* Return a semantically-checked statement i.e. containing sexprs *)
     let rec check_stmt = function
