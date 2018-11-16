@@ -1,0 +1,10 @@
+BEGIN {}
+
+LOOP {}
+
+END {}
+
+CONFIG {
+  RS = "\n";
+  RS = "\n\n";
+}
