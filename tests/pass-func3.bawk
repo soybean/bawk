@@ -13,5 +13,4 @@ END {
   int d;
   d = add(52, 10);
   print(d);
-  return 0;
 }
