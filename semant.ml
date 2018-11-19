@@ -143,7 +143,7 @@ let check (begin_list, loop_list, end_list, config_list) =
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                        string_of_typ t2 ^ " in " ^ string_of_expr e))
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
-      | Call("length", args) as length -> (* REMEMBER TO UPDATE IN BOTH SECTIONS WHEN IT WORKS *)
+      | Call("length", args) as length -> 
           if List.length args != 1 then raise (Failure("expecting one argument for length"))
           else let check_call e =
           let (et, e') = expr e in
@@ -295,6 +295,17 @@ let check (begin_list, loop_list, end_list, config_list) =
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                        string_of_typ t2 ^ " in " ^ string_of_expr e))
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
+      | Call("length", args) as length -> 
+          if List.length args != 1 then raise (Failure("expecting one argument for length"))
+          else let check_call e =
+          let (et, e') = expr e in
+          if (et = String || et = Bool || et = Void || et = Rgx || et = Int) then 
+                  raise (Failure("illegal argument found " ^ 
+                  string_of_typ et ^ " arraytype expected in " ^ string_of_expr e))
+          else (et, e') 
+          in 
+          let args' = List.map check_call args
+          in (Int, SCall("length", args')) 
       | Call(fname, args) as call -> 
           let fd = find_func fname in
           let param_length = List.length fd.formals in
