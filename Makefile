@@ -22,3 +22,7 @@ bawk.native :
 .PHONY : clean
 clean :
 	ocamlbuild -clean
+
+.PHONY : cleantests
+cleantests :
+	rm tests/*.out tests/*.err
