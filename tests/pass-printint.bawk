@@ -1,0 +1,5 @@
+BEGIN {}
+LOOP{
+print(5);
+}
+END {}
