@@ -5,6 +5,6 @@ LOOP {}
 END {
   bool[] a; 
   a = [true, false, false];
-  a[3] = true;
+  a.insert(3, true);
   print(int_to_string(length(a)));
 }
