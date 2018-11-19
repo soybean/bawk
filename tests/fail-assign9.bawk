@@ -1,0 +1,7 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+  void x; # Fail: Declaring a variable with void type
+}
