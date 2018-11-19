@@ -1,0 +1,8 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+  int[][] a;
+  a = [[1,2], ["hi", "bye"]]; # Fail: Assigning 2D array of int type and string type to 2D array of int type
+}
