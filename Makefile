@@ -7,7 +7,7 @@ test : all test-script.sh
 # "make all" removes all previously generated files and builds the executable
 
 .PHONY : all
-all : clean bawk.native
+all : clean bawk.native convert.o
 
 # "make bawk.native" compiles the compiler
 
@@ -22,3 +22,5 @@ bawk.native :
 .PHONY : clean
 clean :
 	ocamlbuild -clean
+
+convert: convert.c cc -o convert convert.c
