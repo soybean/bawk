@@ -23,4 +23,9 @@ bawk.native :
 clean :
 	ocamlbuild -clean
 
+.PHONY : convert
 convert: convert.c cc -o convert convert.c
+
+.PHONY : cleantests
+cleantests :
+	rm tests/*.out tests/*.err

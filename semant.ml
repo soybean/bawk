@@ -40,17 +40,11 @@ let check (begin_list, loop_list, end_list, config_list) =
 			                         (String, "int_to_string", [(Int, "a")]);
 						 (String, "bool_to_string", [(Bool, "a")]);
 						 (String, "rgx_to_string", [(Rgx, "a")]);
-                                                 (Int, "length", [(ArrayType(Int), "a")]);
+                                                 (Void, "length", []);
 						 (Void, "print", [(String, "a")]);
                                                  (Void, "println", [(String, "a")]);
-                                                 (Bool, "contains", [(Int, "a");(ArrayType(Int), "b")]);
-						 (Bool, "contains", [(String, "a");(ArrayType(String), "b")]);
-						 (Bool, "contains", [(Rgx, "a");(ArrayType(Rgx), "b")]);
-						 (Bool, "contains", [(Bool, "a");(ArrayType(Bool), "b")]);
-                                                 (Int, "index_of", [(ArrayType(Int), "a");(Int, "b")]);
-						 (Int, "index_of", [(ArrayType(String), "a");(String, "b")]);
-						 (Int, "index_of", [(ArrayType(Rgx), "a");(Rgx, "b")]);
-						 (Int, "index_of", [(ArrayType(Bool), "a");(Bool, "b")])] (* need to make generic *)
+                                                 (Void, "contains", []);
+                                                 (Int, "index_of", [])]
   in 
 	
   
@@ -110,7 +104,8 @@ let check (begin_list, loop_list, end_list, config_list) =
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      | ArrayLit(l) -> expr (List.nth l 0)
+      | ArrayLit(l) -> if List.length l >=1 then expr(List.nth l 0)
+                       else (Void, SNoexpr)
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, e) -> raise (Failure ("illegal assignment of NF"))
       | Assign(e1, e2) as ex ->
@@ -148,6 +143,32 @@ let check (begin_list, loop_list, end_list, config_list) =
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                        string_of_typ t2 ^ " in " ^ string_of_expr e))
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
+   (*   | Call("length", args) as length -> (* REMEMBER TO UPDATE IN BOTH SECTIONS WHEN IT WORKS *)
+          if List.length args != 1 then raise (Failure("expecting one argument for length"))
+	  else let check_call e = 
+            let (e1, e2) = e in 
+	    let (t1, e1') = expr e1 
+            and (t2, e2') = expr e2 in
+            let ty = match t1 with
+	    String | Bool | Void | Rgx | Int -> 
+                    raise (Failure("illegal argument found " ^ 
+                    string_of_typ et ^ " arraytype expected in " ^ string_of_expr e))
+	    | _ -> et 
+          in 
+          let args' = List.map2 check_call args
+          in (Int, SCall("length", args'))
+      | Call("contains", args) as contains -> (* REMEMBER TO UPDATE IN BOTH SECTIONS WHEN IT WORKS *)
+          if List.length args != 2 then raise (Failure("expecting two arguments for contains"))
+	  else let check_call e = 
+            let (et1, e1') = expr e in 
+            let ty = match ft with
+	    String | Bool | Void | Rgx | Int -> 
+                    raise (Failure("illegal argument found " ^ 
+                    string_of_typ et ^ " arraytype expected in " ^ string_of_expr e))
+	    | _ -> et 
+          in 
+          let args' = List.map2 check_call args
+          in (Bool, SCall("contains", args')) *)
       | Call(fname, args) as call -> 
           let fd = find_func fname in
           let param_length = List.length fd.formals in
@@ -178,7 +199,7 @@ let check (begin_list, loop_list, end_list, config_list) =
       | For(e1, e2, e3, st) ->
 	  SFor(expr e1, check_bool_expr e2, expr e3, check_stmt st)
       | EnhancedFor(s1, s2, st) ->
-          SEnhancedFor(s1, s2, check_stmt st) (*unsure about this one? should it be expr*)
+                      SEnhancedFor(s1, s2, check_stmt st) 
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
       | Return e -> let (t, e') = expr e in
         if t = func.ret_type then SReturn (t, e') 
@@ -215,6 +236,7 @@ let check (begin_list, loop_list, end_list, config_list) =
        the given lvalue type *)
   let (_, stmt) = block_list in 
     let check_assign lvaluet rvaluet err =
+
        if lvaluet = rvaluet then lvaluet else raise (Failure err)
     in   
 
@@ -237,7 +259,8 @@ let check (begin_list, loop_list, end_list, config_list) =
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      | ArrayLit(l) -> expr (List.nth l 0)
+      | ArrayLit(l) -> if List. length l >=1 then expr(List.nth l 0)
+                       else (Void, SNoexpr)
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, e) -> raise (Failure ("illegal assignment of NF"))
       | Assign(e1, e2) as ex -> 
@@ -249,7 +272,8 @@ let check (begin_list, loop_list, end_list, config_list) =
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
-            Neg | Increment | Decrement | Access when t = Int -> Int 
+            Neg | Increment | Decrement when t = Int -> Int
+          | Access when t = Int -> String 
           | Not when t = Bool -> Bool
           | _ -> raise (Failure ("illegal unary operator " ^ 
                                  string_of_uop op ^ string_of_typ t ^
