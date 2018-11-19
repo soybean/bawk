@@ -40,7 +40,7 @@ let check (begin_list, loop_list, end_list, config_list) =
 			                         (String, "int_to_string", [(Int, "a")]);
 						 (String, "bool_to_string", [(Bool, "a")]);
 						 (String, "rgx_to_string", [(Rgx, "a")]);
-                                            (*     (Void, "length", []); *)
+                                              (*   (Void, "length", []); *)
 						 (Void, "print", [(String, "a")]);
                                                  (Void, "println", [(String, "a")]);
                                                  (Void, "contains", []);
@@ -104,11 +104,11 @@ let check (begin_list, loop_list, end_list, config_list) =
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      | ArrayLit(l) -> if List.length l >0 then 
-              let check_array e =
+      | ArrayLit(l) -> if List.length l >0 then expr(List.nth l 0)
+           (*   let check_array e =
                       let (et, e') = expr e in (et, e')
                       in let l' = List.map check_array l in
-                      (ArrayType(List.nth l 0), SArrayLit(l')) 
+                      (ArrayType(List.nth l 0), SArrayLit(l')) *)
               else (Void, SNoexpr)
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, e) -> raise (Failure ("illegal assignment of NF"))
@@ -202,9 +202,13 @@ let check (begin_list, loop_list, end_list, config_list) =
 	  SFor(expr e1, check_bool_expr e2, expr e3, check_stmt st)
       | EnhancedFor(s1, s2, st) ->
           let s2_type = type_of_identifier s2 in
+          let s2_type_string = string_of_typ s2_type in
           if (s2_type = Bool || s2_type = Rgx || s2_type = String || s2_type = Int || s2_type = Void) then
-                  raise (Failure("cannot iterate over type " ^ string_of_typ s2_type))
-          else SEnhancedFor(s1, s2, check_stmt st) 
+                  raise (Failure("cannot iterate over type " ^ s2_type_string))
+          else let n = String.length s2_type_string in
+          let array_type = String.sub s2_type_string 0 (n-1) in
+          if (array_type = string_of_typ (type_of_identifier s1)) then SEnhancedFor(s1, s2, check_stmt st) 
+          else raise(Failure("mismatch in " ^ string_of_typ (type_of_identifier s1) ^ " and " ^ s2_type_string))
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
       | Return e -> let (t, e') = expr e in
         if t = func.ret_type then SReturn (t, e') 
@@ -264,11 +268,11 @@ let check (begin_list, loop_list, end_list, config_list) =
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      | ArrayLit(l) -> if List.length l >0 then 
-              let check_array e =
+      | ArrayLit(l) -> if List.length l >0 then expr(List.nth l 0)
+            (*  let check_array e =
                       let (et, e') = expr e in (et, e')
                       in let l' = List.map check_array l in
-                      (ArrayType(List.nth l 0), SArrayLit(l')) 
+                      (ArrayType(List.nth l 0), SArrayLit(l')) *)
               else (Void, SNoexpr)
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, e) -> raise (Failure ("illegal assignment of NF"))
