@@ -40,7 +40,7 @@ let check (begin_list, loop_list, end_list, config_list) =
 			                         (String, "int_to_string", [(Int, "a")]);
 						 (String, "bool_to_string", [(Bool, "a")]);
 						 (String, "rgx_to_string", [(Rgx, "a")]);
-                                                 (Void, "length", []);
+                                            (*     (Void, "length", []); *)
 						 (Void, "print", [(String, "a")]);
                                                  (Void, "println", [(String, "a")]);
                                                  (Void, "contains", []);
@@ -82,7 +82,7 @@ let check (begin_list, loop_list, end_list, config_list) =
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
     let check_assign lvaluet rvaluet err =
-       if lvaluet = rvaluet then lvaluet else raise (Failure err)
+       if (lvaluet = rvaluet) then lvaluet else raise (Failure err)
     in   
 
     (* Build local symbol table of variables for this function *)
@@ -143,25 +143,22 @@ let check (begin_list, loop_list, end_list, config_list) =
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                        string_of_typ t2 ^ " in " ^ string_of_expr e))
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
-   (*   | Call("length", args) as length -> (* REMEMBER TO UPDATE IN BOTH SECTIONS WHEN IT WORKS *)
+      | Call("length", args) as length -> 
           if List.length args != 1 then raise (Failure("expecting one argument for length"))
-	  else let check_call e = 
-            let (e1, e2) = e in 
-	    let (t1, e1') = expr e1 
-            and (t2, e2') = expr e2 in
-            let ty = match t1 with
-	    String | Bool | Void | Rgx | Int -> 
-                    raise (Failure("illegal argument found " ^ 
-                    string_of_typ et ^ " arraytype expected in " ^ string_of_expr e))
-	    | _ -> et 
+          else let check_call e =
+          let (et, e') = expr e in
+          if (et = String || et = Bool || et = Void || et = Rgx || et = Int) then 
+                  raise (Failure("illegal argument found " ^ 
+                  string_of_typ et ^ " arraytype expected in " ^ string_of_expr e))
+          else (et, e') 
           in 
-          let args' = List.map2 check_call args
-          in (Int, SCall("length", args'))
-      | Call("contains", args) as contains -> (* REMEMBER TO UPDATE IN BOTH SECTIONS WHEN IT WORKS *)
+          let args' = List.map check_call args
+          in (Int, SCall("length", args')) 
+   (*   | Call("contains", args) as contains -> (* REMEMBER TO UPDATE IN BOTH SECTIONS WHEN IT WORKS *)
           if List.length args != 2 then raise (Failure("expecting two arguments for contains"))
 	  else let check_call e = 
-            let (et1, e1') = expr e in 
-            let ty = match ft with
+            let (et, e') = expr e in 
+            let ty = match et with
 	    String | Bool | Void | Rgx | Int -> 
                     raise (Failure("illegal argument found " ^ 
                     string_of_typ et ^ " arraytype expected in " ^ string_of_expr e))
@@ -237,7 +234,7 @@ let check (begin_list, loop_list, end_list, config_list) =
   let (_, stmt) = block_list in 
     let check_assign lvaluet rvaluet err =
 
-       if lvaluet = rvaluet then lvaluet else raise (Failure err)
+       if (lvaluet = rvaluet) then lvaluet else raise (Failure err)
     in   
 
     (* Build local symbol table of variables for this function *)
@@ -298,6 +295,17 @@ let check (begin_list, loop_list, end_list, config_list) =
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                        string_of_typ t2 ^ " in " ^ string_of_expr e))
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
+      | Call("length", args) as length -> 
+          if List.length args != 1 then raise (Failure("expecting one argument for length"))
+          else let check_call e =
+          let (et, e') = expr e in
+          if (et = String || et = Bool || et = Void || et = Rgx || et = Int) then 
+                  raise (Failure("illegal argument found " ^ 
+                  string_of_typ et ^ " arraytype expected in " ^ string_of_expr e))
+          else (et, e') 
+          in 
+          let args' = List.map check_call args
+          in (Int, SCall("length", args')) 
       | Call(fname, args) as call -> 
           let fd = find_func fname in
           let param_length = List.length fd.formals in
