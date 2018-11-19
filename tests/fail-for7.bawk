@@ -1,0 +1,9 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+  int x;
+  string[] a;
+  for(x in a) {} # Fail: Enhanced for loop on a string array using an int
+}

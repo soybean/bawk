@@ -3,6 +3,5 @@ BEGIN {}
 LOOP {}
 
 END {
-  int[] a;
-  a = [[1,2], [3,4]]; # Fail: assigning a 2D array to a 1D array 
+  void x; # Fail: Declaring a variable with void type
 }
