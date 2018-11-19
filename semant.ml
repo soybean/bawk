@@ -40,7 +40,7 @@ let check (begin_list, loop_list, end_list, config_list) =
 			                         (String, "int_to_string", [(Int, "a")]);
 						 (String, "bool_to_string", [(Bool, "a")]);
 						 (String, "rgx_to_string", [(Rgx, "a")]);
-                                              (*   (Void, "length", []); *)
+                                                 (Void, "length", []); 
 						 (Void, "print", [(String, "a")]);
                                                  (Void, "println", [(String, "a")]);
                                                  (Void, "contains", []);
@@ -206,7 +206,7 @@ let check (begin_list, loop_list, end_list, config_list) =
           if (s2_type = Bool || s2_type = Rgx || s2_type = String || s2_type = Int || s2_type = Void) then
                   raise (Failure("cannot iterate over type " ^ s2_type_string))
           else let n = String.length s2_type_string in
-          let array_type = String.sub s2_type_string 0 (n-1) in
+          let array_type = String.sub s2_type_string 0 (n-2) in
           if (array_type = string_of_typ (type_of_identifier s1)) then SEnhancedFor(s1, s2, check_stmt st) 
           else raise(Failure("mismatch in " ^ string_of_typ (type_of_identifier s1) ^ " and " ^ s2_type_string))
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
@@ -356,7 +356,7 @@ let check (begin_list, loop_list, end_list, config_list) =
           if (s2_type = Bool || s2_type = Rgx || s2_type = String || s2_type = Int || s2_type = Void) then
                   raise (Failure("cannot iterate over type " ^ s2_type_string))
           else let n = String.length s2_type_string in
-          let array_type = String.sub s2_type_string 0 (n-1) in
+          let array_type = String.sub s2_type_string 0 (n-2) in
           if (array_type = string_of_typ (type_of_identifier s1)) then SEnhancedFor(s1, s2, check_stmt st) 
           else raise(Failure("mismatch in " ^ string_of_typ (type_of_identifier s1) ^ " and " ^ s2_type_string))
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
