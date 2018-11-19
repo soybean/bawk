@@ -104,7 +104,8 @@ let check (begin_list, loop_list, end_list, config_list) =
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      | ArrayLit(l) -> if List.length l >=1 then expr (List.nth l 0)
+      | ArrayLit(l) -> if List.length l >=1 then expr(List.nth l 0)
+                       else (Void, SNoexpr)
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, e) -> raise (Failure ("illegal assignment of NF"))
       | Assign(e1, e2) as ex ->
@@ -198,7 +199,7 @@ let check (begin_list, loop_list, end_list, config_list) =
       | For(e1, e2, e3, st) ->
 	  SFor(expr e1, check_bool_expr e2, expr e3, check_stmt st)
       | EnhancedFor(s1, s2, st) ->
-          SEnhancedFor(s1, s2, check_stmt st) (*unsure about this one? should it be expr*)
+                      SEnhancedFor(s1, s2, check_stmt st) 
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
       | Return e -> let (t, e') = expr e in
         if t = func.ret_type then SReturn (t, e') 
@@ -235,6 +236,7 @@ let check (begin_list, loop_list, end_list, config_list) =
        the given lvalue type *)
   let (_, stmt) = block_list in 
     let check_assign lvaluet rvaluet err =
+
        if lvaluet = rvaluet then lvaluet else raise (Failure err)
     in   
 
@@ -257,7 +259,8 @@ let check (begin_list, loop_list, end_list, config_list) =
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      | ArrayLit(l) -> if List. length l >=1 then expr (List.nth l 0)
+      | ArrayLit(l) -> if List. length l >=1 then expr(List.nth l 0)
+                       else (Void, SNoexpr)
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, e) -> raise (Failure ("illegal assignment of NF"))
       | Assign(e1, e2) as ex -> 
@@ -269,7 +272,8 @@ let check (begin_list, loop_list, end_list, config_list) =
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
-            Neg | Increment | Decrement | Access when t = Int -> Int 
+            Neg | Increment | Decrement when t = Int -> Int
+          | Access when t = Int -> String 
           | Not when t = Bool -> Bool
           | _ -> raise (Failure ("illegal unary operator " ^ 
                                  string_of_uop op ^ string_of_typ t ^
