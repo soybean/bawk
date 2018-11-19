@@ -264,8 +264,12 @@ let check (begin_list, loop_list, end_list, config_list) =
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      | ArrayLit(l) -> if List. length l >=1 then expr(List.nth l 0)
-                       else (Void, SNoexpr)
+      | ArrayLit(l) -> if List.length l >0 then 
+              let check_array e =
+                      let (et, e') = expr e in (et, e')
+                      in let l' = List.map check_array l in
+                      (ArrayType(List.nth l 0), SArrayLit(l')) 
+              else (Void, SNoexpr)
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, e) -> raise (Failure ("illegal assignment of NF"))
       | Assign(e1, e2) as ex -> 
@@ -343,7 +347,10 @@ let check (begin_list, loop_list, end_list, config_list) =
       | For(e1, e2, e3, st) ->
 	  SFor(expr e1, check_bool_expr e2, expr e3, check_stmt st)
       | EnhancedFor(s1, s2, st) ->
-          SEnhancedFor(s1, s2, check_stmt st) (*unsure about this one? should it be expr*)
+          let s2_type = type_of_identifier s2 in
+          if (s2_type = Bool || s2_type = Rgx || s2_type = String || s2_type = Int || s2_type = Void) then
+                  raise (Failure("cannot iterate over type " ^ string_of_typ s2_type))
+          else SEnhancedFor(s1, s2, check_stmt st) 
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
       | Return e -> raise (
 	  Failure ("return must be in a function"))
