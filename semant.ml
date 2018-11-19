@@ -142,6 +142,12 @@ let check (begin_list, loop_list, end_list, config_list) =
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                        string_of_typ t2 ^ " in " ^ string_of_expr e))
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
+      | Call("length", args) as length ->
+          if List.length args != 1 then raise (Failure("expecting one argument for length"))
+	  else let check_call (ft, _) e =
+	    if ft = String || ft = Bool || ft = Int || ft = Void || ft = Rgx then 
+	    raise (Failure("expecting arraytype as argument"))
+	    else let a = (Int, SCall("length", args'))
       | Call(fname, args) as call -> 
           let fd = find_func fname in
           let param_length = List.length fd.formals in
