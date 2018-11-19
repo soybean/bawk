@@ -145,21 +145,20 @@ let check (begin_list, loop_list, end_list, config_list) =
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
       | Call("length", args) as length -> (* REMEMBER TO UPDATE IN BOTH SECTIONS WHEN IT WORKS *)
           if List.length args != 1 then raise (Failure("expecting one argument for length"))
-	  else let check_call e = 
-            let (et, e') = expr e 
-            in let ty = match et with
-	    String | Bool | Void | Rgx | Int -> 
-                    raise (Failure("illegal argument found " ^ 
-                    string_of_typ et ^ " arraytype expected in " ^ string_of_expr e))
-           | _ -> et
+          else let check_call e =
+          let (et, e') = expr e in
+          if (et = String || et = Bool || et = Void || et = Rgx || et = Int) then 
+                  raise (Failure("illegal argument found " ^ 
+                  string_of_typ et ^ " arraytype expected in " ^ string_of_expr e))
+          else (et, e') 
           in 
-          let args' = List.map2 check_call args
-          in (Int, SCall("length", args'))
+          let args' = List.map check_call args
+          in (Int, SCall("length", args')) 
    (*   | Call("contains", args) as contains -> (* REMEMBER TO UPDATE IN BOTH SECTIONS WHEN IT WORKS *)
           if List.length args != 2 then raise (Failure("expecting two arguments for contains"))
 	  else let check_call e = 
-            let (et1, e1') = expr e in 
-            let ty = match ft with
+            let (et, e') = expr e in 
+            let ty = match et with
 	    String | Bool | Void | Rgx | Int -> 
                     raise (Failure("illegal argument found " ^ 
                     string_of_typ et ^ " arraytype expected in " ^ string_of_expr e))
