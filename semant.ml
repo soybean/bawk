@@ -142,11 +142,13 @@ let check (begin_list, loop_list, end_list, config_list) =
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                        string_of_typ t2 ^ " in " ^ string_of_expr e))
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
-      | Call("length", args) as length ->
+   (*   | Call("length", args) as length -> (* REMEMBER TO UPDATE IN BOTH SECTIONS WHEN IT WORKS *)
           if List.length args != 1 then raise (Failure("expecting one argument for length"))
 	  else let check_call e = 
-            let (et, e') = expr e in 
-            let ty = match ft with
+            let (e1, e2) = e in 
+	    let (t1, e1') = expr e1 
+            and (t2, e2') = expr e2 in
+            let ty = match t1 with
 	    String | Bool | Void | Rgx | Int -> 
                     raise (Failure("illegal argument found " ^ 
                     string_of_typ et ^ " arraytype expected in " ^ string_of_expr e))
@@ -154,6 +156,18 @@ let check (begin_list, loop_list, end_list, config_list) =
           in 
           let args' = List.map2 check_call args
           in (Int, SCall("length", args'))
+      | Call("contains", args) as contains -> (* REMEMBER TO UPDATE IN BOTH SECTIONS WHEN IT WORKS *)
+          if List.length args != 2 then raise (Failure("expecting two arguments for contains"))
+	  else let check_call e = 
+            let (et1, e1') = expr e in 
+            let ty = match ft with
+	    String | Bool | Void | Rgx | Int -> 
+                    raise (Failure("illegal argument found " ^ 
+                    string_of_typ et ^ " arraytype expected in " ^ string_of_expr e))
+	    | _ -> et 
+          in 
+          let args' = List.map2 check_call args
+          in (Bool, SCall("contains", args')) *)
       | Call(fname, args) as call -> 
           let fd = find_func fname in
           let param_length = List.length fd.formals in
@@ -243,7 +257,7 @@ let check (begin_list, loop_list, end_list, config_list) =
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      | ArrayLit(l) -> expr (List.nth l 0)
+      | ArrayLit(l) -> if List. length l >=1 then expr (List.nth l 0)
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, e) -> raise (Failure ("illegal assignment of NF"))
       | Assign(e1, e2) as ex -> 
