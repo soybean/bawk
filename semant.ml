@@ -146,10 +146,10 @@ let check (begin_list, loop_list, end_list, config_list) =
           if List.length args != 1 then raise (Failure("expecting one argument for length"))
 	  else let check_call e = 
             let (et, e') = expr e in 
-            let err = "illegal argument found arraytype expected " 
-	    ^ string_of_typ et ^ " in " ^ string_of_expr e 
-            in let ty = match ft with
-	    String | Bool | Void | Rgx | Int -> err
+            let ty = match ft with
+	    String | Bool | Void | Rgx | Int -> 
+                    raise (Failure("illegal argument found " ^ 
+                    string_of_typ et ^ " arraytype expected in " ^ string_of_expr e))
 	    | _ -> et 
           in 
           let args' = List.map2 check_call args
