@@ -163,9 +163,22 @@ let check (begin_list, loop_list, end_list, config_list) =
             else let array_string = string_of_typ t1 in
             let n = String.length array_string in
             let array_type = String.sub array_string 0 (n-2) in 
-            if (array_type = string_of_typ(t2)) 
+            if (array_type = string_of_typ(t2) && t2 != Void) 
             then (Bool, SCall("contains", [(t1, e1');(t2, e2')]))
             else raise(Failure("cannot perform contains on " ^ array_string ^ " and " ^ string_of_typ(t2))) 
+     | Call("index_of", args) as index_of -> 
+          if List.length args != 2 then raise (Failure("expecting two arguments for index_of"))
+	  else let (t1, e1') = expr (List.nth args 0)
+            and (t2, e2') = expr (List.nth args 1) in
+            if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int) 
+               then raise (Failure("illegal argument found " ^ 
+               string_of_typ t1 ^ " arraytype expected"))
+            else let array_string = string_of_typ t1 in
+            let n = String.length array_string in
+            let array_type = String.sub array_string 0 (n-2) in 
+            if (array_type = string_of_typ(t2) && t2 != Void) 
+            then (Int, SCall("index_of", [(t1, e1');(t2, e2')]))
+            else raise(Failure("cannot perform index_of on " ^ array_string ^ " and " ^ string_of_typ(t2))) 
       | Call(fname, args) as call -> 
           let fd = find_func fname in
           let param_length = List.length fd.formals in
@@ -323,9 +336,22 @@ let check (begin_list, loop_list, end_list, config_list) =
             else let array_string = string_of_typ t1 in
             let n = String.length array_string in
             let array_type = String.sub array_string 0 (n-2) in 
-            if (array_type = string_of_typ(t2)) 
+            if (array_type = string_of_typ(t2) && t2 != Void) 
             then (Bool, SCall("contains", [(t1, e1');(t2, e2')]))
             else raise(Failure("cannot perform contains on " ^ array_string ^ " and " ^ string_of_typ(t2))) 
+      | Call("index_of", args) as index_of -> 
+          if List.length args != 2 then raise (Failure("expecting two arguments for index_of"))
+	  else let (t1, e1') = expr (List.nth args 0)
+            and (t2, e2') = expr (List.nth args 1) in
+            if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int) 
+               then raise (Failure("illegal argument found " ^ 
+               string_of_typ t1 ^ " arraytype expected"))
+            else let array_string = string_of_typ t1 in
+            let n = String.length array_string in
+            let array_type = String.sub array_string 0 (n-2) in 
+            if (array_type = string_of_typ(t2) && t2 != Void) 
+            then (Int, SCall("index_of", [(t1, e1');(t2, e2')]))
+            else raise(Failure("cannot perform index_of on " ^ array_string ^ " and " ^ string_of_typ(t2))) 
       | Call(fname, args) as call -> 
           let fd = find_func fname in
           let param_length = List.length fd.formals in
