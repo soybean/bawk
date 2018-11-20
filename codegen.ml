@@ -32,6 +32,11 @@ let translate (begin_block, loop_block, end_block, config_block) input_file =
   let printf_func : L.llvalue = 
     L.declare_function "printf" printf_t the_module in
 
+  let int_to_string_t : L.lltype =
+    L.function_type str_t [| i32_t |] in
+  let int_to_string_func : L.llvalue=
+    L.declare_function "int_to_string" int_to_string_t the_module in
+
   let ftype = L.function_type void_t [||] in
   let main_func = L.define_function "main" ftype the_module in
   let builder = L.builder_at_end context (L.entry_block main_func) in
@@ -120,9 +125,11 @@ let translate (begin_block, loop_block, end_block, config_block) input_file =
     let rec expr builder = function
       A.StringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
         L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
+      | A.Literal i -> L.const_int i32_t i
       | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
       | A.Call ("print", [e]) ->
         L.build_call printf_func [| string_format_str builder; (expr builder e) |] "printf" builder
+      | A.Call ("int_to_string", [e]) -> L.build_call int_to_string_func [| expr builder e |] "int_of_string" builder
 
     in 
 
