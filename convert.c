@@ -7,7 +7,6 @@ int string_to_int(char *a)
 {
   a++;
   a[strlen(a)-1] = 0;
-  printf("%s%s","out: ", a);
   return atoi(a);
 }
 
