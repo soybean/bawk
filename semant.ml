@@ -113,6 +113,22 @@ let check (begin_list, loop_list, end_list, config_list) =
                       in let l' = List.map check_array l 
                       in (ArrayType(arraytype), SArrayLit(l'))
               else (Void, SArrayLit([])) (* try to find type from what is arund it?*)
+      | ArrayDeref (e1, e2) as e ->
+          let (arr, e1') = expr e1
+          and (num, e2') = expr e2 in
+          if num = Int then 
+                  if (arr = Bool || arr = String || arr = Rgx || arr = Void || arr = Int) then
+                         raise (Failure ("array deref should be called on an array, not " ^ string_of_typ arr))
+                  else let type_arr = string_of_typ arr in
+                  let n = String.length type_arr in
+                  let typ = String.sub type_arr 0 (n-2) in
+                  let t = match typ with
+                  "bool" -> Bool
+                 |"string" -> String
+                 |"rgx" -> Rgx
+                 |"int" -> Int
+                 | _ -> raise (Failure("array type is wrong")) in (t, SArrayDeref((arr, e1'), (num, e2')))
+          else raise (Failure ("Int expression expected, " ^ string_of_typ num))
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, e) -> raise (Failure ("illegal assignment of NF"))
       | Assign(e1, e2) as ex ->
