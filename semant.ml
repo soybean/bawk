@@ -149,16 +149,12 @@ let check (begin_list, loop_list, end_list, config_list) =
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
       | Call("length", args) as length -> 
           if List.length args != 1 then raise (Failure("expecting one argument for length"))
-          else let check_call e =
-          let (et, e') = expr e in
+          else let (et, e') = expr (List.nth args 0) in
           if (et = String || et = Bool || et = Void || et = Rgx || et = Int) then 
                   raise (Failure("illegal argument found " ^ 
-                  string_of_typ et ^ " arraytype expected in " ^ string_of_expr e))
-          else (et, e') 
-          in 
-          let args' = List.map check_call args
-          in (Int, SCall("length", args')) 
- (*     | Call("contains", args) as contains -> (* REMEMBER TO UPDATE IN BOTH SECTIONS WHEN IT WORKS *)
+                  string_of_typ et ^ " arraytype expected in " ^ string_of_expr (List.nth args 0)))
+          else (Int, SCall("length", [(et, e')])) 
+(*     | Call("contains", args) as contains -> (* REMEMBER TO UPDATE IN BOTH SECTIONS WHEN IT WORKS *)
           if List.length args != 2 then raise (Failure("expecting two arguments for contains"))
 	  else let check_call e = 
             let args = (e1, e2) in
@@ -313,15 +309,11 @@ let check (begin_list, loop_list, end_list, config_list) =
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
       | Call("length", args) as length -> 
           if List.length args != 1 then raise (Failure("expecting one argument for length"))
-          else let check_call e =
-          let (et, e') = expr e in
+          else let (et, e') = expr (List.nth args 0) in
           if (et = String || et = Bool || et = Void || et = Rgx || et = Int) then 
                   raise (Failure("illegal argument found " ^ 
-                  string_of_typ et ^ " arraytype expected in " ^ string_of_expr e))
-          else (et, e') 
-          in 
-          let args' = List.map check_call args
-          in (Int, SCall("length", args')) 
+                  string_of_typ et ^ " arraytype expected in " ^ string_of_expr (List.nth args 0)))
+          else (Int, SCall("length", [(et, e')])) 
       | Call(fname, args) as call -> 
           let fd = find_func fname in
           let param_length = List.length fd.formals in
