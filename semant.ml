@@ -43,7 +43,9 @@ let check (begin_list, loop_list, end_list, config_list) =
                                                  (Void, "length", []); 
 						 (Void, "print", [(String, "a")]);
                                                  (Void, "contains", []);
-                                                 (Int, "index_of", [])]
+                                                 (Int, "index_of", []);
+                                                 (Void, "insert", []);
+                                                 (Void, "delete", [])]
   in 
 	
   
@@ -103,12 +105,14 @@ let check (begin_list, loop_list, end_list, config_list) =
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      | ArrayLit(l) -> if List.length l >0 then expr(List.nth l 0)
-           (*   let check_array e =
+      | ArrayLit(l) -> if List.length l > 0 then 
+              let typ = expr(List.nth l 0) in
+              let (arraytype, _) = typ in
+              let check_array e =
                       let (et, e') = expr e in (et, e')
-                      in let l' = List.map check_array l in
-                      (ArrayType(List.nth l 0), SArrayLit(l')) *)
-              else (Void, SNoexpr)
+                      in let l' = List.map check_array l 
+                      in (ArrayType(arraytype), SArrayLit(l'))
+              else (Void, SNoexpr) (* try to find type from what is arund it?*)
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, e) -> raise (Failure ("illegal assignment of NF"))
       | Assign(e1, e2) as ex ->
