@@ -1,0 +1,9 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+  int[] a; 
+  a = [1, 2, 3];
+  print(bool_to_string(contains(a, 1)));
+}

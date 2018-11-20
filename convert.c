@@ -8,6 +8,7 @@ int string_to_int(char a[])
   //return atoi(a);
 }
 
-char * int_to_string(int a) {
+char* int_to_string(int a) {
+  printf("hi");
   return "hey";
 }

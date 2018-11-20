@@ -42,9 +42,10 @@ let check (begin_list, loop_list, end_list, config_list) =
 						 (String, "rgx_to_string", [(Rgx, "a")]);
                                                  (Void, "length", []); 
 						 (Void, "print", [(String, "a")]);
-                                                 (Void, "println", [(String, "a")]);
                                                  (Void, "contains", []);
-                                                 (Int, "index_of", [])]
+                                                 (Int, "index_of", []);
+                                                 (Void, "insert", []);
+                                                 (Void, "delete", [])]
   in 
 	
   
@@ -104,12 +105,14 @@ let check (begin_list, loop_list, end_list, config_list) =
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      | ArrayLit(l) -> if List.length l >0 then expr(List.nth l 0)
-           (*   let check_array e =
+      | ArrayLit(l) -> if List.length l > 0 then 
+              let typ = expr(List.nth l 0) in
+              let (arraytype, _) = typ in
+              let check_array e =
                       let (et, e') = expr e in (et, e')
-                      in let l' = List.map check_array l in
-                      (ArrayType(List.nth l 0), SArrayLit(l')) *)
-              else (Void, SNoexpr)
+                      in let l' = List.map check_array l 
+                      in (ArrayType(arraytype), SArrayLit(l'))
+              else (Void, SNoexpr) (* try to find type from what is arund it?*)
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, e) -> raise (Failure ("illegal assignment of NF"))
       | Assign(e1, e2) as ex ->
@@ -154,19 +157,32 @@ let check (begin_list, loop_list, end_list, config_list) =
                   raise (Failure("illegal argument found " ^ 
                   string_of_typ et ^ " arraytype expected in " ^ string_of_expr (List.nth args 0)))
           else (Int, SCall("length", [(et, e')])) 
-(*     | Call("contains", args) as contains -> (* REMEMBER TO UPDATE IN BOTH SECTIONS WHEN IT WORKS *)
+     | Call("contains", args) as contains -> 
           if List.length args != 2 then raise (Failure("expecting two arguments for contains"))
-	  else let check_call e = 
-            let args = (e1, e2) in
-            let (t1, e1') = expr e1
-            and (t2, e2') = expr e2 in
-            if (et = String || et =Bool || et = Void || et = Rgx || et = Int) 
+	  else let (t1, e1') = expr (List.nth args 0)
+            and (t2, e2') = expr (List.nth args 1) in
+            if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int) 
                then raise (Failure("illegal argument found " ^ 
-               string_of_typ et ^ " arraytype expected in " ^ string_of_expr e))
-            else (et, e')
-          in 
-          let args' = check_call args
-          in (Bool, SCall("contains", args')) *)
+               string_of_typ t1 ^ " arraytype expected"))
+            else let array_string = string_of_typ t1 in
+            let n = String.length array_string in
+            let array_type = String.sub array_string 0 (n-2) in 
+            if (array_type = string_of_typ(t2) && t2 != Void) 
+            then (Bool, SCall("contains", [(t1, e1');(t2, e2')]))
+            else raise(Failure("cannot perform contains on " ^ array_string ^ " and " ^ string_of_typ(t2))) 
+     | Call("index_of", args) as index_of -> 
+          if List.length args != 2 then raise (Failure("expecting two arguments for index_of"))
+	  else let (t1, e1') = expr (List.nth args 0)
+            and (t2, e2') = expr (List.nth args 1) in
+            if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int) 
+               then raise (Failure("illegal argument found " ^ 
+               string_of_typ t1 ^ " arraytype expected"))
+            else let array_string = string_of_typ t1 in
+            let n = String.length array_string in
+            let array_type = String.sub array_string 0 (n-2) in 
+            if (array_type = string_of_typ(t2) && t2 != Void) 
+            then (Int, SCall("index_of", [(t1, e1');(t2, e2')]))
+            else raise(Failure("cannot perform index_of on " ^ array_string ^ " and " ^ string_of_typ(t2))) 
       | Call(fname, args) as call -> 
           let fd = find_func fname in
           let param_length = List.length fd.formals in
@@ -264,11 +280,13 @@ let check (begin_list, loop_list, end_list, config_list) =
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      | ArrayLit(l) -> if List.length l >0 then expr(List.nth l 0)
-            (*  let check_array e =
+      | ArrayLit(l) -> if List.length l > 0 then 
+              let typ = expr(List.nth l 0) in
+              let (arraytype, _) = typ in
+              let check_array e =
                       let (et, e') = expr e in (et, e')
-                      in let l' = List.map check_array l in
-                      (ArrayType(List.nth l 0), SArrayLit(l')) *)
+                      in let l' = List.map check_array l 
+                      in (ArrayType(arraytype), SArrayLit(l'))
               else (Void, SNoexpr)
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, e) -> raise (Failure ("illegal assignment of NF"))
@@ -314,6 +332,32 @@ let check (begin_list, loop_list, end_list, config_list) =
                   raise (Failure("illegal argument found " ^ 
                   string_of_typ et ^ " arraytype expected in " ^ string_of_expr (List.nth args 0)))
           else (Int, SCall("length", [(et, e')])) 
+      | Call("contains", args) as contains -> 
+          if List.length args != 2 then raise (Failure("expecting two arguments for contains"))
+	  else let (t1, e1') = expr (List.nth args 0)
+            and (t2, e2') = expr (List.nth args 1) in
+            if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int) 
+               then raise (Failure("illegal argument found " ^ 
+               string_of_typ t1 ^ " arraytype expected"))
+            else let array_string = string_of_typ t1 in
+            let n = String.length array_string in
+            let array_type = String.sub array_string 0 (n-2) in 
+            if (array_type = string_of_typ(t2) && t2 != Void) 
+            then (Bool, SCall("contains", [(t1, e1');(t2, e2')]))
+            else raise(Failure("cannot perform contains on " ^ array_string ^ " and " ^ string_of_typ(t2))) 
+      | Call("index_of", args) as index_of -> 
+          if List.length args != 2 then raise (Failure("expecting two arguments for index_of"))
+	  else let (t1, e1') = expr (List.nth args 0)
+            and (t2, e2') = expr (List.nth args 1) in
+            if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int) 
+               then raise (Failure("illegal argument found " ^ 
+               string_of_typ t1 ^ " arraytype expected"))
+            else let array_string = string_of_typ t1 in
+            let n = String.length array_string in
+            let array_type = String.sub array_string 0 (n-2) in 
+            if (array_type = string_of_typ(t2) && t2 != Void) 
+            then (Int, SCall("index_of", [(t1, e1');(t2, e2')]))
+            else raise(Failure("cannot perform index_of on " ^ array_string ^ " and " ^ string_of_typ(t2))) 
       | Call(fname, args) as call -> 
           let fd = find_func fname in
           let param_length = List.length fd.formals in
