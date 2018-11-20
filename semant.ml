@@ -40,7 +40,7 @@ let check (begin_list, loop_list, end_list, config_list) =
 			                         (String, "int_to_string", [(Int, "a")]);
 						 (String, "bool_to_string", [(Bool, "a")]);
 						 (String, "rgx_to_string", [(Rgx, "a")]);
-                                            (*     (Void, "length", []); *)
+                                                 (Void, "length", []); 
 						 (Void, "print", [(String, "a")]);
                                                  (Void, "println", [(String, "a")]);
                                                  (Void, "contains", []);
@@ -104,8 +104,12 @@ let check (begin_list, loop_list, end_list, config_list) =
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      | ArrayLit(l) -> if List.length l >=1 then expr(List.nth l 0)
-                       else (Void, SNoexpr)
+      | ArrayLit(l) -> if List.length l >0 then expr(List.nth l 0)
+           (*   let check_array e =
+                      let (et, e') = expr e in (et, e')
+                      in let l' = List.map check_array l in
+                      (ArrayType(List.nth l 0), SArrayLit(l')) *)
+              else (Void, SNoexpr)
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, e) -> raise (Failure ("illegal assignment of NF"))
       | Assign(e1, e2) as ex ->
@@ -145,26 +149,23 @@ let check (begin_list, loop_list, end_list, config_list) =
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
       | Call("length", args) as length -> 
           if List.length args != 1 then raise (Failure("expecting one argument for length"))
-          else let check_call e =
-          let (et, e') = expr e in
+          else let (et, e') = expr (List.nth args 0) in
           if (et = String || et = Bool || et = Void || et = Rgx || et = Int) then 
                   raise (Failure("illegal argument found " ^ 
-                  string_of_typ et ^ " arraytype expected in " ^ string_of_expr e))
-          else (et, e') 
-          in 
-          let args' = List.map check_call args
-          in (Int, SCall("length", args')) 
-   (*   | Call("contains", args) as contains -> (* REMEMBER TO UPDATE IN BOTH SECTIONS WHEN IT WORKS *)
+                  string_of_typ et ^ " arraytype expected in " ^ string_of_expr (List.nth args 0)))
+          else (Int, SCall("length", [(et, e')])) 
+(*     | Call("contains", args) as contains -> (* REMEMBER TO UPDATE IN BOTH SECTIONS WHEN IT WORKS *)
           if List.length args != 2 then raise (Failure("expecting two arguments for contains"))
 	  else let check_call e = 
-            let (et, e') = expr e in 
-            let ty = match et with
-	    String | Bool | Void | Rgx | Int -> 
-                    raise (Failure("illegal argument found " ^ 
-                    string_of_typ et ^ " arraytype expected in " ^ string_of_expr e))
-	    | _ -> et 
+            let args = (e1, e2) in
+            let (t1, e1') = expr e1
+            and (t2, e2') = expr e2 in
+            if (et = String || et =Bool || et = Void || et = Rgx || et = Int) 
+               then raise (Failure("illegal argument found " ^ 
+               string_of_typ et ^ " arraytype expected in " ^ string_of_expr e))
+            else (et, e')
           in 
-          let args' = List.map2 check_call args
+          let args' = check_call args
           in (Bool, SCall("contains", args')) *)
       | Call(fname, args) as call -> 
           let fd = find_func fname in
@@ -196,7 +197,14 @@ let check (begin_list, loop_list, end_list, config_list) =
       | For(e1, e2, e3, st) ->
 	  SFor(expr e1, check_bool_expr e2, expr e3, check_stmt st)
       | EnhancedFor(s1, s2, st) ->
-                      SEnhancedFor(s1, s2, check_stmt st) 
+          let s2_type = type_of_identifier s2 in
+          let s2_type_string = string_of_typ s2_type in
+          if (s2_type = Bool || s2_type = Rgx || s2_type = String || s2_type = Int || s2_type = Void) then
+                  raise (Failure("cannot iterate over type " ^ s2_type_string))
+          else let n = String.length s2_type_string in
+          let array_type = String.sub s2_type_string 0 (n-2) in
+          if (array_type = string_of_typ (type_of_identifier s1)) then SEnhancedFor(s1, s2, check_stmt st) 
+          else raise(Failure("mismatch in " ^ string_of_typ (type_of_identifier s1) ^ " and " ^ s2_type_string))
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
       | Return e -> let (t, e') = expr e in
         if t = func.ret_type then SReturn (t, e') 
@@ -256,8 +264,12 @@ let check (begin_list, loop_list, end_list, config_list) =
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      | ArrayLit(l) -> if List. length l >=1 then expr(List.nth l 0)
-                       else (Void, SNoexpr)
+      | ArrayLit(l) -> if List.length l >0 then expr(List.nth l 0)
+            (*  let check_array e =
+                      let (et, e') = expr e in (et, e')
+                      in let l' = List.map check_array l in
+                      (ArrayType(List.nth l 0), SArrayLit(l')) *)
+              else (Void, SNoexpr)
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, e) -> raise (Failure ("illegal assignment of NF"))
       | Assign(e1, e2) as ex -> 
@@ -297,15 +309,11 @@ let check (begin_list, loop_list, end_list, config_list) =
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
       | Call("length", args) as length -> 
           if List.length args != 1 then raise (Failure("expecting one argument for length"))
-          else let check_call e =
-          let (et, e') = expr e in
+          else let (et, e') = expr (List.nth args 0) in
           if (et = String || et = Bool || et = Void || et = Rgx || et = Int) then 
                   raise (Failure("illegal argument found " ^ 
-                  string_of_typ et ^ " arraytype expected in " ^ string_of_expr e))
-          else (et, e') 
-          in 
-          let args' = List.map check_call args
-          in (Int, SCall("length", args')) 
+                  string_of_typ et ^ " arraytype expected in " ^ string_of_expr (List.nth args 0)))
+          else (Int, SCall("length", [(et, e')])) 
       | Call(fname, args) as call -> 
           let fd = find_func fname in
           let param_length = List.length fd.formals in
@@ -335,7 +343,14 @@ let check (begin_list, loop_list, end_list, config_list) =
       | For(e1, e2, e3, st) ->
 	  SFor(expr e1, check_bool_expr e2, expr e3, check_stmt st)
       | EnhancedFor(s1, s2, st) ->
-          SEnhancedFor(s1, s2, check_stmt st) (*unsure about this one? should it be expr*)
+          let s2_type = type_of_identifier s2 in
+          let s2_type_string = string_of_typ s2_type in
+          if (s2_type = Bool || s2_type = Rgx || s2_type = String || s2_type = Int || s2_type = Void) then
+                  raise (Failure("cannot iterate over type " ^ s2_type_string))
+          else let n = String.length s2_type_string in
+          let array_type = String.sub s2_type_string 0 (n-2) in
+          if (array_type = string_of_typ (type_of_identifier s1)) then SEnhancedFor(s1, s2, check_stmt st) 
+          else raise(Failure("mismatch in " ^ string_of_typ (type_of_identifier s1) ^ " and " ^ s2_type_string))
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
       | Return e -> raise (
 	  Failure ("return must be in a function"))

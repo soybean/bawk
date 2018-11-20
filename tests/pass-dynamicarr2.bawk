@@ -1,0 +1,10 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+  bool[] a; 
+  a = [true, false, false];
+  a.delete(2);
+  print(int_to_string(length(a)));
+}

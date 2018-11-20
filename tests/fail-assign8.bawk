@@ -1,8 +1,0 @@
-BEGIN {}
-
-LOOP {}
-
-END {
-  string s;
-  s = 'hello'; # Fail: assigning regex to string
-}

@@ -3,6 +3,6 @@ BEGIN {}
 LOOP {}
 
 END {
-  int[] a;
-  a = [1, "hi"]; # Fail: assigning a string as an element in an int array
+  string s;
+  s = 'hello'; # Fail: assigning regex to string
 }
