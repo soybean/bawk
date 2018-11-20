@@ -34,8 +34,14 @@ let translate (begin_block, loop_block, end_block, config_block) input_file =
 
   let int_to_string_t : L.lltype =
     L.function_type str_t [| i32_t |] in
-  let int_to_string_func : L.llvalue=
+  let int_to_string_func : L.llvalue =
     L.declare_function "int_to_string" int_to_string_t the_module in
+
+  let string_to_int_t : L.lltype =
+    L.function_type i32_t [| str_t |] in
+  let string_to_int_func : L.llvalue = 
+    L.declare_function "string_to_int" string_to_int_t the_module in
+
 
   let ftype = L.function_type void_t [||] in
   let main_func = L.define_function "main" ftype the_module in
@@ -165,6 +171,7 @@ let translate (begin_block, loop_block, end_block, config_block) input_file =
         L.build_call printf_func [| string_format_str builder; (expr builder e) |] "printf" builder
       | _ -> raise (Failure "expr no pattern match") 
       | A.Call ("int_to_string", [e]) -> L.build_call int_to_string_func [| expr builder e |] "int_of_string" builder
+      | A.Call ("string_to_int", [e]) -> L.build_call string_to_int_func [| expr builder e |] "string_to_int" builder
 
     in 
 
