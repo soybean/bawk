@@ -1,0 +1,9 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+  string[] a; 
+  a = ["a", "b", "c"];
+  print(int_to_string(index_of(a, "a")));
+}
