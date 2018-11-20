@@ -24,7 +24,7 @@ let translate (begin_block, loop_block, end_block, config_block) input_file =
 	| A.Bool  -> i1_t
 	| A.Void  -> void_t
 	| A.String -> str_t
-
+  | _ -> raise (Failure "types no pattern match")
 	in
 
 	let printf_t : L.lltype = 
@@ -88,7 +88,7 @@ let translate (begin_block, loop_block, end_block, config_block) input_file =
           (Array.to_list (L.params the_function)) in
 
       List.fold_left add_local formals fdecl.A.locals
-    
+   
     in
 
     let lookup n = try StringMap.find n local_vars
@@ -121,12 +121,14 @@ let translate (begin_block, loop_block, end_block, config_block) input_file =
     	    | A.Leq     -> L.build_icmp L.Icmp.Sle
     	    | A.Greater -> L.build_icmp L.Icmp.Sgt
     	    | A.Geq     -> L.build_icmp L.Icmp.Sge
+          | _         -> raise (Failure "no binary operation")
         ) e1' e2' "tmp" builder
       | A.Unop(uop, e) ->
         let e' = expr builder e in
         (match uop with
           A.Neg -> L.build_neg
           | A.Not -> L.build_not
+          | _ -> raise (Failure "no unary operation")
         ) e' "tmp" builder
       | _ -> raise (Failure "no pattern match") 
         
@@ -155,12 +157,13 @@ let translate (begin_block, loop_block, end_block, config_block) input_file =
       | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
       | A.Call ("print", [e]) ->
         L.build_call printf_func [| string_format_str builder; (expr builder e) |] "printf" builder
-      | _ -> raise (Failure "no pattern match") 
+      | _ -> raise (Failure "expr no pattern match") 
     in 
 
     let rec stmt builder = function
       A.Expr ex -> ignore (expr builder ex); builder
       | A.Block sl -> List.fold_left stmt builder sl
+      | _ -> raise (Failure "statement no pattern match")
     
     in
 
@@ -193,27 +196,19 @@ let translate (begin_block, loop_block, end_block, config_block) input_file =
     let rec stmt builder = function
     	A.Expr ex -> ignore(expr builder ex); builder
     	| A.Block sl -> List.fold_left stmt builder sl
+      | _ -> raise (Failure "stmt no pattern match")
 
     in
 
-    stmt builder (Block (snd end_block)) 
+    ignore(stmt builder (Block (snd end_block)))
 
     in
-
-    (*--- Add terminal ---*)
-    (* TODO: move this to build_function_body and just call it below for main return *)
-    (*let add_terminal builder instr =
-      match L.block_terminator (L.insertion_block builder) with
-	      Some _ -> ()
-        | None -> ignore (instr builder)
-  
-    in*)
 
     (* Call the things that happen in main *)
     List.iter build_function_body (snd begin_block);
-    build_loop_block loop_block;
-    build_end_block end_block;
-    add_terminal builder L.build_ret_void;
+    ignore (build_loop_block loop_block);
+    ignore (build_end_block end_block);
+    ignore (add_terminal builder L.build_ret_void);
 
     the_module
 
