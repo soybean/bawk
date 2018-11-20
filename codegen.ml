@@ -44,7 +44,7 @@ let translate (begin_block, loop_block, end_block, config_block) input_file =
 
 
   let ftype = L.function_type void_t [||] in
-  let main_func = L.define_function "main" ftype the_module in
+  let main_func = L.define_function "loop" ftype the_module in
   let builder = L.builder_at_end context (L.entry_block main_func) in
 
   (*--- Build begin block: globals ---*)
@@ -169,9 +169,9 @@ let translate (begin_block, loop_block, end_block, config_block) input_file =
       | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
       | A.Call ("print", [e]) ->
         L.build_call printf_func [| string_format_str builder; (expr builder e) |] "printf" builder
-      | _ -> raise (Failure "expr no pattern match") 
       | A.Call ("int_to_string", [e]) -> L.build_call int_to_string_func [| expr builder e |] "int_of_string" builder
       | A.Call ("string_to_int", [e]) -> L.build_call string_to_int_func [| expr builder e |] "string_to_int" builder
+      | _ -> raise (Failure "expr no pattern match") 
 
     in 
 
