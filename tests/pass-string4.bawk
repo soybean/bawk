@@ -1,0 +1,12 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+  int x;
+  string s;
+  
+  s = "3";
+  x = string_to_int(s);
+  print(int_to_string(x));
+}
