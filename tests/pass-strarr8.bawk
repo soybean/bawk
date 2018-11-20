@@ -1,0 +1,9 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+  string[] a; 
+  a = ["a", "b", "c"];
+  print(bool_to_string(contains(a, "a")));
+}

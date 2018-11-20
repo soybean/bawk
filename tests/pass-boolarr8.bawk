@@ -5,6 +5,5 @@ LOOP {}
 END {
   bool[] a; 
   a = [true, false, false];
-  delete(a, 2);
-  print(int_to_string(length(a)));
+  print(bool_to_string(contains(a, true)));
 }
