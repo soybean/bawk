@@ -7,7 +7,7 @@ test : all test-script.sh
 # "make all" removes all previously generated files and builds the executable
 
 .PHONY : all
-all : clean bawk.native convert.o
+all : clean bawk.native convert.o structure.o
 
 # "make bawk.native" compiles the compiler
 
@@ -26,6 +26,9 @@ clean :
 
 .PHONY : convert
 convert : convert.c cc -o convert convert.c
+
+.PHONY : structure
+structure : structure.c cc -o structure structure.c
 
 .PHONY : cleantests
 cleantests :
