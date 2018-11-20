@@ -3,7 +3,7 @@ module A = Ast
 
 module StringMap = Map.Make(String)
 
-let translate (begin_block, loop_block, end_block, config_block) input_file =
+let translate (begin_block, loop_block, end_block, config_block) =
 
   let context = L.global_context () in
 
