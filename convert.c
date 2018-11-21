@@ -3,11 +3,12 @@
 #include <string.h>
 
 /* This function converts a string to an int */
-int string_to_int(char *a)
-{
-  a++;
-  a[strlen(a)-1] = 0;
-  return atoi(a);
+int string_to_int(char *a) {
+  char *cleaned = malloc(strlen(a) + 1);
+  strcpy(cleaned, a);
+  cleaned++;
+  cleaned[strlen(cleaned)-1] = 0;
+  return atoi(cleaned);
 }
 
 

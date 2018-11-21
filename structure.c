@@ -17,8 +17,7 @@ int main(int argc, char **argv) {
     FILE *fp = fopen(filename, "rw");
     char buffer[256];
     while (fgets(buffer, 256, fp)) {
-      loop("line");
-      printf("%s", buffer);
+      loop(buffer);
     }
   }
 }
