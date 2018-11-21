@@ -1,5 +1,5 @@
 BEGIN {
-  function int ret_num(int a) {
+  function string ret_str(string a) {
     return a;  
   }  
 }
@@ -9,5 +9,5 @@ LOOP {
 }
 END {
   print("end test");
-  print(int_to_string(ret_num(3)));
+  print(int_to_string(string_to_int(ret_str("3"))));
 }

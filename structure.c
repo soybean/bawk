@@ -1,7 +1,5 @@
 #include <stdio.h>
 
-void begin();
-
 void loop(char *line);
 
 void end();
