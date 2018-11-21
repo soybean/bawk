@@ -1,0 +1,10 @@
+BEGIN {
+  function int ret_num(int a) {
+    return a;  
+  }  
+}
+LOOP {}
+END {
+  print(int_to_string(ret_num(3)));
+}
+
