@@ -13,6 +13,7 @@ int main(int argc, char **argv) {
     printf("You suck");
   }
   else {
+    
     char *filename = argv[1];
     FILE *fp = fopen(filename, "rw");
     char buffer[256];
@@ -20,5 +21,7 @@ int main(int argc, char **argv) {
       loop("line");
       printf("%s", buffer);
     }
+
+    end();
   }
 }
