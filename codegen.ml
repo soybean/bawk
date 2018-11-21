@@ -121,6 +121,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
     		L.build_call printf_func [| string_format_str builder; (expr builder e)|] "printf" builder
       | A.Noexpr -> L.const_int i32_t 0
       | A.Id i -> L.build_load (lookup i) i builder
+      (*| A.Assign (e1, e2)*)
       (* TODO: handle strings and rgx by building binop_gen function (see Decaf)*)
       | A.Binop(e1, op, e2) ->
         let e1' = expr builder e1
@@ -152,8 +153,11 @@ let translate (begin_block, loop_block, end_block, config_block) =
     in 
 
     let rec stmt builder = function
-      A.Expr ex -> ignore(expr func_builder ex); func_builder 
-      | A.Block sl -> List.fold_left stmt func_builder sl
+      A.Expr ex -> ignore(expr builder ex); builder 
+      | A.Block sl -> List.fold_left stmt builder sl
+      | A.Return e -> ignore (match fdecl.A.ret_type with
+          A.Void -> L.build_ret_void builder
+          | _ -> L.build_ret (expr builder e) builder); builder
       | _ -> raise (Failure "stmt no pattern match")
     in
 

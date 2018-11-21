@@ -1,8 +1,13 @@
-BEGIN {}
+BEGIN {
+  function int ret_num(int a) {
+    return a;  
+  }  
+}
 LOOP {
   print("TEST");
   print(int_to_string(string_to_int("5")));
 }
 END {
   print("end test");
+  print(int_to_string(ret_num(3)));
 }
