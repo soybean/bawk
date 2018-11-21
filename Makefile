@@ -1,8 +1,8 @@
 # "make test" removes all previously generated files, compiles everything, and runs the regression tests
 
-.PHONY : test
-test : all test-script.sh
-	./test-script.sh
+#.PHONY : test
+#test : all test-script.sh
+#	./test-script.sh
 
 # "make all" removes all previously generated files and builds the executable
 

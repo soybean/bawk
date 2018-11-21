@@ -44,8 +44,14 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
 
   let ftype = L.function_type void_t [||] in
-  let main_func = L.define_function "loop" ftype the_module in
-  let builder = L.builder_at_end context (L.entry_block main_func) in
+  (*let begin_func = L.define_function "begin" ftype the_module in
+  let beginbuilder = L.builder_at_end context (L.entry_block begin_func) in*)
+  
+  let loop_func = L.define_function "loop" ftype the_module in
+  let loopbuilder = L.builder_at_end context (L.entry_block loop_func) in
+
+  let end_func = L.define_function "end" ftype the_module in
+  let endbuilder = L.builder_at_end context (L.entry_block end_func) in
 
   (*--- Build begin block: globals ---*)
   (* Create a map of global variables after creating each *)
@@ -85,7 +91,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
     let local_vars =
       let add_formal m (t, n) p = 
         L.set_value_name n p; (* p = LLVM value of param from function declaration we created earlier, n = name from fdecl *)
-	      let local = L.build_alloca (ltype_of_typ t) n builder in
+	      let local = L.build_alloca (ltype_of_typ t) n func_builder in
           ignore (L.build_store p local func_builder);
 	      StringMap.add n local m
 
@@ -141,7 +147,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
           | A.Not -> L.build_not
           | _ -> raise (Failure "no unary operation")
         ) e' "tmp" builder
-      | _ -> raise (Failure "no pattern match") 
+      | _ -> raise (Failure "begin expr no pattern match") 
         
     in 
 
@@ -153,15 +159,17 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
     let func_builder = stmt func_builder (Block fdecl.A.body) in
 
-    add_terminal builder (match fdecl.ret_type with
+    add_terminal func_builder (match fdecl.ret_type with
       A.Void -> L.build_ret_void
       | t -> L.build_ret (L.const_int (ltype_of_typ t) 0))
 
   in
 
+
+
   (*--- Build loop block ---*)
   let build_loop_block loop_block = 
-    let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
+    let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" loopbuilder in
     let rec expr builder = function
       A.StringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
         L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
@@ -182,13 +190,15 @@ let translate (begin_block, loop_block, end_block, config_block) =
     
     in
 
-    stmt builder (Block (snd loop_block))
+    ignore(stmt loopbuilder (Block (snd loop_block)));
 
-  in  
+    add_terminal loopbuilder L.build_ret_void
+
+  in 
 
   (*--- Build end block ---*)
   let build_end_block end_block =
-    let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
+    let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" endbuilder in
 
     (* TODO: add all other patterns to expr and stmt *)
     let rec expr builder = function
@@ -215,7 +225,9 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
     in
 
-    ignore(stmt builder (Block (snd end_block)))
+    ignore(stmt endbuilder (Block (snd end_block)));
+
+    add_terminal endbuilder L.build_ret_void
 
     in
 
@@ -223,7 +235,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
     List.iter build_function_body (snd begin_block);
     ignore (build_loop_block loop_block);
     ignore (build_end_block end_block);
-    ignore (add_terminal builder L.build_ret_void);
 
     the_module
 
