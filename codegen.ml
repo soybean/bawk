@@ -181,7 +181,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
       | A.Call ("print", [e]) ->
         L.build_call printf_func [| string_format_str builder; (expr builder e) |] "printf" builder
-      | A.Call ("int_to_string", [e]) -> L.build_call int_to_string_func [| expr builder e |] "int_of_string" builder
+      | A.Call ("int_to_string", [e]) -> L.build_call int_to_string_func [| expr builder e |] "int_to_string" builder
       | A.Call ("string_to_int", [e]) -> L.build_call string_to_int_func [| expr builder e |] "string_to_int" builder
       | _ -> raise (Failure "expr no pattern match") 
 
@@ -209,9 +209,10 @@ let translate (begin_block, loop_block, end_block, config_block) =
       A.StringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
 			  L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
 			| A.BoolLit b  -> L.const_int i1_t (if b then 1 else 0)
+      | A.Literal i -> L.const_int i32_t i
     	| A.Call ("print", [e]) ->
     		L.build_call printf_func [| string_format_str builder; (expr builder e)|] "printf" builder
-      | A.Call ("int_to_string", [e]) -> L.build_call int_to_string_func [| expr builder e |] "int_of_string" builder
+      | A.Call ("int_to_string", [e]) -> L.build_call int_to_string_func [| expr builder e |] "int_to_string" builder
       | A.Call ("string_to_int", [e]) -> L.build_call string_to_int_func [| expr builder e |] "string_to_int" builder
       | A.Call (f, args) ->
         let (fdef, fdecl) = StringMap.find f function_decls in
