@@ -121,7 +121,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
       A.StringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
 			  L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
 			| A.BoolLit b  -> L.const_int i1_t (if b then 1 else 0)
-    	| A.Call ("print", [e]) ->
+      | A.Literal i -> L.const_int i32_t i
+      | A.Call ("print", [e]) ->
     		L.build_call printf_func [| string_format_str builder; (expr builder e)|] "printf" builder
       | A.Noexpr -> L.const_int i32_t 0
       | A.Id i -> L.build_load (lookup i) i builder
@@ -171,13 +172,10 @@ let translate (begin_block, loop_block, end_block, config_block) =
       A.Void -> L.build_ret_void
       | t -> L.build_ret (L.const_int (ltype_of_typ t) 0))
 
+  (* end of build_func_body *)
+    
   in
-
-
-
-  (*--- Build loop block ---*)
-  let build_loop_block loop_block =
-
+  
     let local_vars =
       let add_local m (t, n) =
 	      let local_var = L.build_alloca (ltype_of_typ t) n loopbuilder
@@ -193,6 +191,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
     in
 
     let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" loopbuilder in
+
     let rec expr builder = function
       A.StringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
         L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
@@ -200,50 +199,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
       | A.Call ("print", [e]) ->
         L.build_call printf_func [| string_format_str builder; (expr builder e) |] "printf" builder
-      | A.Call ("int_to_string", [e]) -> L.build_call int_to_string_func [| expr builder e |] "int_to_string" builder
-      | A.Call ("string_to_int", [e]) -> L.build_call string_to_int_func [| expr builder e |] "string_to_int" builder
-      | _ -> raise (Failure "expr no pattern match") 
-
-    in 
-
-    let rec stmt builder = function
-      A.Expr ex -> ignore (expr builder ex); builder
-      | A.Block sl -> List.fold_left stmt builder sl
-      | _ -> raise (Failure "statement no pattern match")
-    
-    in
-
-    ignore(stmt loopbuilder (Block (snd loop_block)));
-
-    add_terminal loopbuilder L.build_ret_void
-
-  in 
-
-  (*--- Build end block ---*)
-  let build_end_block end_block =
-    let local_vars =
-      let add_local m (t, n) =
-	      let local_var = L.build_alloca (ltype_of_typ t) n loopbuilder
-	      in StringMap.add n local_var m
-      
-      in
-      List.fold_left add_local StringMap.empty (fst loop_block)
-    in
-
-    let lookup n = try StringMap.find n local_vars
-                   with Not_found -> StringMap.find n global_vars
-    in
-
-    let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" endbuilder in
-
-    (* TODO: add all other patterns to expr and stmt *)
-    let rec expr builder = function
-      A.StringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
-			  L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
-			| A.BoolLit b  -> L.const_int i1_t (if b then 1 else 0)
-      | A.Literal i -> L.const_int i32_t i
-    	| A.Call ("print", [e]) ->
-    		L.build_call printf_func [| string_format_str builder; (expr builder e)|] "printf" builder
       | A.Call ("int_to_string", [e]) -> L.build_call int_to_string_func [| expr builder e |] "int_to_string" builder
       | A.Call ("string_to_int", [e]) -> L.build_call string_to_int_func [| expr builder e |] "string_to_int" builder
       | A.Call (f, args) ->
@@ -254,21 +209,31 @@ let translate (begin_block, loop_block, end_block, config_block) =
                       | _ -> f ^ "_result") in
          L.build_call fdef (Array.of_list llargs) result builder
       | _ -> raise (Failure "end expr no pattern match") 
-          
     in 
 
     let rec stmt builder = function
-    	A.Expr ex -> ignore(expr builder ex); builder
-    	| A.Block sl -> List.fold_left stmt builder sl
-      | _ -> raise (Failure "stmt no pattern match")
-
+      A.Expr ex -> ignore (expr builder ex); builder
+      | A.Block sl -> List.fold_left stmt builder sl
+      | _ -> raise (Failure "statement no pattern match")
+    
     in
 
-    ignore(stmt endbuilder (Block (snd end_block)));
 
+
+
+  (*--- Build loop block ---*)
+  let build_loop_block loop_block =
+    ignore(stmt loopbuilder (Block (snd loop_block)));
+    add_terminal loopbuilder L.build_ret_void
+  
+    in 
+
+  (*--- Build end block ---*)
+  let build_end_block end_block =
+    ignore(stmt endbuilder (Block (snd end_block)));
     add_terminal endbuilder L.build_ret_void
 
-    in
+  in
 
     (* Call the things that happen in main *)
     List.iter build_function_body (snd begin_block);
