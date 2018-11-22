@@ -27,6 +27,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
   | _ -> raise (Failure "types no pattern match")
 	in
 
+  (* Declare built-in functions *)
 	let printf_t : L.lltype = 
     L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let printf_func : L.llvalue = 
@@ -44,12 +45,10 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
 
   let ftype = L.function_type void_t [||] in
-  (*let begin_func = L.define_function "begin" ftype the_module in
-  let beginbuilder = L.builder_at_end context (L.entry_block begin_func) in*)
-
   let ltype : L.lltype = 
     L.function_type void_t [| str_t |] in
-  
+ 
+  (* Loop and end LLVM functions *)
   let loop_func = L.define_function "loop" ltype the_module in
   let loopbuilder = L.builder_at_end context (L.entry_block loop_func) in
 
@@ -85,7 +84,9 @@ let translate (begin_block, loop_block, end_block, config_block) =
   
   in
 
-  (*--- Build begin block: function body ---*)
+  
+
+  (*--- Build function bodies defined in BEGIN block ---*)
   let build_function_body fdecl =
     let (the_function, _) = StringMap.find fdecl.A.fname function_decls in
     let func_builder = L.builder_at_end context (L.entry_block the_function) in
@@ -175,7 +176,22 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
 
   (*--- Build loop block ---*)
-  let build_loop_block loop_block = 
+  let build_loop_block loop_block =
+
+    let local_vars =
+      let add_local m (t, n) =
+	      let local_var = L.build_alloca (ltype_of_typ t) n loopbuilder
+	      in StringMap.add n local_var m
+      
+      in
+      List.fold_left add_local StringMap.empty (fst loop_block)
+    in
+
+    let lookup n = try StringMap.find n local_vars
+                   with Not_found -> StringMap.find n global_vars
+
+    in
+
     let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" loopbuilder in
     let rec expr builder = function
       A.StringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
@@ -205,6 +221,19 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
   (*--- Build end block ---*)
   let build_end_block end_block =
+    let local_vars =
+      let add_local m (t, n) =
+	      let local_var = L.build_alloca (ltype_of_typ t) n loopbuilder
+	      in StringMap.add n local_var m
+      
+      in
+      List.fold_left add_local StringMap.empty (fst loop_block)
+    in
+
+    let lookup n = try StringMap.find n local_vars
+                   with Not_found -> StringMap.find n global_vars
+    in
+
     let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" endbuilder in
 
     (* TODO: add all other patterns to expr and stmt *)
