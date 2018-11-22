@@ -46,8 +46,11 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let ftype = L.function_type void_t [||] in
   (*let begin_func = L.define_function "begin" ftype the_module in
   let beginbuilder = L.builder_at_end context (L.entry_block begin_func) in*)
+
+  let ltype : L.lltype = 
+    L.function_type void_t [| str_t |] in
   
-  let loop_func = L.define_function "loop" ftype the_module in
+  let loop_func = L.define_function "loop" ltype the_module in
   let loopbuilder = L.builder_at_end context (L.entry_block loop_func) in
 
   let end_func = L.define_function "end" ftype the_module in
