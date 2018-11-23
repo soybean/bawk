@@ -1,6 +1,29 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
-#include "mylist.h"
+
+// A node in a linked list.
+struct Node {
+  void *data;
+  struct Node *next;
+};
+
+// A linked list. 'head' points to the first node in the list.
+struct List {
+	struct Node *head;
+};
+
+// Initialize an empty list.
+void initList(struct List *list)
+{
+	list->head = 0;
+}
+
+// Returns 1 if the list is empty, 0 otherwise.
+int isEmptyList(struct List *list)
+{
+	return (list->head == 0);
+}
 
 // Traverse the list, calling f() with each data item.
 void traverseList(struct List *list, void (*f)(void *))
@@ -208,3 +231,136 @@ void reverseList(struct List *list)
 
        list->head = prv;
 }
+
+// Create array literal.
+void createArrayLiteral(struct List *list, int arr[], int numElements)
+{
+	initList(list);
+	for(int i = 0; i < numElements; i++) {
+		addFront(list, &arr[i]);
+	}     	
+	reverseList(list);
+}
+
+// Array access
+void *getElement(struct List *list, int *index) 
+{
+	struct Node *node_by_index = findByIndex(list, index);
+	return node_by_index->data;
+}
+
+// Contains
+bool containsElement(struct List *list, const void *dataSought, int (*compar)(const void *, const void *))
+{
+	struct Node *node = findNode(list, dataSought, compar);
+  if (node)
+		return true;
+	return false;
+}
+
+void insertElement(struct List *list, int *index, void *insert)
+{
+	if (*index == 0)
+		addFront(list, insert);
+	else {
+		*index = *index - 1;
+  	struct Node *node = findByIndex(list, index);
+  	addAfter(list, node, insert);
+	}
+}
+
+
+void assignElement(struct List *list, int *index, void *insert)
+{
+	struct Node *node = findByIndex(list, index);
+	node->data = insert;
+}
+
+// function given to print ints
+static void printInt(void *p)
+{	
+	printf("%d ", *(int *)p);
+}
+
+// function given to compare ints
+int compare (const void *a, const void *b)
+{
+    if (*(int *)a < *(int *)b) return -1;
+    if (*(int *)a > *(int *)b) return 1;
+    return 0;
+}
+
+int main()
+{
+  int arr1[0];
+	int arr2[] = {10, 2, 3, 7, 50};
+	struct List list;
+
+	// empty array
+  createArrayLiteral(&list, arr1, 0);
+  printf("Length of list: %d\n", length(&list));
+
+	// print array
+	printf("Print contents of list: ");
+	traverseList(&list, &printInt);
+	printf("\n");
+
+  // array literal
+  createArrayLiteral(&list, arr2, 5);
+  printf("Length of list: %d\n", length(&list));
+
+  // print array
+	printf("Print contents of list: ");
+  traverseList(&list, &printInt);
+  printf("\n");
+
+  // access
+  int a = 1;
+  printf("Find Node at index 1: ");
+	printf("%d\n", *(int *)getElement(&list, &a));
+
+  // index_of
+  int b = 2;
+	printf("Element 2 is at index: %d\n", findIndexOfNode(&list, &b, (int (*)(const void *, const void *))compare));
+  
+	// contains 
+  int c = 7;
+  printf("Does list contain element 7: ");
+  if( containsElement(&list, &c, (int (*)(const void *, const void *))compare) )
+  	printf("YES\n");
+  else
+		printf("NO\n");
+
+	// contains
+  int c1 = -7;
+ 	printf("Does list contain element -7: ");
+ 	if( containsElement(&list, &c1, (int (*)(const void *, const void *))compare) )
+ 		printf("YES\n");
+ 	else
+ 		printf("NO\n");
+
+	// insert
+  int d = 8;
+	int pos = 1;
+  printf("Insert element 8 at position 1: ");
+	insertElement(&list, &pos, &d);
+  traverseList(&list, &printInt);
+  printf("\n");
+
+	// assign
+	int e = 20;
+  printf("Set element at position 1 to be 20 instead: ");
+	assignElement(&list, &pos, &e);
+  traverseList(&list, &printInt);
+  printf("\n");
+
+	// delete
+	printf("Remove element at position 1: ");
+	removeNode(&list, &pos);
+  traverseList(&list, &printInt);
+  printf("\n");
+
+	removeAllNodes(&list);
+	return 0;
+}
+

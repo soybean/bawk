@@ -4,23 +4,17 @@ CFLAGS = -g -Wall $(INCLUDES)
 LDFLAGS = -g
 LDLIBS =
 
-mylist-test: mylist-test.o libmylist.a
+mylist: mylist.o
 
-mylist-test.o: mylist-test.c mylist.h
-
-mylist.o: mylist.c mylist.h
-
-libmylist.a: mylist.o
-	ar rc libmylist.a mylist.o
-	ranlib libmylist.a
+mylist.o: mylist.c
 
 .PHONY: clean
 clean:
-	rm -f *.o core mylist-test
+	rm -f *.o core mylist
 
 .PHONY: all
 all: clean mylist-test
 
 .PHONY: valgrind
-valgrind: mylist-test
-	valgrind --leak-check=yes ./mylist-test
+valgrind: mylist
+	valgrind --leak-check=yes ./mylist
