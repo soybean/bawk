@@ -1,0 +1,13 @@
+BEGIN {
+  function int x() {
+    return 2;
+  }
+
+  function int y() {
+    return x();
+  }
+}
+
+LOOP {}
+
+END {}
