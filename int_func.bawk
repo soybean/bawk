@@ -1,10 +1,12 @@
 BEGIN {
-  function int ret_num(int a) {
-    return a;  
+  function int ret_num(int a, int b) {
+    int c;
+    c = a + b;
+    return c;
   }  
 }
 LOOP {}
 END {
-  print(int_to_string(ret_num(3)));
+  print(int_to_string(ret_num(3, 4)));
 }
 
