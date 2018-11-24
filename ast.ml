@@ -17,7 +17,6 @@ type expr =
   | Id of string
   | Assign of expr * expr
   | Call of string * expr list
-  | Rgx of string
   | Unop of uop * expr
   | ArrayLit of expr list
   | ArrayDeref of expr * expr
@@ -95,7 +94,7 @@ let rec string_of_expr = function
   | Assign(v, e) -> string_of_expr v ^ " = " ^ string_of_expr e  
   | Call(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
-  | Rgx(r) -> r
+  (*| Rgx(r) -> r*)
   | Unop(o, e) -> string_of_uop o ^ string_of_expr e  
   | ArrayLit(el) -> "[" ^ String.concat ", " (List.map string_of_expr el) ^ "]"
   | ArrayDeref(v, e) -> string_of_expr v ^ "[" ^ string_of_expr e ^ "]"
