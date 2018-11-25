@@ -83,16 +83,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
   in
 
   (*---Build config block ---*)
-  (*let build_config_block = function
-      (* first param needs to be a string *)
-      (*A.RSAssign e -> L.build_global_string (expr builder e) "RS" builder
-      | A.FSAssign e -> L.build_global_string (expr builder e) "FS" builder *)
-      A.RSAssign e -> let get_string = function A.StringLiteral s ->  s | _ -> "" in 
-        L.build_global_string (get_string e) "RS" configbuilder
-      | A.FSAssign e -> let get_string = function A.StringLiteral s -> s | _ -> "" in 
-        L.build_global_string (get_string e) "FS" configbuilder
-    (*in List.iter configexpr configbuilder config_block*)*)
-
   let build_config_block configblock =
     let configexpr builder = function
       A.RSAssign e -> let get_string = function A.StringLiteral s ->  s | _ -> "" in 
