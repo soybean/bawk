@@ -36,6 +36,10 @@ type stmt =
   | For of expr * expr * expr * stmt
   | EnhancedFor of string * string * stmt
 
+type config_stmt =
+  ConfigExpr of config_expr
+  | ConfigBlock of config_stmt list
+
 type func_decl = {
     ret_type : typ;
     fname    : string;
@@ -47,7 +51,7 @@ type func_decl = {
 type begin_list = bind list * func_decl list
 type loop_list = bind list * stmt list
 type end_list = bind list * stmt list
-type config_list = config_expr list
+type config_list = config_stmt list
 
 type program = begin_list * loop_list * end_list * config_list
 
