@@ -5,8 +5,8 @@ BEGIN {
     return c;
   }  
 }
-LOOP {}
-END {
+LOOP {
   print(int_to_string(ret_num(3, 4)));
 }
+END {}
 

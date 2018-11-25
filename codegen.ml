@@ -71,6 +71,11 @@ let translate (begin_block, loop_block, end_block, config_block) =
   
   in
 
+  let add_terminal builder instr =
+    match L.block_terminator (L.insertion_block builder) with
+	    Some _ -> ()
+      | None -> ignore (instr builder) in
+
   let set_defaults builder =
     L.build_global_string "\n" "RS" builder;
     L.build_global_string " " "FS" builder
@@ -88,30 +93,21 @@ let translate (begin_block, loop_block, end_block, config_block) =
         L.build_global_string (get_string e) "FS" configbuilder
     (*in List.iter configexpr configbuilder config_block*)*)
 
-  let build_config_block config_block =
+  let build_config_block configblock =
     let configexpr builder = function
       A.RSAssign e -> let get_string = function A.StringLiteral s ->  s | _ -> "" in 
-        L.build_global_string (get_string e) "RS" builder
+      L.build_global_string (get_string e) "RS" builder; builder
       | A.FSAssign e -> let get_string = function A.StringLiteral s -> s | _ -> "" in 
-        L.build_global_string (get_string e) "FS" builder
-
+      L.build_global_string (get_string e) "FS" builder; builder
+    
     in
 
-    let rec configstmt builder = function
-      A.ConfigBlock sl -> List.fold_left configstmt builder sl
-      | A.ConfigExpr ex -> ignore (configexpr builder ex); builder
+    let configbuilder = List.fold_left configexpr configbuilder config_block
 
-    in ignore(configstmt configbuilder (ConfigBlock config_block))
-
-    (*in List.iter configexpr configbuilder config_block
-    let func_builder = stmt func_builder (Block fdecl.A.body) in*)
-
+    in 
+    add_terminal configbuilder L.build_ret_void
 
   in
-    (*let rec stmt builder = function
-    A.Expr ex -> ignore (expr builder ex); builder
-    | A.Block sl -> List.fold_left stmt builder sl
-    | _ -> raise (Failure "statement no pattern match")*)
 
   (*--- Build begin block: function declarations ---*)
   let function_decls : (L.llvalue * A.func_decl) StringMap.t =
@@ -126,14 +122,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
     
   in
 
-  let add_terminal builder instr =
-    match L.block_terminator (L.insertion_block builder) with
-	    Some _ -> ()
-      | None -> ignore (instr builder)
-  
-  in
-
-  
 
   (*--- Build function bodies defined in BEGIN block ---*)
   let build_function_body fdecl =
