@@ -104,20 +104,23 @@ let check (begin_list, loop_list, end_list, config_list) =
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-       | ArrayLit(l) -> if List.length l > 0 then 
+      | ArrayLit(l) -> if List.length l > 0 then 
               let typ = expr(List.nth l 0) in
               let (arraytype, _) = typ in
               let check_array e =
                       let (et, e') = expr e in (et, e')
                       in let l' = List.map check_array l  in
+              let types e = 
+                      let (et, _)  = e in et
+                      in let ty = List.map types l' in
               let rec check types =
                        match types with
                        [] -> true
                        | one::tail -> true
                        | one::two::tail -> one = two && check tail in
-              if check l' then (ArrayType(arraytype), SArrayLit(l'))
+              if check ty then (ArrayType(arraytype), SArrayLit(l'))
               else raise (Failure ("array contains different types"))
-              else (Void, SArrayLit([]))
+              else (Void, SArrayLit([])) 
       | ArrayDeref (e1, e2) as e ->
           let (arr, e1') = expr e1
           and (num, e2') = expr e2 in
