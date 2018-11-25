@@ -4,8 +4,8 @@
 
 // A node in a linked list.
 struct Node {
-  void *data;
-  struct Node *next;
+	void *data;
+	struct Node *next;
 };
 
 // A linked list. 'head' points to the first node in the list.
@@ -29,9 +29,9 @@ int isEmptyList(struct List *list)
 void traverseList(struct List *list, void (*f)(void *))
 {
 	struct Node *node = list->head;
-  while(node) {
- 		f(node->data);
-  	node = node->next;
+	while(node) {
+		f(node->data);
+		node = node->next;
 	}
 }
 
@@ -39,7 +39,7 @@ void traverseList(struct List *list, void (*f)(void *))
 struct Node *findByIndex(struct List *list, int *indexSought) 
 {
 	struct Node *node = list->head;
-  int indexAt = 0;
+	int indexAt = 0;
 	while(node) {
 		if( *indexSought == indexAt )
 			return node;
@@ -68,21 +68,19 @@ int length(struct List *list) {
  * Returns the first node containing the matching data, 
  * NULL if not found.
  */
-struct Node *findNode(struct List *list, const void *dataSought,
-												int (*compar)(const void *, const void *))
+struct Node *findNode(struct List *list, const void *dataSought, int (*compar)(const void *, const void *))
 {
 	struct Node *node = list->head;
-  while(node) {
- 	  if( compar(dataSought, node->data) == 0 )
-      return node;
-    node = node->next;
-  }
- 	return NULL;    
+	while(node) {
+		if( compar(dataSought, node->data) == 0 )
+			return node;
+		node = node->next;
+	}
+	return NULL;    
 }
 
 // Traverse list to find index of node
-int findIndexOfNode(struct List *list, const void *dataSought,
-											int (*compar)(const void *, const void *))
+int findIndexOfNode(struct List *list, const void *dataSought, int (*compar)(const void *, const void *))
 { 
 	struct Node *node = list->head;
 	int count = 0;
@@ -108,12 +106,12 @@ void *removeNode(struct List *list, int *indexSought)
 	if ( list->head ) {
 		// if remove first index, it's just like popFront()
 		if ( *indexSought == 0 ) {
-    	void *data = list->head->data;
+			void *data = list->head->data;
 			struct Node *node = list->head;
 			list->head = list->head->next;
 			free(node);
 			return data;
-  	}
+		}
 
 		// remove index other than first index
 		while(node) {
@@ -123,7 +121,7 @@ void *removeNode(struct List *list, int *indexSought)
 				node->next = node->next->next;
 				free(deletedNode);
 				return data;
-	 		}
+			}
 			node = node->next;
 			indexAt++;
 		}
@@ -139,21 +137,21 @@ void *removeNode(struct List *list, int *indexSought)
 void *popFront(struct List *list)
 {
 	if(list->head) {
-  	void *data = list->head->data;
-    struct Node *node = list->head;
-    list->head = list->head->next;
-    free(node);
-    return data;
-  }
-  return NULL;
+		void *data = list->head->data;
+		struct Node *node = list->head;
+		list->head = list->head->next;
+		free(node);
+		return data;
+	}
+	return NULL;
 }
 
 // Remove all nodes from the list, deallocating the memory for the nodes.
 void removeAllNodes(struct List *list)
 {
 	while(list->head) {
-  	popFront(list);
-  }
+		popFront(list);
+	}
 }
 
 /*
@@ -172,10 +170,10 @@ struct Node *addFront(struct List *list, void *data)
 		perror("malloc returned NULL");
 		exit(1);
 	}
-  node->next = list->head;
-  node->data = data;
-  list->head = node;
-  return node;
+	node->next = list->head;
+	node->data = data;
+	list->head = node;
+	return node;
 }
 
 /*
@@ -196,17 +194,17 @@ struct Node *addFront(struct List *list, void *data)
 struct Node *addAfter(struct List *list, struct Node *prevNode, void *data)
 {
 	struct Node *node = malloc( sizeof(struct Node) );
-  if( prevNode ) {
-  	node->next = prevNode->next;
-    node->data = data;
-    prevNode->next = node;
-  }
-  else {
-    node->next = list->head;
-    node->data = data;
-    list->head = node;
-  }
-  return node;
+	if( prevNode ) {
+		node->next = prevNode->next;
+		node->data = data;
+		prevNode->next = node;
+	}
+	else {
+		node->next = list->head;
+		node->data = data;
+		list->head = node;
+	}
+	return node;
 }
 
 /* 
@@ -218,18 +216,18 @@ struct Node *addAfter(struct List *list, struct Node *prevNode, void *data)
  */
 void reverseList(struct List *list)
 {
-       struct Node *prv = NULL;
-       struct Node *cur = list->head;
-       struct Node *nxt;
+	struct Node *prv = NULL;
+	struct Node *cur = list->head;
+	struct Node *nxt;
 
-       while (cur) {
-               nxt = cur->next;
-               cur->next = prv;
-               prv = cur;
-               cur = nxt;
-       }
+	while (cur) {
+		nxt = cur->next;
+		cur->next = prv;
+		prv = cur;
+		cur = nxt;
+	}
 
-       list->head = prv;
+	list->head = prv;
 }
 
 // Create array literal.
@@ -253,7 +251,7 @@ void *getElement(struct List *list, int *index)
 bool containsElement(struct List *list, const void *dataSought, int (*compar)(const void *, const void *))
 {
 	struct Node *node = findNode(list, dataSought, compar);
-  if (node)
+	if (node)
 		return true;
 	return false;
 }
@@ -264,8 +262,8 @@ void insertElement(struct List *list, int *index, void *insert)
 		addFront(list, insert);
 	else {
 		*index = *index - 1;
-  	struct Node *node = findByIndex(list, index);
-  	addAfter(list, node, insert);
+		struct Node *node = findByIndex(list, index);
+		addAfter(list, node, insert);
 	}
 }
 
@@ -285,80 +283,80 @@ static void printInt(void *p)
 // function given to compare ints
 int compare (const void *a, const void *b)
 {
-    if (*(int *)a < *(int *)b) return -1;
-    if (*(int *)a > *(int *)b) return 1;
-    return 0;
+	if (*(int *)a < *(int *)b) return -1;
+	if (*(int *)a > *(int *)b) return 1;
+	return 0;
 }
 
 int main()
 {
-  int arr1[0];
+	int arr1[0];
 	int arr2[] = {10, 2, 3, 7, 50};
 	struct List list;
 
 	// empty array
-  createArrayLiteral(&list, arr1, 0);
-  printf("Length of list: %d\n", length(&list));
+	createArrayLiteral(&list, arr1, 0);
+	printf("Length of list: %d\n", length(&list));
 
 	// print array
 	printf("Print contents of list: ");
 	traverseList(&list, &printInt);
 	printf("\n");
 
-  // array literal
-  createArrayLiteral(&list, arr2, 5);
-  printf("Length of list: %d\n", length(&list));
+	// array literal
+	createArrayLiteral(&list, arr2, 5);
+	printf("Length of list: %d\n", length(&list));
 
-  // print array
+	// print array
 	printf("Print contents of list: ");
-  traverseList(&list, &printInt);
-  printf("\n");
+	traverseList(&list, &printInt);
+	printf("\n");
 
-  // access
-  int a = 1;
-  printf("Find Node at index 1: ");
+	// access
+	int a = 1;
+	printf("Find Node at index 1: ");
 	printf("%d\n", *(int *)getElement(&list, &a));
 
-  // index_of
-  int b = 2;
+	// index_of
+	int b = 2;
 	printf("Element 2 is at index: %d\n", findIndexOfNode(&list, &b, (int (*)(const void *, const void *))compare));
   
 	// contains 
-  int c = 7;
-  printf("Does list contain element 7: ");
-  if( containsElement(&list, &c, (int (*)(const void *, const void *))compare) )
-  	printf("YES\n");
-  else
+	int c = 7;
+	printf("Does list contain element 7: ");
+	if( containsElement(&list, &c, (int (*)(const void *, const void *))compare) )
+		printf("YES\n");
+	else
 		printf("NO\n");
 
 	// contains
-  int c1 = -7;
- 	printf("Does list contain element -7: ");
- 	if( containsElement(&list, &c1, (int (*)(const void *, const void *))compare) )
- 		printf("YES\n");
- 	else
- 		printf("NO\n");
+	int c1 = -7;
+	printf("Does list contain element -7: ");
+	if( containsElement(&list, &c1, (int (*)(const void *, const void *))compare) )
+		printf("YES\n");
+	else
+		printf("NO\n");
 
 	// insert
-  int d = 8;
+	int d = 8;
 	int pos = 1;
-  printf("Insert element 8 at position 1: ");
+	printf("Insert element 8 at position 1: ");
 	insertElement(&list, &pos, &d);
-  traverseList(&list, &printInt);
-  printf("\n");
+	traverseList(&list, &printInt);
+	printf("\n");
 
 	// assign
 	int e = 20;
-  printf("Set element at position 1 to be 20 instead: ");
+	printf("Set element at position 1 to be 20 instead: ");
 	assignElement(&list, &pos, &e);
-  traverseList(&list, &printInt);
-  printf("\n");
+	traverseList(&list, &printInt);
+	printf("\n");
 
 	// delete
 	printf("Remove element at position 1: ");
 	removeNode(&list, &pos);
-  traverseList(&list, &printInt);
-  printf("\n");
+	traverseList(&list, &printInt);
+	printf("\n");
 
 	removeAllNodes(&list);
 	return 0;
