@@ -48,7 +48,10 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let ltype : L.lltype = 
     L.function_type void_t [| str_t |] in
  
-  (* Loop and end LLVM functions *)
+  (* Config, Loop, End LLVM functions *)
+  let config_func = L.define_function "config" ltype the_module in
+  let configbuilder = L.builder_at_end context (L.entry_block config_func) in
+
   let loop_func = L.define_function "loop" ltype the_module in
   let loopbuilder = L.builder_at_end context (L.entry_block loop_func) in
 
@@ -60,9 +63,51 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let global_vars : L.llvalue StringMap.t =
     let global_var m (t, n) = 
       let init = L.const_int (ltype_of_typ t) 0
-      in StringMap.add n (L.define_global n init the_module) m in
-    List.fold_left global_var StringMap.empty (fst begin_block) in
+      in StringMap.add n (L.define_global n init the_module) m
+      (*StringMap.add "RS" (L.define_global "RS" init the_module);
+      StringMap.add "FS" (L.define_global "FS" init the_module) m*)
+    in
+    List.fold_left global_var StringMap.empty (fst begin_block) 
+  
+  in
 
+  let add_terminal builder instr =
+    match L.block_terminator (L.insertion_block builder) with
+	    Some _ -> ()
+      | None -> ignore (instr builder) in
+
+  let set_defaults builder =
+    L.build_global_string "\n" "RS" builder;
+    L.build_global_string " " "FS" builder
+
+  in
+
+  (*---Build config block ---*)
+  (*let build_config_block = function
+      (* first param needs to be a string *)
+      (*A.RSAssign e -> L.build_global_string (expr builder e) "RS" builder
+      | A.FSAssign e -> L.build_global_string (expr builder e) "FS" builder *)
+      A.RSAssign e -> let get_string = function A.StringLiteral s ->  s | _ -> "" in 
+        L.build_global_string (get_string e) "RS" configbuilder
+      | A.FSAssign e -> let get_string = function A.StringLiteral s -> s | _ -> "" in 
+        L.build_global_string (get_string e) "FS" configbuilder
+    (*in List.iter configexpr configbuilder config_block*)*)
+
+  let build_config_block configblock =
+    let configexpr builder = function
+      A.RSAssign e -> let get_string = function A.StringLiteral s ->  s | _ -> "" in 
+      L.build_global_string (get_string e) "RS" builder; builder
+      | A.FSAssign e -> let get_string = function A.StringLiteral s -> s | _ -> "" in 
+      L.build_global_string (get_string e) "FS" builder; builder
+    
+    in
+
+    let configbuilder = List.fold_left configexpr configbuilder config_block
+
+    in 
+    add_terminal configbuilder L.build_ret_void
+
+  in
 
   (*--- Build begin block: function declarations ---*)
   let function_decls : (L.llvalue * A.func_decl) StringMap.t =
@@ -77,14 +122,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
     
   in
 
-  let add_terminal builder instr =
-    match L.block_terminator (L.insertion_block builder) with
-	    Some _ -> ()
-      | None -> ignore (instr builder)
-  
-  in
-
-  
 
   (*--- Build function bodies defined in BEGIN block ---*)
   let build_function_body fdecl =
@@ -263,6 +300,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
   in
 
   (* Call the things that happen in main *)
+  set_defaults configbuilder;
+  build_config_block config_block;
   List.iter build_function_body (snd begin_block);
   ignore (build_loop_block loop_block);
   ignore (build_end_block end_block);
