@@ -304,8 +304,14 @@ let check (begin_list, loop_list, end_list, config_list) =
               let (arraytype, _) = typ in
               let check_array e =
                       let (et, e') = expr e in (et, e')
-                      in let l' = List.map check_array l 
-                      in (ArrayType(arraytype), SArrayLit(l'))
+                      in let l' = List.map check_array l  in
+              let rec check types =
+                       match types with
+                       [] -> true
+                       | one::tail -> true
+                       | one::two::tail -> one = two && check tail in
+              if check l' then (ArrayType(arraytype), SArrayLit(l'))
+              else raise (Failure ("array contains different types"))
               else (Void, SArrayLit([]))
       | ArrayDeref (e1, e2) as e ->
           let (arr, e1') = expr e1
