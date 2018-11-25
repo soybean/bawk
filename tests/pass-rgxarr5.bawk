@@ -1,5 +1,5 @@
 BEGIN {
-  function rgx[] foo () {
+  function rgx[] foo() {
     rgx[] a; 
     a = ['[0]*', '[1]*', '[1]*'];
     return a;
@@ -9,5 +9,7 @@ BEGIN {
 LOOP {}
 
 END {
+  rgx[] a;
+  a = foo();
   print(rgx_to_string(a[0]));
 }

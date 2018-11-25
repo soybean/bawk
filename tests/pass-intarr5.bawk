@@ -1,5 +1,5 @@
 BEGIN {
-  function int[] foo () {
+  function int[] foo() {
     int[] a; 
     a = [1, 2, 3];
     return a;
@@ -9,5 +9,7 @@ BEGIN {
 LOOP {}
 
 END {
+  int[] a;
+  a = foo();
   print(int_to_string(a[0]));
 }

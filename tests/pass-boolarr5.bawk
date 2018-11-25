@@ -1,5 +1,5 @@
 BEGIN {
-  function bool[] foo () {
+  function bool[] foo() {
     bool[] a; 
     a = [true, false, false];
     return a;
@@ -9,5 +9,7 @@ BEGIN {
 LOOP {}
 
 END {
+  bool[] a;
+  a = foo();
   print(bool_to_string(a[0]));
 }

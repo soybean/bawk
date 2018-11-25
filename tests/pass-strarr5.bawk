@@ -1,5 +1,5 @@
 BEGIN {
-  function string[] foo () {
+  function string[] foo() {
     string[] a; 
     a = ["a", "b", "c"];
     return a;
@@ -9,5 +9,7 @@ BEGIN {
 LOOP {}
 
 END {
+  string[] a;
+  a = foo();
   print(a[0]);
 }
