@@ -62,25 +62,23 @@ let translate (begin_block, loop_block, end_block, config_block) =
   (* Create a map of global variables after creating each *)
   let global_vars : L.llvalue StringMap.t =
     let global_var m (t, n) = 
-      let init = L.const_int (ltype_of_typ t) 0
-      in StringMap.add n (L.define_global n init the_module) m
-      (*StringMap.add "RS" (L.define_global "RS" init the_module);
-      StringMap.add "FS" (L.define_global "FS" init the_module) m*)
+      let int_init = L.const_int (ltype_of_typ t) 0 and
+      rs_init = L.const_stringz context "\n" and
+      fs_init = L.const_stringz context " " 
+      in StringMap.add n (L.define_global n int_init the_module);
+      StringMap.add "RS" (L.define_global "RS"  rs_init  the_module);
+      StringMap.add "FS" (L.define_global "FS" fs_init the_module) m
+
     in
-    List.fold_left global_var StringMap.empty (fst begin_block) 
-  
+
+    List.fold_left global_var StringMap.empty (fst begin_block)
+
   in
 
   let add_terminal builder instr =
     match L.block_terminator (L.insertion_block builder) with
 	    Some _ -> ()
       | None -> ignore (instr builder) in
-
-  let set_defaults builder =
-    L.build_global_string "\n" "RS" builder;
-    L.build_global_string " " "FS" builder
-
-  in
 
   (*---Build config block ---*)
   let build_config_block configblock =
@@ -290,7 +288,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
   in
 
   (* Call the things that happen in main *)
-  set_defaults configbuilder;
+  (*set_defaults configbuilder;*)
   build_config_block config_block;
   List.iter build_function_body (snd begin_block);
   ignore (build_loop_block loop_block);
