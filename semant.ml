@@ -390,6 +390,20 @@ let check (begin_list, loop_list, end_list, config_list) =
                   raise (Failure("illegal argument found " ^ 
                   string_of_typ et ^ " arraytype expected in " ^ string_of_expr (List.nth args 0)))
           else (Int, SCall("length", [(et, e')])) 
+      | Call ("insert", args) as insert ->
+          if List.length args !=3 then raise (Failure("expecting three arguments for insert"))
+          else let (t1, e1') = expr (List.nth args 0)
+            and (t2, e2') = expr(List.nth args 1) and (t3, e3') = expr(List.nth args 2) in
+         if t2 != Int then raise (Failure("expecting index argument for insert but had " ^ string_of_typ t2)) 
+         else if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int)
+         then raise (Failure("illegal argument found " ^ string_of_typ t1 ^ " expected arraytype"))
+         else let array_string = string_of_typ t1 in
+            let n = String.length array_string in
+            let array_type = String.sub array_string 0 (n-2) in 
+            if (array_type = string_of_typ(t3) && t3 != Void) 
+            then (Bool, SCall("insert", [(t1, e1');(t2, e2');(t3, e3')]))
+            else raise(Failure("cannot perform insert on " ^ array_string ^ " and " ^ 
+            string_of_typ t3 ^ " at index " ^ string_of_typ t2)) 
       | Call("contains", args) as contains -> 
           if List.length args != 2 then raise (Failure("expecting two arguments for contains"))
 	  else let (t1, e1') = expr (List.nth args 0)
