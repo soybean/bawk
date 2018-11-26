@@ -194,7 +194,7 @@ let check (begin_list, loop_list, end_list, config_list) =
             let n = String.length array_string in
             let array_type = String.sub array_string 0 (n-2) in 
             if (array_type = string_of_typ(t3) && t3 != Void) 
-            then (Bool, SCall("insert", [(t1, e1');(t2, e2');(t3, e3')]))
+            then (t1, SCall("insert", [(t1, e1');(t2, e2');(t3, e3')]))
             else raise(Failure("cannot perform insert on " ^ array_string ^ " and " ^ 
             string_of_typ t3 ^ " at index " ^ string_of_typ t2)) 
      | Call("delete", args) as delete -> 
@@ -204,7 +204,7 @@ let check (begin_list, loop_list, end_list, config_list) =
           if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int) then 
                   raise (Failure("illegal argument found " ^ 
                   string_of_typ t1 ^ " arraytype expected in " ^ string_of_expr delete))
-          else (Int, SCall("delete", [(t1, e1');(t2, e2')]))
+          else (t1, SCall("delete", [(t1, e1');(t2, e2')]))
      | Call("contains", args) as contains -> 
           if List.length args != 2 then raise (Failure("expecting two arguments for " ^ string_of_expr contains))
 	  else let (t1, e1') = expr (List.nth args 0)
@@ -417,7 +417,7 @@ let check (begin_list, loop_list, end_list, config_list) =
             let n = String.length array_string in
             let array_type = String.sub array_string 0 (n-2) in 
             if (array_type = string_of_typ(t3) && t3 != Void) 
-            then (Bool, SCall("insert", [(t1, e1');(t2, e2');(t3, e3')]))
+            then (t1, SCall("insert", [(t1, e1');(t2, e2');(t3, e3')]))
             else raise(Failure("cannot perform insert on " ^ array_string ^ " and " ^ 
             string_of_typ t3 ^ " at index " ^ string_of_typ t2)) 
       | Call("delete", args) as delete -> 
@@ -427,7 +427,7 @@ let check (begin_list, loop_list, end_list, config_list) =
           if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int) then 
                   raise (Failure("illegal argument found " ^ 
                   string_of_typ t1 ^ " arraytype expected in " ^ string_of_expr delete))
-          else (Int, SCall("delete", [(t1, e1');(t2, e2')]))
+          else (t1, SCall("delete", [(t1, e1');(t2, e2')]))
      | Call("contains", args) as contains -> 
           if List.length args != 2 then raise (Failure("expecting two arguments for " ^ string_of_expr contains))
 	  else let (t1, e1') = expr (List.nth args 0)
