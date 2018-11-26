@@ -113,7 +113,7 @@ let check (begin_list, loop_list, end_list, config_list) =
               let types e = 
                       let (et, _)  = expr e in
                       if et != arraytype then raise(Failure("array of different types"))
-                      in List.map types l in (ArrayType(arraytype), SArrayLit(l'))
+                      in let ty = List.map types l in (ArrayType(arraytype), SArrayLit(l'))
               else (Void, SArrayLit([])) 
       | ArrayDeref (e1, e2) as e ->
           let (arr, e1') = expr e1
@@ -324,7 +324,7 @@ let check (begin_list, loop_list, end_list, config_list) =
               let types e = 
                       let (et, _)  = expr e in
                       if et != arraytype then raise(Failure("array of different types"))
-                      in List.map types l in (ArrayType(arraytype), SArrayLit(l'))
+                      in let ty = List.map types l in (ArrayType(arraytype), SArrayLit(l'))
               else (Void, SArrayLit([]))
       | ArrayDeref (e1, e2) as e ->
           let (arr, e1') = expr e1
