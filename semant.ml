@@ -173,14 +173,14 @@ let check (begin_list, loop_list, end_list, config_list) =
                        string_of_typ t2 ^ " in " ^ string_of_expr e))
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
       | Call("length", args) as length -> 
-          if List.length args != 1 then raise (Failure("expecting one argument for length"))
+          if List.length args != 1 then raise (Failure("expecting one argument for " ^ string_of_expr length))
           else let (et, e') = expr (List.nth args 0) in
           if (et = String || et = Bool || et = Void || et = Rgx || et = Int) then 
                   raise (Failure("illegal argument found " ^ 
                   string_of_typ et ^ " arraytype expected in " ^ string_of_expr (List.nth args 0)))
           else (Int, SCall("length", [(et, e')]))
      | Call ("insert", args) as insert ->
-          if List.length args !=3 then raise (Failure("expecting three arguments for insert"))
+          if List.length args !=3 then raise (Failure("expecting three arguments for " ^ string_of_expr insert))
           else let (t1, e1') = expr (List.nth args 0)
             and (t2, e2') = expr(List.nth args 1) and (t3, e3') = expr(List.nth args 2) in
          if t2 != Int then raise (Failure("expecting index argument for insert but had " ^ string_of_typ t2)) 
@@ -194,7 +194,7 @@ let check (begin_list, loop_list, end_list, config_list) =
             else raise(Failure("cannot perform insert on " ^ array_string ^ " and " ^ 
             string_of_typ t3 ^ " at index " ^ string_of_typ t2)) 
      | Call("contains", args) as contains -> 
-          if List.length args != 2 then raise (Failure("expecting two arguments for contains"))
+          if List.length args != 2 then raise (Failure("expecting two arguments for " ^ string_of_expr contains))
 	  else let (t1, e1') = expr (List.nth args 0)
             and (t2, e2') = expr (List.nth args 1) in
             if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int) 
@@ -207,7 +207,7 @@ let check (begin_list, loop_list, end_list, config_list) =
             then (Bool, SCall("contains", [(t1, e1');(t2, e2')]))
             else raise(Failure("cannot perform contains on " ^ array_string ^ " and " ^ string_of_typ(t2))) 
      | Call("index_of", args) as index_of -> 
-          if List.length args != 2 then raise (Failure("expecting two arguments for index_of"))
+          if List.length args != 2 then raise (Failure("expecting two arguments for " ^ string_of_expr index_of))
 	  else let (t1, e1') = expr (List.nth args 0)
             and (t2, e2') = expr (List.nth args 1) in
             if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int) 
@@ -384,14 +384,14 @@ let check (begin_list, loop_list, end_list, config_list) =
                        string_of_typ t2 ^ " in " ^ string_of_expr e))
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
       | Call("length", args) as length -> 
-          if List.length args != 1 then raise (Failure("expecting one argument for length"))
+          if List.length args != 1 then raise (Failure("expecting one argument for " ^ string_of_expr length))
           else let (et, e') = expr (List.nth args 0) in
           if (et = String || et = Bool || et = Void || et = Rgx || et = Int) then 
                   raise (Failure("illegal argument found " ^ 
                   string_of_typ et ^ " arraytype expected in " ^ string_of_expr (List.nth args 0)))
           else (Int, SCall("length", [(et, e')])) 
       | Call ("insert", args) as insert ->
-          if List.length args !=3 then raise (Failure("expecting three arguments for insert"))
+          if List.length args !=3 then raise (Failure("expecting three arguments for " ^ string_of_expr insert))
           else let (t1, e1') = expr (List.nth args 0)
             and (t2, e2') = expr(List.nth args 1) and (t3, e3') = expr(List.nth args 2) in
          if t2 != Int then raise (Failure("expecting index argument for insert but had " ^ string_of_typ t2)) 
@@ -405,7 +405,7 @@ let check (begin_list, loop_list, end_list, config_list) =
             else raise(Failure("cannot perform insert on " ^ array_string ^ " and " ^ 
             string_of_typ t3 ^ " at index " ^ string_of_typ t2)) 
       | Call("contains", args) as contains -> 
-          if List.length args != 2 then raise (Failure("expecting two arguments for contains"))
+          if List.length args != 2 then raise (Failure("expecting two arguments for " ^ string_of_expr contains))
 	  else let (t1, e1') = expr (List.nth args 0)
             and (t2, e2') = expr (List.nth args 1) in
             if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int) 
@@ -418,7 +418,7 @@ let check (begin_list, loop_list, end_list, config_list) =
             then (Bool, SCall("contains", [(t1, e1');(t2, e2')]))
             else raise(Failure("cannot perform contains on " ^ array_string ^ " and " ^ string_of_typ(t2))) 
       | Call("index_of", args) as index_of -> 
-          if List.length args != 2 then raise (Failure("expecting two arguments for index_of"))
+          if List.length args != 2 then raise (Failure("expecting two arguments for" ^ string_of_expr index_of))
 	  else let (t1, e1') = expr (List.nth args 0)
             and (t2, e2') = expr (List.nth args 1) in
             if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int) 
