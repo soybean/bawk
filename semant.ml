@@ -197,7 +197,7 @@ let check (begin_list, loop_list, end_list, config_list) =
           if List.length args != 2 then raise (Failure("expecting two arguments for " ^ string_of_expr delete))
           else let (t1, e1') = expr (List.nth args 0) 
 	  and (t2, e2') = expr (List.nth args 1) in
-          if (et = String || et = Bool || et = Void || et = Rgx || et = Int) then 
+          if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int) then 
                   raise (Failure("illegal argument found " ^ 
                   string_of_typ t1 ^ " arraytype expected in " ^ string_of_expr delete))
           else (Int, SCall("delete", [(t1, e1');(t2, e2')]))
