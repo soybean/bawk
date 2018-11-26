@@ -2,7 +2,7 @@ type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater |
           Geq | And | Or | Pluseq | Minuseq | Strcat | Rgxeq | Rgxneq | 
           Rgxcomp | Rgxnot
 
-type uop = Not | Neg | Access | Increment | Decrement
+type uop = Not | Neg | Increment | Decrement
 
 type typ = Int | Bool | Void | String | Rgx | ArrayType of typ
 
@@ -20,6 +20,7 @@ type expr =
   | Unop of uop * expr
   | ArrayLit of expr list
   | ArrayDeref of expr * expr
+  | Access of expr
   | NumFields
   | Noexpr
 
@@ -78,7 +79,6 @@ let string_of_op = function
 let string_of_uop = function
     Neg -> "-"
   | Not -> "!"
-  | Access -> "$"
   | Increment -> "++"
   | Decrement -> "--"
 
@@ -98,6 +98,7 @@ let rec string_of_expr = function
   | Unop(o, e) -> string_of_uop o ^ string_of_expr e  
   | ArrayLit(el) -> "[" ^ String.concat ", " (List.map string_of_expr el) ^ "]"
   | ArrayDeref(v, e) -> string_of_expr v ^ "[" ^ string_of_expr e ^ "]"
+  | Access(e) -> "$" ^ string_of_expr e
   | NumFields -> "NF"
   | Noexpr -> ""
 

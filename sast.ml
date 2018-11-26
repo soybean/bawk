@@ -14,6 +14,7 @@ and sx =
   | SUnop of uop * sexpr
   | SArrayLit of sexpr list
   | SArrayDeref of sexpr * sexpr
+  | SAccess of sexpr
   | SNumFields
   | SNoexpr
 
@@ -64,6 +65,7 @@ let rec string_of_sexpr (t, e) =
   | SUnop(o, e) -> string_of_uop o ^ string_of_sexpr e  
   | SArrayLit(el) -> "[" ^ String.concat ", " (List.map string_of_sexpr el) ^ "]"
   | SArrayDeref(v, e) -> string_of_sexpr v ^ "[" ^ string_of_sexpr e ^ "]"
+  | SAccess(e) -> "$" ^ string_of_sexpr e
   | SNumFields -> "NF"
   | SNoexpr -> ""
           ) ^ ")"
