@@ -113,12 +113,12 @@ let check (begin_list, loop_list, end_list, config_list) =
               let types e = 
                       let (et, _)  = expr e in
                       if et != arraytype then raise(Failure("array of different types"))
-                      in let ty = List.map types l in (ArrayType(arraytype), SArrayLit(l'))
+                      in List.map types l in (ArrayType(arraytype), SArrayLit(l'))
               else (Void, SArrayLit([])) 
       | ArrayDeref (e1, e2) as e ->
           let (arr, e1') = expr e1
           and (num, e2') = expr e2 in
-          if num != Int then raise(Failure("Int expression expected, " ^ string_of_typ num))
+          if num != Int then raise(Failure("Int expression expected in " ^ string_of_expr e))
           else 
              if (arr = Bool || arr = String || arr = Rgx || arr = Void || arr = Int) then 
                      raise (Failure ("array deref should be called on an array, not " ^ string_of_typ arr))
@@ -137,7 +137,7 @@ let check (begin_list, loop_list, end_list, config_list) =
               in t
               in (find_typ typ, SArrayDeref((arr, e1'), (num, e2')))
       | NumFields -> (Int, SNumFields)
-      | Assign(NumFields, e) -> raise (Failure ("illegal assignment of NF"))
+      | Assign(NumFields, _) -> raise (Failure ("illegal assignment of NF"))
       | Assign(e1, e2) as ex ->
           let (lt, e1') = expr e1 
           and (rt, e2') = expr e2 in
@@ -324,12 +324,12 @@ let check (begin_list, loop_list, end_list, config_list) =
               let types e = 
                       let (et, _)  = expr e in
                       if et != arraytype then raise(Failure("array of different types"))
-                      in let ty = List.map types l in (ArrayType(arraytype), SArrayLit(l'))
+                      in List.map types l in (ArrayType(arraytype), SArrayLit(l'))
               else (Void, SArrayLit([]))
       | ArrayDeref (e1, e2) as e ->
           let (arr, e1') = expr e1
           and (num, e2') = expr e2 in
-          if num != Int then raise(Failure("Int expression expected, " ^ string_of_typ num))
+          if num != Int then raise(Failure("Int expression expected in " ^ string_of_expr e))
           else 
              if (arr = Bool || arr = String || arr = Rgx || arr = Void || arr = Int) then 
                      raise (Failure ("array deref should be called on an array, not " ^ string_of_typ arr))
@@ -348,7 +348,7 @@ let check (begin_list, loop_list, end_list, config_list) =
               in t
               in (find_typ typ, SArrayDeref((arr, e1'), (num, e2')))
       | NumFields -> (Int, SNumFields)
-      | Assign(NumFields, e) -> raise (Failure ("illegal assignment of NF"))
+      | Assign(NumFields, _) -> raise (Failure ("illegal assignment of NF"))
       | Assign(e1, e2) as ex -> 
           let (lt, e1') = expr e1 
           and (rt, e2') = expr e2 in 
@@ -468,7 +468,7 @@ let check (begin_list, loop_list, end_list, config_list) =
           if (array_type = string_of_typ (type_of_identifier s1)) then SEnhancedFor(s1, s2, check_stmt st) 
           else raise(Failure("mismatch in " ^ string_of_typ (type_of_identifier s1) ^ " and " ^ s2_type_string))
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
-      | Return e -> raise (
+      | Return _ -> raise (
 	  Failure ("return must be in a function"))
 	    
 	    (* A block is correct if each statement is correct and nothing
