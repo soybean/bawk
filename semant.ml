@@ -178,7 +178,15 @@ let check (begin_list, loop_list, end_list, config_list) =
           if (et = String || et = Bool || et = Void || et = Rgx || et = Int) then 
                   raise (Failure("illegal argument found " ^ 
                   string_of_typ et ^ " arraytype expected in " ^ string_of_expr (List.nth args 0)))
-          else (Int, SCall("length", [(et, e')])) 
+          else (Int, SCall("length", [(et, e')]))
+     | Call ("insert", args) as insert ->
+          if List.length args !=3 then raise (Failure("expecting three arguments for insert"))
+          else let (t1, e1') = expr (List.nth args 0)
+            and (t2, e2') = expr(List.nth args 1) and (t3, e3') = expr(List.nth args 2) in
+         if t2 != Int then raise (Failure("expecting index argument for insert but had " ^ string_of_typ t2))
+         if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int)
+         then raise (Failure("illegal argument found " ^ string_of_typ t1 ^ " expected arraytype"))
+         else let 
      | Call("contains", args) as contains -> 
           if List.length args != 2 then raise (Failure("expecting two arguments for contains"))
 	  else let (t1, e1') = expr (List.nth args 0)
