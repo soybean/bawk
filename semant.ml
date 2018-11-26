@@ -148,7 +148,6 @@ let check (begin_list, loop_list, end_list, config_list) =
           let (t, e') = expr e in
           let ty = match op with
             Neg | Increment | Decrement when t = Int -> Int
-          | Access when t = Int -> String 
           | Not when t = Bool -> Bool
           | _ -> raise (Failure ("illegal unary operator " ^ 
                                  string_of_uop op ^ string_of_typ t ^
@@ -312,7 +311,7 @@ let check (begin_list, loop_list, end_list, config_list) =
                       let (et, _)  = expr e in
                       if et != arraytype then raise(Failure("array of different types"))
                       in let ty = List.map types l in (ArrayType(arraytype), SArrayLit(l'))
-              else (Void, SArrayLit([])) 
+              else (Void, SArrayLit([]))
       | ArrayDeref (e1, e2) as e ->
           let (arr, e1') = expr e1
           and (num, e2') = expr e2 in
@@ -345,8 +344,7 @@ let check (begin_list, loop_list, end_list, config_list) =
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
-            Neg | Increment | Decrement when t = Int -> Int
-          | Access when t = Int -> String 
+            Neg | Increment | Decrement when t = Int -> Int 
           | Not when t = Bool -> Bool
           | _ -> raise (Failure ("illegal unary operator " ^ 
                                  string_of_uop op ^ string_of_typ t ^
