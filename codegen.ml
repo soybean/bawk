@@ -280,7 +280,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
   in
 
-  let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" loopbuilder in
+  let string_format_str = L.build_global_stringptr "%s\n" "fmt" loopbuilder in
 
   let rec expr builder = function
     A.StringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
@@ -321,7 +321,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
           | _ -> raise (Failure "no unary operation")
         ) e' "tmp" builder 
     | A.Call ("print", [e]) ->
-      L.build_call printf_func [| string_format_str builder; (expr builder e) |] "printf" builder
+      L.build_call printf_func [| string_format_str ; (expr builder e) |] "printf" builder
     | A.Call ("int_to_string", [e]) -> L.build_call int_to_string_func [| expr builder e |] "int_to_string" builder
     | A.Call ("string_to_int", [e]) -> L.build_call string_to_int_func [| expr builder e |] "string_to_int" builder
     | A.Call (f, args) ->
@@ -399,6 +399,3 @@ let translate (begin_block, loop_block, end_block, config_block) =
   ignore (build_end_block end_block);
 
   the_module
-
-
-
