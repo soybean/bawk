@@ -69,6 +69,13 @@ let rec string_of_sexpr (t, e) =
   | SCall(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
   | SRgx(r) -> r
+  | SStrcat(a, b) -> string_of_sexpr a ^ string_of_sexpr b
+  | SRgxcomp(a, b) -> string_of_sexpr a ^ string_of_sexpr b
+  | SRgxnot(a, b) -> string_of_sexpr a ^ string_of_sexpr b
+  | SRgxeq(a, b) -> string_of_sexpr a ^ string_of_sexpr b
+  | SRgxneq(a, b) -> string_of_sexpr a ^ string_of_sexpr b
+  | SIncrement(a) -> string_of_sexpr a
+  | SDecrement(a) -> string_of_sexpr a
   | SUnop(o, e) -> string_of_uop o ^ string_of_sexpr e  
   | SArrayLit(el) -> "[" ^ String.concat ", " (List.map string_of_sexpr el) ^ "]"
   | SArrayDeref(v, e) -> string_of_sexpr v ^ "[" ^ string_of_sexpr e ^ "]"
