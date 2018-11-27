@@ -24,6 +24,9 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	| A.Bool  -> i1_t
 	| A.Void  -> void_t
 	| A.String -> str_t
+  (*| A.ArrayType t -> match t with
+      A.Int -> array_t  
+      _ -> raise (Failure "array type unsupported")*)
   | _ -> raise (Failure "types no pattern match")
 	in
 
@@ -285,6 +288,32 @@ let translate (begin_block, loop_block, end_block, config_block) =
         A.Id i -> lookup i
       and rhs = expr builder e2
       in ignore(L.build_store rhs lhs builder); rhs
+    | A.Binop(e1, op, e2) ->
+        let e1' = expr builder e1
+        and e2' = expr builder e2 in
+        (match op with
+          A.Add       -> L.build_add
+          | A.Sub     -> L.build_sub
+    	    | A.Mult    -> L.build_mul
+    	    | A.Div     -> L.build_sdiv
+          | A.And     -> L.build_and
+    	    | A.Or      -> L.build_or
+    	    | A.Equal   -> L.build_icmp L.Icmp.Eq
+    	    | A.Neq     -> L.build_icmp L.Icmp.Ne
+    	    | A.Less    -> L.build_icmp L.Icmp.Slt
+    	    | A.Leq     -> L.build_icmp L.Icmp.Sle
+    	    | A.Greater -> L.build_icmp L.Icmp.Sgt
+    	    | A.Geq     -> L.build_icmp L.Icmp.Sge
+          | _         -> raise (Failure "no binary operation")
+        ) e1' e2' "tmp" builder
+
+    | A.Unop(uop, e) ->
+        let e' = expr builder e in
+        (match uop with
+          A.Neg -> L.build_neg
+          | A.Not -> L.build_not
+          | _ -> raise (Failure "no unary operation")
+        ) e' "tmp" builder 
     | A.Call ("print", [e]) ->
       L.build_call printf_func [| string_format_str builder; (expr builder e) |] "printf" builder
     | A.Call ("int_to_string", [e]) -> L.build_call int_to_string_func [| expr builder e |] "int_to_string" builder
@@ -301,7 +330,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
       rhs = expr builder e2
       in ignore(L.build_store rhs lhs builder); rhs
     | _ -> raise (Failure "end expr no pattern match") 
-    in 
+    
+  in 
 
   let rec stmt builder = function
     A.Expr ex -> ignore (expr builder ex); builder
@@ -340,9 +370,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
     | _ -> raise (Failure "statement no pattern match")
     
   in
-
-
-
 
   (*--- Build loop block ---*)
   let build_loop_block loop_block =
