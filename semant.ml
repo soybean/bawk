@@ -366,7 +366,7 @@ let check (begin_list, loop_list, end_list, config_list) =
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
-            Neg | Increment | Decrement when t = Int -> Int 
+            Neg  when t = Int -> Int 
           | Not when t = Bool -> Bool
           | _ -> raise (Failure ("illegal unary operator " ^ 
                                  string_of_uop op ^ string_of_typ t ^
@@ -388,6 +388,14 @@ let check (begin_list, loop_list, end_list, config_list) =
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                        string_of_typ t2 ^ " in " ^ string_of_expr e))
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
+      | Increment(a) as e ->
+         let (et, e') =  expr a in
+         if (et != Int) then raise (Failure("Int expected for " ^ string_of_expr e))
+         else (Int, SIncrement(et, e'))
+      | Decrement(a) as e ->
+         let (et, e') = expr a in
+         if (et != Int) then raise (Failure("Int expected for " ^ string_of_expr e))
+         else (Int, SDecrement(et, e'))
       | Strcat(e1, e2) as e ->
          let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
          if (t1 != String || t2 != String) then raise(Failure("Strings expected for " ^ string_of_expr e))
