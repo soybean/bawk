@@ -104,10 +104,7 @@ let check (begin_list, loop_list, end_list, config_list) =
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      | Access(a) as acc ->
-             let (a, a') = expr a in
-             if a != Int then raise (Failure ("incorrect access in " ^ string_of_expr acc))
-             else (String, SAccess(a, a'))
+      | Access(a) ->raise (Failure("access should not be called in begin"))
       | ArrayLit(l) -> if List.length l > 0 then 
               let typ = expr(List.nth l 0) in
               let (arraytype, _) = typ in
@@ -117,7 +114,7 @@ let check (begin_list, loop_list, end_list, config_list) =
               let types e = 
                       let (et, _)  = expr e in
                       if et != arraytype then raise(Failure("array of different types"))
-                      in let ty = List.map types l in (ArrayType(arraytype), SArrayLit(l'))
+                      in let _ = List.map types l in (ArrayType(arraytype), SArrayLit(l'))
               else (Void, SArrayLit([])) 
       | ArrayDeref (e1, e2) as e ->
           let (arr, e1') = expr e1
@@ -129,16 +126,14 @@ let check (begin_list, loop_list, end_list, config_list) =
              else let type_arr = string_of_typ arr in
              let n = String.length type_arr in
              let typ = String.sub type_arr 0 (n-2) in
-             let rec find_typ typ = 
-                     match typ with
-                     "bool" -> Bool
-                     |"string" -> String
-                     |"rgx" -> Rgx
-                     |"int" -> Int
-                     | _ -> 
-                        let new_typ = String.sub typ 0 (n-2) in
-                        ArrayType(find_typ new_typ) 
-              in (find_typ typ, SArrayDeref((arr, e1'), (num, e2')))
+             let find_typ typ = 
+                     match String.uppercase typ with
+                     "Bool" -> Bool
+                     |"String" -> String
+                     |"Rgx" -> Rgx
+                     |"Int" -> Int
+                     | _ -> raise(Failure("nested array")) in
+              (find_typ typ, SArrayDeref((arr, e1'), (num, e2')))
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, _) -> raise (Failure ("illegal assignment of NF"))
       | Assign(e1, e2) as ex ->
@@ -334,12 +329,12 @@ let check (begin_list, loop_list, end_list, config_list) =
               let typ = expr(List.nth l 0) in
               let (arraytype, _) = typ in
               let check_array e =
-                      let (et, e') = expr e in (et, e')
+                      let (et, e') = expr e in (et, e') 
                       in let l' = List.map check_array l  in
               let types e = 
                       let (et, _)  = expr e in
                       if et != arraytype then raise(Failure("array of different types"))
-                      in let ty = List.map types l in (ArrayType(arraytype), SArrayLit(l'))
+                      in let _ = List.map types l in (ArrayType(arraytype), SArrayLit(l'))
               else (Void, SArrayLit([]))
       | ArrayDeref (e1, e2) as e ->
           let (arr, e1') = expr e1
@@ -351,15 +346,14 @@ let check (begin_list, loop_list, end_list, config_list) =
              else let type_arr = string_of_typ arr in
              let n = String.length type_arr in
              let typ = String.sub type_arr 0 (n-2) in
-             let rec find_typ typ = 
+             let find_typ typ = 
                      match typ with
                      "bool" -> Bool
                      |"string" -> String
                      |"rgx" -> Rgx
                      |"int" -> Int
                      | _ -> 
-                        let new_typ = String.sub typ 0 (n-2) in
-                        ArrayType(find_typ new_typ) 
+                        raise(Failure("nested array"))
               in (find_typ typ, SArrayDeref((arr, e1'), (num, e2')))
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, _) -> raise (Failure ("illegal assignment of NF"))
@@ -385,9 +379,6 @@ let check (begin_list, loop_list, end_list, config_list) =
           (* Determine expression type based on operator and operand types *)
           let ty = match op with
             Add | Sub | Mult | Div | Pluseq | Minuseq when same && t1 = Int   -> Int
-	  | Strcat when same && t1 = String -> String
-	  | Rgxeq | Rgxneq when same && t1 = Rgx -> Bool
-	  | Rgxcomp | Rgxnot when ((t1 = Rgx) && (t2 = String)) || ((t1 = String) && (t2 = Rgx)) -> Bool 
           | Equal | Neq            when same               -> Bool
           | Less | Leq | Greater | Geq
                      when same && (t1 = Int || t1 = String) -> Bool
@@ -397,6 +388,28 @@ let check (begin_list, loop_list, end_list, config_list) =
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                        string_of_typ t2 ^ " in " ^ string_of_expr e))
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
+      | Strcat(e1, e2) as e ->
+         let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
+         if (t1 != String || t2 != String) then raise(Failure("Strings expected for " ^ string_of_expr e))
+         else (String, SStrcat((t1, e1'), (t2, e2')))
+      | Rgxeq(e1, e2) as e ->
+         let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
+         if (t1 != Rgx || t2 != Rgx) then raise(Failure("Rgx expected for " ^ string_of_expr e))
+         else (Bool, SRgxeq((t1, e1'), (t2, e2')))
+      | Rgxneq(e1, e2) as e ->
+         let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
+         if (t1 != Rgx || t2 != Rgx) then raise(Failure("Rgx expected for " ^ string_of_expr e))
+         else (Bool, SRgxneq((t1, e1'), (t2, e2')))
+      | Rgxcomp(e1, e2) as e ->
+         let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
+         if ((t1 != Rgx && t1 != String) || (t1 != String && t2 != Rgx)) 
+	 then raise(Failure("Different types expected for " ^ string_of_expr e))
+         else (Bool, SRgxneq((t1, e1'), (t2, e2')))
+      | Rgxnot(e1, e2) as e ->
+         let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
+         if ((t1 != Rgx && t1 != String) || (t1 != String && t2 != Rgx)) 
+	 then raise(Failure("Different types expected for " ^ string_of_expr e))
+         else (Bool, SRgxneq((t1, e1'), (t2, e2')))
       | Call("length", args) as length -> 
           if List.length args != 1 then raise (Failure("expecting one argument for " ^ string_of_expr length))
           else let (et, e') = expr (List.nth args 0) in

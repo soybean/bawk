@@ -24,6 +24,9 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	| A.Bool  -> i1_t
 	| A.Void  -> void_t
 	| A.String -> str_t
+  (*| A.ArrayType t -> match t with
+      A.Int -> array_t  
+      _ -> raise (Failure "array type unsupported")*)
   | _ -> raise (Failure "types no pattern match")
 	in
 
@@ -277,7 +280,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
   in
 
-  let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" loopbuilder in
+  let string_format_str = L.build_global_stringptr "%s\n" "fmt" loopbuilder in
 
   let rec expr builder = function
     A.StringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
@@ -291,8 +294,34 @@ let translate (begin_block, loop_block, end_block, config_block) =
         A.Id i -> lookup i
       and rhs = expr builder e2
       in ignore(L.build_store rhs lhs builder); rhs
+    | A.Binop(e1, op, e2) ->
+        let e1' = expr builder e1
+        and e2' = expr builder e2 in
+        (match op with
+          A.Add       -> L.build_add
+          | A.Sub     -> L.build_sub
+    	    | A.Mult    -> L.build_mul
+    	    | A.Div     -> L.build_sdiv
+          | A.And     -> L.build_and
+    	    | A.Or      -> L.build_or
+    	    | A.Equal   -> L.build_icmp L.Icmp.Eq
+    	    | A.Neq     -> L.build_icmp L.Icmp.Ne
+    	    | A.Less    -> L.build_icmp L.Icmp.Slt
+    	    | A.Leq     -> L.build_icmp L.Icmp.Sle
+    	    | A.Greater -> L.build_icmp L.Icmp.Sgt
+    	    | A.Geq     -> L.build_icmp L.Icmp.Sge
+          | _         -> raise (Failure "no binary operation")
+        ) e1' e2' "tmp" builder
+
+    | A.Unop(uop, e) ->
+        let e' = expr builder e in
+        (match uop with
+          A.Neg -> L.build_neg
+          | A.Not -> L.build_not
+          | _ -> raise (Failure "no unary operation")
+        ) e' "tmp" builder 
     | A.Call ("print", [e]) ->
-      L.build_call printf_func [| string_format_str builder; (expr builder e) |] "printf" builder
+      L.build_call printf_func [| string_format_str ; (expr builder e) |] "printf" builder
     | A.Call ("int_to_string", [e]) -> L.build_call int_to_string_func [| expr builder e |] "int_to_string" builder
     | A.Call ("string_to_int", [e]) -> L.build_call string_to_int_func [| expr builder e |] "string_to_int" builder
     | A.Call (f, args) ->
@@ -308,7 +337,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
       in ignore(L.build_store rhs lhs builder); rhs
     | A.Access (a) -> L.build_call access_func [| L.param loop_func 0; expr builder a|] "access" builder
     | _ -> raise (Failure "end expr no pattern match") 
-    in 
+    
+  in 
 
   let rec stmt builder = function
     A.Expr ex -> ignore (expr builder ex); builder
@@ -348,9 +378,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
     
   in
 
-
-
-
   (*--- Build loop block ---*)
   let build_loop_block loop_block =
     ignore(stmt loopbuilder (Block (snd loop_block)));
@@ -372,6 +399,3 @@ let translate (begin_block, loop_block, end_block, config_block) =
   ignore (build_end_block end_block);
 
   the_module
-
-
-
