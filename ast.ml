@@ -1,8 +1,7 @@
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | 
-          Geq | And | Or | Pluseq | Minuseq | Strcat | Rgxeq | Rgxneq | 
-          Rgxcomp | Rgxnot
+          Geq | And | Or | Pluseq | Minuseq
 
-type uop = Not | Neg | Increment | Decrement
+type uop = Not | Neg  
 
 type typ = Int | Bool | Void | String | Rgx | ArrayType of typ
 
@@ -21,6 +20,13 @@ type expr =
   | ArrayLit of expr list
   | ArrayDeref of expr * expr
   | Access of expr
+  | Increment of expr
+  | Decrement of expr
+  | Strcat of expr * expr
+  | Rgxeq of expr * expr
+  | Rgxneq of expr * expr
+  | Rgxcomp of expr * expr
+  | Rgxnot of expr * expr
   | NumFields
   | Noexpr
 
@@ -69,18 +75,11 @@ let string_of_op = function
   | Or -> "||" 
   | Pluseq -> "+=" 
   | Minuseq -> "-=" 
-  | Strcat -> "&" 
-  | Rgxeq -> "%" 
-  | Rgxneq -> "!%"
-  | Rgxcomp -> "~" 
-  | Rgxnot -> "!~"
 
 
 let string_of_uop = function
     Neg -> "-"
   | Not -> "!"
-  | Increment -> "++"
-  | Decrement -> "--"
 
 let rec string_of_expr = function
     Binop(e1, o, e2) ->
@@ -99,6 +98,13 @@ let rec string_of_expr = function
   | ArrayLit(el) -> "[" ^ String.concat ", " (List.map string_of_expr el) ^ "]"
   | ArrayDeref(v, e) -> string_of_expr v ^ "[" ^ string_of_expr e ^ "]"
   | Access(e) -> "$" ^ string_of_expr e
+  | Strcat(e, g) -> string_of_expr e ^ "&" ^ string_of_expr g
+  | Rgxeq(e, e1) -> string_of_expr e ^ "%" ^ string_of_expr e1
+  | Rgxneq(e, e1) -> string_of_expr e ^ "!%" ^ string_of_expr e1
+  | Rgxcomp(e, e1) -> string_of_expr e ^ "~" ^ string_of_expr e1
+  | Rgxnot(e, e1) -> string_of_expr e ^ "!~" ^ string_of_expr e1
+  | Increment(e) -> string_of_expr e ^ "++"
+  | Decrement(e) -> string_of_expr e ^ "--"
   | NumFields -> "NF"
   | Noexpr -> ""
 

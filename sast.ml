@@ -15,6 +15,13 @@ and sx =
   | SArrayLit of sexpr list
   | SArrayDeref of sexpr * sexpr
   | SAccess of sexpr
+  | SIncrement of sexpr
+  | SDecrement of sexpr
+  | SStrcat of sexpr * sexpr
+  | SRgxeq of sexpr * sexpr
+  | SRgxneq of sexpr * sexpr
+  | SRgxcomp of sexpr * sexpr
+  | SRgxnot of sexpr * sexpr
   | SNumFields
   | SNoexpr
 

@@ -145,13 +145,13 @@ expr:
   | expr OR expr                 { Binop($1, Or, $3) }
   | expr PLUSEQ expr             { Binop($1, Pluseq, $3) } 
   | expr MINUSEQ expr            { Binop($1, Minuseq, $3) }
-  | INCREMENT expr               { Unop(Increment, $2) }
-  | DECREMENT expr               { Unop(Decrement, $2) }
-  | expr STRCAT expr             { Binop($1, Strcat, $3) }
-  | expr RGXEQ expr              { Binop ($1, Rgxeq, $3) }
-  | expr RGXNEQ expr             { Binop ($1, Rgxneq, $3)}
-  | expr RGXSTRCMP expr          { Binop ($1, Rgxcomp, $3)}
-  | expr RGXSTRNOT expr          { Binop ($1, Rgxnot, $3)}
+  | INCREMENT expr               { Increment($2) }
+  | DECREMENT expr               { Decrement($2) }
+  | expr STRCAT expr             { Strcat($1,$3) }
+  | expr RGXEQ expr              { Rgxeq($1, $3) }
+  | expr RGXNEQ expr             { Rgxneq($1, $3)}
+  | expr RGXSTRCMP expr          { Rgxcomp($1,$3)}
+  | expr RGXSTRNOT expr          { Rgxnot($1, $3)}
   | LSQUARE actuals_opt RSQUARE  { ArrayLit($2) }
   | expr LSQUARE expr RSQUARE    { ArrayDeref($1, $3) }
   | NOT expr                     { Unop(Not, $2) }
