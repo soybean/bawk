@@ -379,7 +379,6 @@ let check (begin_list, loop_list, end_list, config_list) =
           (* Determine expression type based on operator and operand types *)
           let ty = match op with
             Add | Sub | Mult | Div | Pluseq | Minuseq when same && t1 = Int   -> Int
-	  | Strcat when same && t1 = String -> String
 	  | Rgxeq | Rgxneq when same && t1 = Rgx -> Bool
 	  | Rgxcomp | Rgxnot when ((t1 = Rgx) && (t2 = String)) || ((t1 = String) && (t2 = Rgx)) -> Bool 
           | Equal | Neq            when same               -> Bool
@@ -391,6 +390,10 @@ let check (begin_list, loop_list, end_list, config_list) =
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                        string_of_typ t2 ^ " in " ^ string_of_expr e))
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
+      | Strcat(e1, e2) as e ->
+         let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
+         if (t1 != String || t2 != String) then raise(Failure("Strings expected for " ^ string_of_expr e2))
+         else (String, SStrcat((t1, e1'), (t2, e2')))
       | Call("length", args) as length -> 
           if List.length args != 1 then raise (Failure("expecting one argument for " ^ string_of_expr length))
           else let (et, e') = expr (List.nth args 0) in
