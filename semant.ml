@@ -104,10 +104,7 @@ let check (begin_list, loop_list, end_list, config_list) =
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      | Access(a) as acc ->
-             let (a, a') = expr a in
-             if a != Int then raise (Failure ("incorrect access in " ^ string_of_expr acc))
-             else (String, SAccess(a, a'))
+      | Access(a) ->raise (Failure("access should not be called in begin"))
       | ArrayLit(l) -> if List.length l > 0 then 
               let typ = expr(List.nth l 0) in
               let (arraytype, _) = typ in
@@ -117,7 +114,7 @@ let check (begin_list, loop_list, end_list, config_list) =
               let types e = 
                       let (et, _)  = expr e in
                       if et != arraytype then raise(Failure("array of different types"))
-                      in let ty = List.map types l in (ArrayType(arraytype), SArrayLit(l'))
+                      in let _ = List.map types l in (ArrayType(arraytype), SArrayLit(l'))
               else (Void, SArrayLit([])) 
       | ArrayDeref (e1, e2) as e ->
           let (arr, e1') = expr e1
@@ -129,16 +126,14 @@ let check (begin_list, loop_list, end_list, config_list) =
              else let type_arr = string_of_typ arr in
              let n = String.length type_arr in
              let typ = String.sub type_arr 0 (n-2) in
-             let rec find_typ typ = 
-                     match typ with
-                     "bool" -> Bool
-                     |"string" -> String
-                     |"rgx" -> Rgx
-                     |"int" -> Int
-                     | _ -> 
-                        let new_typ = String.sub typ 0 (n-2) in
-                        ArrayType(find_typ new_typ) 
-              in (find_typ typ, SArrayDeref((arr, e1'), (num, e2')))
+             let find_typ typ = 
+                     match String.uppercase typ with
+                     "Bool" -> Bool
+                     |"String" -> String
+                     |"Rgx" -> Rgx
+                     |"Int" -> Int
+                     | _ -> raise(Failure("nested array")) in
+              (find_typ typ, SArrayDeref((arr, e1'), (num, e2')))
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, _) -> raise (Failure ("illegal assignment of NF"))
       | Assign(e1, e2) as ex ->
@@ -334,12 +329,12 @@ let check (begin_list, loop_list, end_list, config_list) =
               let typ = expr(List.nth l 0) in
               let (arraytype, _) = typ in
               let check_array e =
-                      let (et, e') = expr e in (et, e')
+                      let (et, e') = expr e in (et, e') 
                       in let l' = List.map check_array l  in
               let types e = 
                       let (et, _)  = expr e in
                       if et != arraytype then raise(Failure("array of different types"))
-                      in let ty = List.map types l in (ArrayType(arraytype), SArrayLit(l'))
+                      in let _ = List.map types l in (ArrayType(arraytype), SArrayLit(l'))
               else (Void, SArrayLit([]))
       | ArrayDeref (e1, e2) as e ->
           let (arr, e1') = expr e1
@@ -351,15 +346,14 @@ let check (begin_list, loop_list, end_list, config_list) =
              else let type_arr = string_of_typ arr in
              let n = String.length type_arr in
              let typ = String.sub type_arr 0 (n-2) in
-             let rec find_typ typ = 
+             let find_typ typ = 
                      match typ with
                      "bool" -> Bool
                      |"string" -> String
                      |"rgx" -> Rgx
                      |"int" -> Int
                      | _ -> 
-                        let new_typ = String.sub typ 0 (n-2) in
-                        ArrayType(find_typ new_typ) 
+                        raise(Failure("nested array"))
               in (find_typ typ, SArrayDeref((arr, e1'), (num, e2')))
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, _) -> raise (Failure ("illegal assignment of NF"))
