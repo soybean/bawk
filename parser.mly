@@ -158,7 +158,7 @@ expr:
   | LPAREN expr RPAREN           { $2 } 
   | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
   | NF                           { NumFields }
-  | DOLLAR expr                  { Unop(Access, $2) }
+  | DOLLAR expr                  { Access($2) }
   | MINUS expr %prec NEG         { Unop(Neg, $2) }
   | expr ASSIGN expr             { Assign($1, $3) }
 

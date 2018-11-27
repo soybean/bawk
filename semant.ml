@@ -104,18 +104,25 @@ let check (begin_list, loop_list, end_list, config_list) =
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
+      | Access(a) as acc ->
+             let (a, a') = expr a in
+             if a != Int then raise (Failure ("incorrect access in " ^ string_of_expr acc))
+             else (String, SAccess(a, a'))
       | ArrayLit(l) -> if List.length l > 0 then 
               let typ = expr(List.nth l 0) in
               let (arraytype, _) = typ in
               let check_array e =
                       let (et, e') = expr e in (et, e')
-                      in let l' = List.map check_array l 
-                      in (ArrayType(arraytype), SArrayLit(l'))
-              else (Void, SArrayLit([])) (* try to find type from what is arund it?*)
+                      in let l' = List.map check_array l  in
+              let types e = 
+                      let (et, _)  = expr e in
+                      if et != arraytype then raise(Failure("array of different types"))
+                      in let ty = List.map types l in (ArrayType(arraytype), SArrayLit(l'))
+              else (Void, SArrayLit([])) 
       | ArrayDeref (e1, e2) as e ->
           let (arr, e1') = expr e1
           and (num, e2') = expr e2 in
-          if num != Int then raise(Failure("Int expression expected, " ^ string_of_typ num))
+          if num != Int then raise(Failure("Int expression expected in " ^ string_of_expr e))
           else 
              if (arr = Bool || arr = String || arr = Rgx || arr = Void || arr = Int) then 
                      raise (Failure ("array deref should be called on an array, not " ^ string_of_typ arr))
@@ -123,7 +130,7 @@ let check (begin_list, loop_list, end_list, config_list) =
              let n = String.length type_arr in
              let typ = String.sub type_arr 0 (n-2) in
              let rec find_typ typ = 
-                     let t = match typ with
+                     match typ with
                      "bool" -> Bool
                      |"string" -> String
                      |"rgx" -> Rgx
@@ -131,10 +138,9 @@ let check (begin_list, loop_list, end_list, config_list) =
                      | _ -> 
                         let new_typ = String.sub typ 0 (n-2) in
                         ArrayType(find_typ new_typ) 
-              in t
               in (find_typ typ, SArrayDeref((arr, e1'), (num, e2')))
       | NumFields -> (Int, SNumFields)
-      | Assign(NumFields, e) -> raise (Failure ("illegal assignment of NF"))
+      | Assign(NumFields, _) -> raise (Failure ("illegal assignment of NF"))
       | Assign(e1, e2) as ex ->
           let (lt, e1') = expr e1 
           and (rt, e2') = expr e2 in
@@ -145,7 +151,6 @@ let check (begin_list, loop_list, end_list, config_list) =
           let (t, e') = expr e in
           let ty = match op with
             Neg | Increment | Decrement when t = Int -> Int
-          | Access when t = Int -> String 
           | Not when t = Bool -> Bool
           | _ -> raise (Failure ("illegal unary operator " ^ 
                                  string_of_uop op ^ string_of_typ t ^
@@ -171,14 +176,36 @@ let check (begin_list, loop_list, end_list, config_list) =
                        string_of_typ t2 ^ " in " ^ string_of_expr e))
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
       | Call("length", args) as length -> 
-          if List.length args != 1 then raise (Failure("expecting one argument for length"))
+          if List.length args != 1 then raise (Failure("expecting one argument for " ^ string_of_expr length))
           else let (et, e') = expr (List.nth args 0) in
           if (et = String || et = Bool || et = Void || et = Rgx || et = Int) then 
                   raise (Failure("illegal argument found " ^ 
-                  string_of_typ et ^ " arraytype expected in " ^ string_of_expr (List.nth args 0)))
-          else (Int, SCall("length", [(et, e')])) 
+                  string_of_typ et ^ " arraytype expected in " ^ string_of_expr length))
+          else (Int, SCall("length", [(et, e')]))
+     | Call ("insert", args) as insert ->
+          if List.length args !=3 then raise (Failure("expecting three arguments for " ^ string_of_expr insert))
+          else let (t1, e1') = expr (List.nth args 0)
+            and (t2, e2') = expr(List.nth args 1) and (t3, e3') = expr(List.nth args 2) in
+         if t2 != Int then raise (Failure("expecting index argument for insert but had " ^ string_of_typ t2)) 
+         else if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int)
+         then raise (Failure("illegal argument found " ^ string_of_typ t1 ^ " expected arraytype"))
+         else let array_string = string_of_typ t1 in
+            let n = String.length array_string in
+            let array_type = String.sub array_string 0 (n-2) in 
+            if (array_type = string_of_typ(t3) && t3 != Void) 
+            then (t1, SCall("insert", [(t1, e1');(t2, e2');(t3, e3')]))
+            else raise(Failure("cannot perform insert on " ^ array_string ^ " and " ^ 
+            string_of_typ t3 ^ " at index " ^ string_of_typ t2)) 
+     | Call("delete", args) as delete -> 
+          if List.length args != 2 then raise (Failure("expecting two arguments for " ^ string_of_expr delete))
+          else let (t1, e1') = expr (List.nth args 0) 
+	  and (t2, e2') = expr (List.nth args 1) in
+          if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int) then 
+                  raise (Failure("illegal argument found " ^ 
+                  string_of_typ t1 ^ " arraytype expected in " ^ string_of_expr delete))
+          else (t1, SCall("delete", [(t1, e1');(t2, e2')]))
      | Call("contains", args) as contains -> 
-          if List.length args != 2 then raise (Failure("expecting two arguments for contains"))
+          if List.length args != 2 then raise (Failure("expecting two arguments for " ^ string_of_expr contains))
 	  else let (t1, e1') = expr (List.nth args 0)
             and (t2, e2') = expr (List.nth args 1) in
             if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int) 
@@ -191,7 +218,7 @@ let check (begin_list, loop_list, end_list, config_list) =
             then (Bool, SCall("contains", [(t1, e1');(t2, e2')]))
             else raise(Failure("cannot perform contains on " ^ array_string ^ " and " ^ string_of_typ(t2))) 
      | Call("index_of", args) as index_of -> 
-          if List.length args != 2 then raise (Failure("expecting two arguments for index_of"))
+          if List.length args != 2 then raise (Failure("expecting two arguments for " ^ string_of_expr index_of))
 	  else let (t1, e1') = expr (List.nth args 0)
             and (t2, e2') = expr (List.nth args 1) in
             if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int) 
@@ -299,18 +326,25 @@ let check (begin_list, loop_list, end_list, config_list) =
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
+      | Access(a) as acc ->
+             let (a, a') = expr a in
+             if a != Int then raise (Failure ("incorrect access in " ^ string_of_expr acc))
+             else (String, SAccess(a, a'))
       | ArrayLit(l) -> if List.length l > 0 then 
               let typ = expr(List.nth l 0) in
               let (arraytype, _) = typ in
               let check_array e =
                       let (et, e') = expr e in (et, e')
-                      in let l' = List.map check_array l 
-                      in (ArrayType(arraytype), SArrayLit(l'))
+                      in let l' = List.map check_array l  in
+              let types e = 
+                      let (et, _)  = expr e in
+                      if et != arraytype then raise(Failure("array of different types"))
+                      in let ty = List.map types l in (ArrayType(arraytype), SArrayLit(l'))
               else (Void, SArrayLit([]))
       | ArrayDeref (e1, e2) as e ->
           let (arr, e1') = expr e1
           and (num, e2') = expr e2 in
-          if num != Int then raise(Failure("Int expression expected, " ^ string_of_typ num))
+          if num != Int then raise(Failure("Int expression expected in " ^ string_of_expr e))
           else 
              if (arr = Bool || arr = String || arr = Rgx || arr = Void || arr = Int) then 
                      raise (Failure ("array deref should be called on an array, not " ^ string_of_typ arr))
@@ -318,7 +352,7 @@ let check (begin_list, loop_list, end_list, config_list) =
              let n = String.length type_arr in
              let typ = String.sub type_arr 0 (n-2) in
              let rec find_typ typ = 
-                     let t = match typ with
+                     match typ with
                      "bool" -> Bool
                      |"string" -> String
                      |"rgx" -> Rgx
@@ -326,10 +360,9 @@ let check (begin_list, loop_list, end_list, config_list) =
                      | _ -> 
                         let new_typ = String.sub typ 0 (n-2) in
                         ArrayType(find_typ new_typ) 
-              in t
               in (find_typ typ, SArrayDeref((arr, e1'), (num, e2')))
       | NumFields -> (Int, SNumFields)
-      | Assign(NumFields, e) -> raise (Failure ("illegal assignment of NF"))
+      | Assign(NumFields, _) -> raise (Failure ("illegal assignment of NF"))
       | Assign(e1, e2) as ex -> 
           let (lt, e1') = expr e1 
           and (rt, e2') = expr e2 in 
@@ -339,8 +372,7 @@ let check (begin_list, loop_list, end_list, config_list) =
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
-            Neg | Increment | Decrement when t = Int -> Int
-          | Access when t = Int -> String 
+            Neg | Increment | Decrement when t = Int -> Int 
           | Not when t = Bool -> Bool
           | _ -> raise (Failure ("illegal unary operator " ^ 
                                  string_of_uop op ^ string_of_typ t ^
@@ -366,14 +398,36 @@ let check (begin_list, loop_list, end_list, config_list) =
                        string_of_typ t2 ^ " in " ^ string_of_expr e))
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
       | Call("length", args) as length -> 
-          if List.length args != 1 then raise (Failure("expecting one argument for length"))
+          if List.length args != 1 then raise (Failure("expecting one argument for " ^ string_of_expr length))
           else let (et, e') = expr (List.nth args 0) in
           if (et = String || et = Bool || et = Void || et = Rgx || et = Int) then 
                   raise (Failure("illegal argument found " ^ 
-                  string_of_typ et ^ " arraytype expected in " ^ string_of_expr (List.nth args 0)))
+                  string_of_typ et ^ " arraytype expected in " ^ string_of_expr length))
           else (Int, SCall("length", [(et, e')])) 
-      | Call("contains", args) as contains -> 
-          if List.length args != 2 then raise (Failure("expecting two arguments for contains"))
+      | Call ("insert", args) as insert ->
+          if List.length args !=3 then raise (Failure("expecting three arguments for " ^ string_of_expr insert))
+          else let (t1, e1') = expr (List.nth args 0)
+            and (t2, e2') = expr(List.nth args 1) and (t3, e3') = expr(List.nth args 2) in
+         if t2 != Int then raise (Failure("expecting index argument for insert but had " ^ string_of_typ t2)) 
+         else if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int)
+         then raise (Failure("illegal argument found " ^ string_of_typ t1 ^ " expected arraytype"))
+         else let array_string = string_of_typ t1 in
+            let n = String.length array_string in
+            let array_type = String.sub array_string 0 (n-2) in 
+            if (array_type = string_of_typ(t3) && t3 != Void) 
+            then (t1, SCall("insert", [(t1, e1');(t2, e2');(t3, e3')]))
+            else raise(Failure("cannot perform insert on " ^ array_string ^ " and " ^ 
+            string_of_typ t3 ^ " at index " ^ string_of_typ t2)) 
+      | Call("delete", args) as delete -> 
+          if List.length args != 2 then raise (Failure("expecting two arguments for " ^ string_of_expr delete))
+          else let (t1, e1') = expr (List.nth args 0) 
+	  and (t2, e2') = expr (List.nth args 1) in
+          if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int) then 
+                  raise (Failure("illegal argument found " ^ 
+                  string_of_typ t1 ^ " arraytype expected in " ^ string_of_expr delete))
+          else (t1, SCall("delete", [(t1, e1');(t2, e2')]))
+     | Call("contains", args) as contains -> 
+          if List.length args != 2 then raise (Failure("expecting two arguments for " ^ string_of_expr contains))
 	  else let (t1, e1') = expr (List.nth args 0)
             and (t2, e2') = expr (List.nth args 1) in
             if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int) 
@@ -386,7 +440,7 @@ let check (begin_list, loop_list, end_list, config_list) =
             then (Bool, SCall("contains", [(t1, e1');(t2, e2')]))
             else raise(Failure("cannot perform contains on " ^ array_string ^ " and " ^ string_of_typ(t2))) 
       | Call("index_of", args) as index_of -> 
-          if List.length args != 2 then raise (Failure("expecting two arguments for index_of"))
+          if List.length args != 2 then raise (Failure("expecting two arguments for" ^ string_of_expr index_of))
 	  else let (t1, e1') = expr (List.nth args 0)
             and (t2, e2') = expr (List.nth args 1) in
             if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int) 
@@ -436,7 +490,7 @@ let check (begin_list, loop_list, end_list, config_list) =
           if (array_type = string_of_typ (type_of_identifier s1)) then SEnhancedFor(s1, s2, check_stmt st) 
           else raise(Failure("mismatch in " ^ string_of_typ (type_of_identifier s1) ^ " and " ^ s2_type_string))
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
-      | Return e -> raise (
+      | Return _ -> raise (
 	  Failure ("return must be in a function"))
 	    
 	    (* A block is correct if each statement is correct and nothing
