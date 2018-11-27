@@ -231,6 +231,16 @@ void reverseList(struct List *list)
 	list->head = prv;
 }
 
+// Create bool array literal.
+void createBoolArrayLiteral(struct List *list, bool arr[], int numElements)
+{
+	initList(list);
+	for(int i = 0; i < numElements; i++) {
+		addFront(list, &arr[i]);
+	}
+	reverseList(list);
+}
+
 // Create string array literal.
 void createStrArrayLiteral(struct List *list, char *arr[], int numElements)
 {
@@ -258,7 +268,24 @@ void *getElement(struct List *list, int *index)
 	return node_by_index->data;
 }
 
-// Contains
+// function given to compare bools
+int compareBools(const void *a, const void *b)
+{
+	if (*(bool *)a < *(bool *)b) return -1;
+	if (*(bool *)a > *(bool *)b) return 1;
+	return 0;
+}
+
+// Contains bool
+bool containsBool(struct List *list, const void *dataSought)
+{ 
+	struct Node *node = findNode(list, dataSought, (int (*)(const void *, const void *))compareBools);
+	if (node)
+		return true;
+	return false;
+}
+
+// Contains string
 bool containsStr(struct List *list, const void *dataSought)
 {
 	struct Node *node = findNode(list, dataSought, (int (*)(const void *, const void *))strcmp);
@@ -275,7 +302,7 @@ int compareInts(const void *a, const void *b)
 	return 0;
 }
 
-// Contains
+// Contains int
 bool containsInt(struct List *list, const void *dataSought)
 {
 	struct Node *node = findNode(list, dataSought, (int (*)(const void *, const void *))compareInts);
@@ -285,6 +312,11 @@ bool containsInt(struct List *list, const void *dataSought)
 }
 
 int findIndexOfStrNode(struct List *list, const void *dataSought)
+{
+	return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))compareBools);
+}
+
+int findIndexOfBoolNode(struct List *list, const void *dataSought)
 { 
 	return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))strcmp);
 }
@@ -311,6 +343,11 @@ void assignElement(struct List *list, int *index, void *insert)
 	node->data = insert;
 }
 
+static void printBool(void *p)
+{
+	printf("%s ", *(bool *)p ? "true" : "false");
+}
+
 // function given to print strings
 static void printStr(void *p)
 {
@@ -325,6 +362,80 @@ static void printInt(void *p)
 
 int main()
 {
+	/********************************************************************* BOOL ARRAYS ****************/
+
+	bool boolarr1[0];
+	bool boolarr2[] = {true, true, true, true, true};
+	struct List boollist;
+
+	// empty array
+	createBoolArrayLiteral(&boollist, boolarr1, 0);
+	printf("Length of list: %d\n", length(&boollist));
+
+	// print array
+	printf("Print contents of list: ");
+	traverseList(&boollist, &printBool);
+	printf("\n");
+
+	// array literal
+	createBoolArrayLiteral(&boollist, boolarr2, 5);
+	printf("Length of list: %d\n", length(&boollist));
+
+	// print array
+	printf("Print contents of list: ");
+	traverseList(&boollist, &printBool);
+	printf("\n");
+
+	// access
+	int bool_a = 1;
+	printf("Find Node at index 1: ");
+	printf("%s\n", *(bool *)getElement(&boollist, &bool_a) ? "true" : "false");
+
+	// index_of
+	bool bool_b = true;
+	printf("Element 'true' is at index: %d\n", findIndexOfBoolNode(&boollist, &bool_b));
+  
+	// contains 
+	bool bool_c = false;
+	printf("Does list contain element 'false': ");
+	if( containsBool(&boollist, &bool_c) )
+		printf("YES\n");
+	else
+		printf("NO\n");
+
+	// contains
+	bool bool_c1 = true;
+	printf("Does list contain element 'true': ");
+	if( containsBool(&boollist, &bool_c1) )
+		printf("YES\n");
+	else
+		printf("NO\n");
+
+	// insert
+	bool bool_d = false;
+	int bool_pos = 1;
+	printf("Insert element 'false' at position 1: ");
+	insertElement(&boollist, &bool_pos, &bool_d);
+	traverseList(&boollist, &printBool);
+	printf("\n");
+
+	// assign
+	bool bool_e = true;
+	printf("Set element at position 1 to be 'true' instead: ");
+	assignElement(&boollist, &bool_pos, &bool_e);
+	traverseList(&boollist, &printBool);
+	printf("\n");
+
+	// delete
+	printf("Remove element at position 1: ");
+	removeNode(&boollist, &bool_pos);
+	traverseList(&boollist, &printBool);
+	printf("\n");
+
+	removeAllNodes(&boollist);
+
+	printf("\n");
+
 	/********************************************************************* STRING ARRAYS ***************/
 
 	char *strarr1[0];
@@ -396,10 +507,11 @@ int main()
 	printf("\n");
 
 	removeAllNodes(&strlist);
-	return 0;
-	
-	/******************************************************************** INT ARRAYS ******************/
 
+	printf("\n");
+
+	/******************************************************************** INT ARRAYS ******************/
+	
 	int intarr1[0];
 	int intarr2[] = {10, 2, 3, 7, 50};
 	struct List intlist;
