@@ -130,7 +130,7 @@ let check (begin_list, loop_list, end_list, config_list) =
              let n = String.length type_arr in
              let typ = String.sub type_arr 0 (n-2) in
              let rec find_typ typ = 
-                     let t = match typ with
+                     match typ with
                      "bool" -> Bool
                      |"string" -> String
                      |"rgx" -> Rgx
@@ -138,7 +138,6 @@ let check (begin_list, loop_list, end_list, config_list) =
                      | _ -> 
                         let new_typ = String.sub typ 0 (n-2) in
                         ArrayType(find_typ new_typ) 
-              in t
               in (find_typ typ, SArrayDeref((arr, e1'), (num, e2')))
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, _) -> raise (Failure ("illegal assignment of NF"))
@@ -353,7 +352,7 @@ let check (begin_list, loop_list, end_list, config_list) =
              let n = String.length type_arr in
              let typ = String.sub type_arr 0 (n-2) in
              let rec find_typ typ = 
-                     let t = match typ with
+                     match typ with
                      "bool" -> Bool
                      |"string" -> String
                      |"rgx" -> Rgx
@@ -361,7 +360,6 @@ let check (begin_list, loop_list, end_list, config_list) =
                      | _ -> 
                         let new_typ = String.sub typ 0 (n-2) in
                         ArrayType(find_typ new_typ) 
-              in t
               in (find_typ typ, SArrayDeref((arr, e1'), (num, e2')))
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, _) -> raise (Failure ("illegal assignment of NF"))

@@ -1,0 +1,11 @@
+BEGIN {
+  function void test_loops() {
+    int i;
+    for (i = 0; i < 5; i = i + 1) {
+      print("hi");  
+    }
+  }  
+}
+LOOP {}
+END {test_loops();}
+
