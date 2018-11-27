@@ -112,8 +112,9 @@ let check (begin_list, loop_list, end_list, config_list) =
                       let (et, e') = expr e in (et, e')
                       in let l' = List.map check_array l  in
               let types e = 
-                      let (et, _)  = expr e in
-                      if et != arraytype then raise(Failure("array of different types"))
+                      let (a, _)  = expr e in
+                      if a != arraytype then raise(Failure("array of different types expected" ^
+                      string_of_typ arraytype ^ " found " ^ string_of_typ a))
                       in let _ = List.map types l in (ArrayType(arraytype), SArrayLit(l'))
               else (Void, SArrayLit([])) 
       | ArrayDeref (e1, e2) as e ->
@@ -351,8 +352,9 @@ let check (begin_list, loop_list, end_list, config_list) =
                       let (et, e') = expr e in (et, e') 
                       in let l' = List.map check_array l  in
               let types e = 
-                      let (et, _)  = expr e in
-                      if et != arraytype then raise(Failure("array of different types"))
+                      let (a, _)  = expr e in
+                      if a != arraytype then raise(Failure("array of different types, expected " ^
+                      string_of_typ arraytype ^ " found " ^ string_of_typ a))
                       in let _ = List.map types l in (ArrayType(arraytype), SArrayLit(l'))
               else (Void, SArrayLit([]))
       | ArrayDeref (e1, e2) as e ->
