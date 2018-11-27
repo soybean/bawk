@@ -4,8 +4,7 @@ BEGIN {
   }  
 }
 LOOP {
-  print("TEST");
-  print(int_to_string(string_to_int("5")));
+  print($8);
 }
 END {
   print("end test");
