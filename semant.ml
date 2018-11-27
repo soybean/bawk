@@ -104,7 +104,7 @@ let check (begin_list, loop_list, end_list, config_list) =
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      | Access(a) ->raise (Failure("access should not be called in begin"))
+      | Access a ->raise (Failure("access " ^ string_of_expr a ^ " should not be called in begin"))
       | ArrayLit(l) -> if List.length l > 0 then 
               let typ = expr(List.nth l 0) in
               let (arraytype, _) = typ in
@@ -127,11 +127,11 @@ let check (begin_list, loop_list, end_list, config_list) =
              let n = String.length type_arr in
              let typ = String.sub type_arr 0 (n-2) in
              let find_typ typ = 
-                     match String.uppercase typ with
-                     "Bool" -> Bool
-                     |"String" -> String
-                     |"Rgx" -> Rgx
-                     |"Int" -> Int
+                     match typ with
+                     "bool" -> Bool
+                     |"string" -> String
+                     |"rgx" -> Rgx
+                     |"int" -> Int
                      | _ -> raise(Failure("nested array")) in
               (find_typ typ, SArrayDeref((arr, e1'), (num, e2')))
       | NumFields -> (Int, SNumFields)
@@ -189,14 +189,14 @@ let check (begin_list, loop_list, end_list, config_list) =
          else (Bool, SRgxneq((t1, e1'), (t2, e2')))
       | Rgxcomp(e1, e2) as e ->
          let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
-         if ((t1 != Rgx && t1 != String) || (t1 != String && t2 != Rgx)) 
-	 then raise(Failure("Different types expected for " ^ string_of_expr e))
-         else (Bool, SRgxneq((t1, e1'), (t2, e2')))
+         if ((t1 = Rgx && t2 = String) || (t1 = String && t2 != Rgx)) then
+                 (Bool, SRgxcomp((t1, e1'), (t2, e2')))
+         else raise(Failure("Different types expected for " ^ string_of_expr e))
       | Rgxnot(e1, e2) as e ->
          let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
-         if ((t1 != Rgx && t1 != String) || (t1 != String && t2 != Rgx)) 
-	 then raise(Failure("Different types expected for " ^ string_of_expr e))
-         else (Bool, SRgxneq((t1, e1'), (t2, e2')))
+         if ((t1 = Rgx && t2 = String) || (t1 = String && t2 = Rgx)) then
+                 (Bool, SRgxnot((t1, e1'), (t2, e2')))
+	 else raise(Failure("Different types expected for " ^ string_of_expr e))
       | Call("length", args) as length -> 
           if List.length args != 1 then raise (Failure("expecting one argument for " ^ string_of_expr length))
           else let (et, e') = expr (List.nth args 0) in
@@ -437,14 +437,14 @@ let check (begin_list, loop_list, end_list, config_list) =
          else (Bool, SRgxneq((t1, e1'), (t2, e2')))
       | Rgxcomp(e1, e2) as e ->
          let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
-         if ((t1 != Rgx && t1 != String) || (t1 != String && t2 != Rgx)) 
-	 then raise(Failure("Different types expected for " ^ string_of_expr e))
-         else (Bool, SRgxneq((t1, e1'), (t2, e2')))
+         if ((t1 = Rgx && t2 = String) || (t1 = String && t2 = Rgx)) then
+                 (Bool, SRgxcomp((t1, e1'), (t2, e2')))
+         else raise(Failure("Different types expected for " ^ string_of_expr e))
       | Rgxnot(e1, e2) as e ->
          let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
-         if ((t1 != Rgx && t1 != String) || (t1 != String && t2 != Rgx)) 
-	 then raise(Failure("Different types expected for " ^ string_of_expr e))
-         else (Bool, SRgxneq((t1, e1'), (t2, e2')))
+         if ((t1 = Rgx && t2 = String) || (t1 = String && t2 = Rgx)) then
+                 (Bool, SRgxnot((t1, e1'), (t2, e2')))
+         else raise(Failure("Different types expected for " ^ string_of_expr e))
       | Call("length", args) as length -> 
           if List.length args != 1 then raise (Failure("expecting one argument for " ^ string_of_expr length))
           else let (et, e') = expr (List.nth args 0) in
