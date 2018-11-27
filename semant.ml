@@ -120,22 +120,12 @@ let check (begin_list, loop_list, end_list, config_list) =
           let (arr, e1') = expr e1
           and (num, e2') = expr e2 in
           if num != Int then raise(Failure("Int expression expected in " ^ string_of_expr e))
-        (*  else 
-             if (arr = Bool || arr = String || arr = Rgx || arr = Void || arr = Int) then 
-                     raise (Failure ("array deref should be called on an array, not " ^ string_of_typ arr))
-            let type_arr = string_of_typ arr in
-             let n = String.length type_arr in
-             let typ = String.sub type_arr 0 (n-2) in *)
-           else let find_typ arr = 
+        else let find_typ arr = 
                      match arr with
                      ArrayType(t) -> t 
                    | Bool | String | Rgx | Void | Int -> raise(Failure("array deref should be called on array, not " ^
-                   string_of_typ arr))(*
-                     |"string" -> String
-                     |"rgx" -> Rgx
-                     |"int" -> Int
-                     | _ -> raise(Failure("nested array")) *)in
-              (find_typ arr, SArrayDeref((arr, e1'), (num, e2')))
+                   string_of_typ arr))
+        in (find_typ arr, SArrayDeref((arr, e1'), (num, e2')))
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, _) -> raise (Failure ("illegal assignment of NF"))
       | Assign(e1, e2) as ex ->
@@ -369,21 +359,12 @@ let check (begin_list, loop_list, end_list, config_list) =
           let (arr, e1') = expr e1
           and (num, e2') = expr e2 in
           if num != Int then raise(Failure("Int expression expected in " ^ string_of_expr e))
-          else 
-             if (arr = Bool || arr = String || arr = Rgx || arr = Void || arr = Int) then 
-                     raise (Failure ("array deref should be called on an array, not " ^ string_of_typ arr))
-             else let type_arr = string_of_typ arr in
-             let n = String.length type_arr in
-             let typ = String.sub type_arr 0 (n-2) in
-             let find_typ typ = 
-                     match typ with
-                     "bool" -> Bool
-                     |"string" -> String
-                     |"rgx" -> Rgx
-                     |"int" -> Int
-                     | _ -> 
-                        raise(Failure("nested array"))
-              in (find_typ typ, SArrayDeref((arr, e1'), (num, e2')))
+        else let find_typ arr = 
+                     match arr with
+                     ArrayType(t) -> t 
+                   | Bool | String | Rgx | Void | Int -> raise(Failure("array deref should be called on array, not " ^
+                   string_of_typ arr))
+        in (find_typ arr, SArrayDeref((arr, e1'), (num, e2')))
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, _) -> raise (Failure ("illegal assignment of NF"))
       | Assign(e1, e2) as ex -> 
