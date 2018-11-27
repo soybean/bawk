@@ -331,8 +331,8 @@ void insertElement(struct List *list, int *index, void *insert)
 	if (*index == 0)
 		addFront(list, insert);
 	else {
-		*index = *index - 1;
-		struct Node *node = findByIndex(list, index);
+		int x = *index - 1;
+		struct Node *node = findByIndex(list, &x);
 		addAfter(list, node, insert);
 	}
 }
