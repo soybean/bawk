@@ -146,6 +146,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
       A.StringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
 			  L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
 			| A.BoolLit b  -> L.const_int i1_t (if b then 1 else 0)
+      (*| A.RgxLiteral r ->
+      | A.ArrayLit a -> *)
       | A.Literal i -> L.const_int i32_t i
       | A.Noexpr -> L.const_int i32_t 0
       | A.Id i -> L.build_load (lookup i) i builder
@@ -160,7 +162,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
         let e1' = expr builder e1
         and e2' = expr builder e2 in
         (match op with
-          A.Add -> L.build_add
+          A.Add       -> L.build_add
           | A.Sub     -> L.build_sub
     	    | A.Mult    -> L.build_mul
     	    | A.Div     -> L.build_sdiv
@@ -174,13 +176,20 @@ let translate (begin_block, loop_block, end_block, config_block) =
     	    | A.Geq     -> L.build_icmp L.Icmp.Sge
           | _         -> raise (Failure "no binary operation")
         ) e1' e2' "tmp" builder
+
       | A.Unop(uop, e) ->
         let e' = expr builder e in
         (match uop with
           A.Neg -> L.build_neg
           | A.Not -> L.build_not
           | _ -> raise (Failure "no unary operation")
-        ) e' "tmp" builder
+        ) e' "tmp" builder; 
+        
+        (*let e_inc = expr builder e in
+          A.Assign(e, A.Binop(e, A.Add, A.Literal(1)))*)
+          (*L.build_add e_inc 1 "tmp" builder*)
+
+
       | A.Call ("print", [e]) ->
     		L.build_call printf_func [| string_format_str builder; (expr builder e)|] "printf" builder
       | A.Call (f, args) ->
@@ -200,6 +209,37 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | A.Return e -> ignore (match fdecl.A.ret_type with
           A.Void -> L.build_ret_void builder
           | _ -> L.build_ret (expr builder e) builder); builder
+      | A.If (predicate, then_stmt, else_stmt) ->
+        let bool_val = expr builder predicate in
+  	    let merge_bb = L.append_block context "merge" the_function in
+           let build_br_merge = L.build_br merge_bb in (* partial function *)
+
+  	    let then_bb = L.append_block context "then" the_function in
+  	    add_terminal (stmt (L.builder_at_end context then_bb) then_stmt)
+  	    build_br_merge;
+
+  	    let else_bb = L.append_block context "else" the_function in
+  	    add_terminal (stmt (L.builder_at_end context else_bb) else_stmt)
+  	    build_br_merge;
+
+  	    ignore(L.build_cond_br bool_val then_bb else_bb builder);
+  	    L.builder_at_end context merge_bb
+      | A.While (predicate, body) ->
+	      let pred_bb = L.append_block context "while" the_function in
+	      ignore(L.build_br pred_bb builder);
+
+	      let body_bb = L.append_block context "while_body" the_function in
+	      add_terminal (stmt (L.builder_at_end context body_bb) body)
+	      (L.build_br pred_bb);
+
+	      let pred_builder = L.builder_at_end context pred_bb in
+	      let bool_val = expr pred_builder predicate in
+
+	      let merge_bb = L.append_block context "merge" the_function in
+	      ignore(L.build_cond_br bool_val body_bb merge_bb pred_builder);
+	      L.builder_at_end context merge_bb
+      | A.For (e1, e2, e3, body) -> stmt builder
+	      ( A.Block [A.Expr e1 ; A.While (e2, A.Block [body ; A.Expr e3]) ] )
       | _ -> raise (Failure "stmt no pattern match")
     in
 
@@ -266,6 +306,37 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let rec stmt builder = function
     A.Expr ex -> ignore (expr builder ex); builder
     | A.Block sl -> List.fold_left stmt builder sl
+    | A.If (predicate, then_stmt, else_stmt) ->
+        let bool_val = expr builder predicate in
+  	    let merge_bb = L.append_block context "merge" loop_func in
+           let build_br_merge = L.build_br merge_bb in (* partial function *)
+
+  	    let then_bb = L.append_block context "then" loop_func in
+  	    add_terminal (stmt (L.builder_at_end context then_bb) then_stmt)
+  	    build_br_merge;
+
+  	    let else_bb = L.append_block context "else" loop_func in
+  	    add_terminal (stmt (L.builder_at_end context else_bb) else_stmt)
+  	    build_br_merge;
+
+  	    ignore(L.build_cond_br bool_val then_bb else_bb builder);
+  	    L.builder_at_end context merge_bb
+    | A.While (predicate, body) ->
+	      let pred_bb = L.append_block context "while" loop_func in
+	      ignore(L.build_br pred_bb builder);
+
+	      let body_bb = L.append_block context "while_body" loop_func in
+	      add_terminal (stmt (L.builder_at_end context body_bb) body)
+	      (L.build_br pred_bb);
+
+	      let pred_builder = L.builder_at_end context pred_bb in
+	      let bool_val = expr pred_builder predicate in
+
+	      let merge_bb = L.append_block context "merge" loop_func in
+	      ignore(L.build_cond_br bool_val body_bb merge_bb pred_builder);
+	      L.builder_at_end context merge_bb
+    | A.For (e1, e2, e3, body) -> stmt builder
+	      ( A.Block [A.Expr e1 ; A.While (e2, A.Block [body ; A.Expr e3]) ] )
     | _ -> raise (Failure "statement no pattern match")
     
   in
@@ -288,7 +359,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
   in
 
   (* Call the things that happen in main *)
-  (*set_defaults configbuilder;*)
   build_config_block config_block;
   List.iter build_function_body (snd begin_block);
   ignore (build_loop_block loop_block);
