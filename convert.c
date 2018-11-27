@@ -18,3 +18,33 @@ char* int_to_string(int a) {
   snprintf( str, length + 1, "%d", a );
   return str;
 }
+
+char *access(char *line, int field) {
+  if(field == 0){
+    return line;
+  }
+  else {
+    char *array[strlen(line)+1];
+
+    for (int k = 0; k < strlen(line) + 1; k++) {
+      array[k] = NULL;
+    }
+
+    int i=0;
+
+    array[i] = strtok(line," ");
+
+    while(array[i]!=NULL)
+    {
+      array[++i] = strtok(NULL," ");
+    }
+
+    field = field - 1;
+    if (array[field] != NULL) {
+      return array[field];
+    }
+    else {
+      return "";
+    }
+  }
+}

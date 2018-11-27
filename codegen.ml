@@ -44,7 +44,13 @@ let translate (begin_block, loop_block, end_block, config_block) =
     L.declare_function "string_to_int" string_to_int_t the_module in
 
 
+  let access_t : L.lltype =
+    L.function_type str_t [| str_t; i32_t|] in
+  let access_func : L.llvalue =
+    L.declare_function "access" access_t the_module in
+
   let ftype = L.function_type void_t [||] in
+
   let ltype : L.lltype = 
     L.function_type void_t [| str_t |] in
  
@@ -300,6 +306,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
       let lhs = expr builder e1 and 
       rhs = expr builder e2
       in ignore(L.build_store rhs lhs builder); rhs
+    | A.Access (a) -> L.build_call access_func [| L.param loop_func 0; expr builder a|] "access" builder
     | _ -> raise (Failure "end expr no pattern match") 
     in 
 
