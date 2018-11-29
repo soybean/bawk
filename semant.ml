@@ -236,11 +236,11 @@ let check (begin_list, loop_list, end_list, config_list) =
             and (t2, e2') = expr (List.nth args 1) in
           (match t1 with 
           String | Bool | Void | Rgx | Int ->
-               then raise (Failure("illegal argument found " ^ string_of_typ t1 ^ " arraytype expected"))
+               raise (Failure("illegal argument found " ^ string_of_typ t1 ^ " arraytype expected"))
           | ArrayType(t) ->
                if (string_of_typ(t) = string_of_typ(t2) && t2 != Void)
 	       then (Int, SCall("index_of", [(t1, e1');(t2, e2')]))
-	       else raise(Failure("cannot perform index_of on " ^ string_of_typ(t1) ^ " and " ^ string_of_typ(t2))) 
+	       else raise(Failure("cannot perform index_of on " ^ string_of_typ(t1) ^ " and " ^ string_of_typ(t2)))) 
       | Call(fname, args) as call -> 
           let fd = find_func fname in
           let param_length = List.length fd.formals in
@@ -471,11 +471,11 @@ let check (begin_list, loop_list, end_list, config_list) =
             and (t2, e2') = expr (List.nth args 1) in
           (match t1 with 
           String | Bool | Void | Rgx | Int ->
-               then raise (Failure("illegal argument found " ^ string_of_typ t1 ^ " arraytype expected"))
+               raise (Failure("illegal argument found " ^ string_of_typ t1 ^ " arraytype expected"))
           | ArrayType(t) ->
                if (string_of_typ(t) = string_of_typ(t2) && t2 != Void)
 	       then (Int, SCall("index_of", [(t1, e1');(t2, e2')]))
-	       else raise(Failure("cannot perform index_of on " ^ string_of_typ(t1) ^ " and " ^ string_of_typ(t2))) 
+	       else raise(Failure("cannot perform index_of on " ^ string_of_typ(t1) ^ " and " ^ string_of_typ(t2)))) 
       | Call(fname, args) as call -> 
           let fd = find_func fname in
           let param_length = List.length fd.formals in
