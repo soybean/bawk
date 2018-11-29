@@ -490,6 +490,20 @@ int main()
 	int intarr[] = {10, 2, 3, 7, 50};
 	struct List *intlist;
 
+	/*************** test creating a nested list *********************/
+	printf("\nTesting creating a nested list: \n");	
+	struct List *nestedlist;
+	size_t nested_size = sizeof(intlist);	
+	int nested_depth = 1;
+	nestedlist = initList(&nested_size, &nested_depth);
+	for(int i = 0; i < 4; i++) {
+		addFront(nestedlist, &intarr);
+	}
+	reverseList(nestedlist);
+	printf("Length of list: %d\n", length(nestedlist));
+	printf("\n\n");
+	/*************** test creating a nested list *********************/
+
 	// empty array
 	size_t int_size = sizeof(int);
 	int int_depth = 1;
