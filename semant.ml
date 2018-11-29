@@ -272,12 +272,12 @@ let check (begin_list, loop_list, end_list, config_list) =
       | EnhancedFor(s1, s2, st) ->
           let s2_type = type_of_identifier s2 in
           let s2_type_string = string_of_typ s2_type in
-          if (s2_type = Bool || s2_type = Rgx || s2_type = String || s2_type = Int || s2_type = Void) then
+          (match s2_type with
+          Bool | Rgx | String | Int | Void ->
                   raise (Failure("cannot iterate over type " ^ s2_type_string))
-          else let n = String.length s2_type_string in
-          let array_type = String.sub s2_type_string 0 (n-2) in
-          if (array_type = string_of_typ (type_of_identifier s1)) then SEnhancedFor(s1, s2, check_stmt st) 
-          else raise(Failure("mismatch in " ^ string_of_typ (type_of_identifier s1) ^ " and " ^ s2_type_string))
+          | ArrayType(t) ->
+          if (string_of_typ t = string_of_typ (type_of_identifier s1)) then SEnhancedFor(s1, s2, check_stmt st) 
+          else raise(Failure("mismatch in " ^ string_of_typ (type_of_identifier s1) ^ " and " ^ s2_type_string)))
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
       | Return e -> let (t, e') = expr e in
         if t = func.ret_type then SReturn (t, e') 
@@ -507,12 +507,12 @@ let check (begin_list, loop_list, end_list, config_list) =
       | EnhancedFor(s1, s2, st) ->
           let s2_type = type_of_identifier s2 in
           let s2_type_string = string_of_typ s2_type in
-          if (s2_type = Bool || s2_type = Rgx || s2_type = String || s2_type = Int || s2_type = Void) then
+          (match s2_type with
+          Bool | Rgx | String | Int | Void ->
                   raise (Failure("cannot iterate over type " ^ s2_type_string))
-          else let n = String.length s2_type_string in
-          let array_type = String.sub s2_type_string 0 (n-2) in
-          if (array_type = string_of_typ (type_of_identifier s1)) then SEnhancedFor(s1, s2, check_stmt st) 
-          else raise(Failure("mismatch in " ^ string_of_typ (type_of_identifier s1) ^ " and " ^ s2_type_string))
+          | ArrayType(t) ->
+          if (string_of_typ t = string_of_typ (type_of_identifier s1)) then SEnhancedFor(s1, s2, check_stmt st) 
+          else raise(Failure("mismatch in " ^ string_of_typ (type_of_identifier s1) ^ " and " ^ s2_type_string)))
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
       | Return _ -> raise (
 	  Failure ("return must be in a function"))
