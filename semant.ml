@@ -202,15 +202,15 @@ let check (begin_list, loop_list, end_list, config_list) =
           else let (t1, e1') = expr (List.nth args 0)
             and (t2, e2') = expr(List.nth args 1) and (t3, e3') = expr(List.nth args 2) in
          if t2 != Int then raise (Failure("expecting index argument for insert but had " ^ string_of_typ t2)) 
-         else if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int)
-         then raise (Failure("illegal argument found " ^ string_of_typ t1 ^ " expected arraytype"))
-         else let array_string = string_of_typ t1 in
-            let n = String.length array_string in
-            let array_type = String.sub array_string 0 (n-2) in 
-            if (array_type = string_of_typ(t3) && t3 != Void) 
-            then (t1, SCall("insert", [(t1, e1');(t2, e2');(t3, e3')]))
-            else raise(Failure("cannot perform insert on " ^ array_string ^ " and " ^ 
-            string_of_typ t3 ^ " at index " ^ string_of_typ t2)) 
+         else 
+            (match t1 with
+                String | Bool | Void | Rgx | Int -> raise (Failure("illegal argument found " 
+                        ^ string_of_typ t1 ^ " expected arraytype"))
+                | ArrayType(t) ->
+                        if (string_of_typ t = string_of_typ(t3) && t3 != Void) 
+                        then (t1, SCall("insert", [(t1, e1');(t2, e2');(t3, e3')]))
+                        else raise(Failure("cannot perform insert on " ^ string_of_typ t1 ^ " and " ^ 
+                        string_of_typ t3 ^ " at index " ^ string_of_typ t2))) 
      | Call("delete", args) as delete -> 
           if List.length args != 2 then raise (Failure("expecting two arguments for " ^ string_of_expr delete))
           else let (t1, e1') = expr (List.nth args 0) 
@@ -223,15 +223,13 @@ let check (begin_list, loop_list, end_list, config_list) =
           if List.length args != 2 then raise (Failure("expecting two arguments for " ^ string_of_expr contains))
 	  else let (t1, e1') = expr (List.nth args 0)
             and (t2, e2') = expr (List.nth args 1) in
-            if (t1 = String || t1 = Bool || t1 = Void || t1 = Rgx || t1 = Int) 
-               then raise (Failure("illegal argument found " ^ 
-               string_of_typ t1 ^ " arraytype expected"))
-            else let array_string = string_of_typ t1 in
-            let n = String.length array_string in
-            let array_type = String.sub array_string 0 (n-2) in 
-            if (array_type = string_of_typ(t2) && t2 != Void) 
-            then (Bool, SCall("contains", [(t1, e1');(t2, e2')]))
-            else raise(Failure("cannot perform contains on " ^ array_string ^ " and " ^ string_of_typ(t2))) 
+         (match t1 with 
+          String | Bool | Void | Rgx | Int ->
+                  raise (Failure("illegal argument found " ^ string_of_typ t1 ^ " arraytype expected"))
+         | ArrayType(t) ->
+                  if (string_of_typ(t) = string_of_typ(t2) && t2 != Void) 
+                  then (Bool, SCall("contains", [(t1, e1');(t2, e2')]))
+                  else raise(Failure("cannot perform contains on " ^ string_of_typ(t1) ^ " and " ^ string_of_typ(t2)))) 
      | Call("index_of", args) as index_of -> 
           if List.length args != 2 then raise (Failure("expecting two arguments for " ^ string_of_expr index_of))
 	  else let (t1, e1') = expr (List.nth args 0)
@@ -266,7 +264,6 @@ let check (begin_list, loop_list, end_list, config_list) =
       and err = "expected Boolean expression in " ^ string_of_expr e 
       in if t' != Bool then raise (Failure err) else (t', e') 
     in
-
 
     (* Return a semantically-checked statement i.e. containing sexprs *)
     let rec check_stmt = function
