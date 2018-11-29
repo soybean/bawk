@@ -12,18 +12,20 @@ struct Node {
 // A linked list. 'head' points to the first node in the list.
 struct List {
 	struct Node *head;
+	size_t *size_of_type;
+	int *depth;
 };
 
-// Initialize an empty list.
-void initList(struct List *list)
-{
-	list->head = 0;
-}
+// Global variable for linked list
+struct List list;
 
-// Returns 1 if the list is empty, 0 otherwise.
-int isEmptyList(struct List *list)
+// Initialize and return an empty list.
+struct List *initList(size_t *size_of_type, int *depth)
 {
-	return (list->head == 0);
+	list.head = 0;
+	list.size_of_type = size_of_type;
+	list.depth = depth;
+	return &list;
 }
 
 // Traverse the list, calling f() with each data item.
@@ -231,36 +233,6 @@ void reverseList(struct List *list)
 	list->head = prv;
 }
 
-// Create bool array literal.
-void createBoolArrayLiteral(struct List *list, bool arr[], int numElements)
-{
-	initList(list);
-	for(int i = 0; i < numElements; i++) {
-		addFront(list, &arr[i]);
-	}
-	reverseList(list);
-}
-
-// Create string array literal.
-void createStrArrayLiteral(struct List *list, char *arr[], int numElements)
-{
-	initList(list);
-	for(int i = 0; i < numElements; i++) {
-		addFront(list, arr[i]);
-	}
-	reverseList(list);
-}
-
-// Create int array literal.
-void createIntArrayLiteral(struct List *list, int arr[], int numElements)
-{
-	initList(list);
-	for(int i = 0; i < numElements; i++) {
-		addFront(list, &arr[i]);
-	}     	
-	reverseList(list);
-}
-
 // Array access
 void *getElement(struct List *list, int *index) 
 {
@@ -276,24 +248,6 @@ int compareBools(const void *a, const void *b)
 	return 0;
 }
 
-// Contains bool
-bool containsBool(struct List *list, const void *dataSought)
-{ 
-	struct Node *node = findNode(list, dataSought, (int (*)(const void *, const void *))compareBools);
-	if (node)
-		return true;
-	return false;
-}
-
-// Contains string
-bool containsStr(struct List *list, const void *dataSought)
-{
-	struct Node *node = findNode(list, dataSought, (int (*)(const void *, const void *))strcmp);
-	if (node)
-		return true;
-	return false;
-}
-
 // function given to compare ints
 int compareInts(const void *a, const void *b)
 {
@@ -303,27 +257,40 @@ int compareInts(const void *a, const void *b)
 }
 
 // Contains int
-bool containsInt(struct List *list, const void *dataSought)
+bool contains(struct List *list, const void *dataSought)
 {
-	struct Node *node = findNode(list, dataSought, (int (*)(const void *, const void *))compareInts);
-	if (node)
-		return true;
+	if (*(list->size_of_type) == sizeof(bool)) {
+		struct Node *node = findNode(list, dataSought, (int (*)(const void *, const void *))compareBools);
+		if (node)
+			return true;
+		return false;
+	}
+	
+	if (*(list->size_of_type) == sizeof(int)) {
+		struct Node *node = findNode(list, dataSought, (int (*)(const void *, const void *))compareInts);
+		if (node)
+			return true;
+		return false;
+	}
+	
+	if (*(list->size_of_type) == sizeof(char *)) {
+		struct Node *node = findNode(list, dataSought, (int (*)(const void *, const void *))strcmp);
+		if (node)
+			return true;
+		return false;
+	}
 	return false;
 }
 
-int findIndexOfStrNode(struct List *list, const void *dataSought)
-{
-	return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))compareBools);
-}
-
-int findIndexOfBoolNode(struct List *list, const void *dataSought)
+int getIndex(struct List *list, const void *dataSought)
 { 
-	return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))strcmp);
-}
-
-int findIndexOfIntNode(struct List *list, const void *dataSought)
-{
-	return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))compareInts);
+	if (*(list->size_of_type) == sizeof(bool))
+		return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))compareBools);
+	if (*(list->size_of_type) == sizeof(int)) 
+		return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))compareInts);
+	if (*(list->size_of_type) == sizeof(char *))
+		return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))strcmp);
+	return -1;
 }
 
 void insertElement(struct List *list, int *index, void *insert)
@@ -364,41 +331,45 @@ int main()
 {
 	/********************************************************************* BOOL ARRAYS ****************/
 
-	bool boolarr1[0];
-	bool boolarr2[] = {true, true, true, true, true};
-	struct List boollist;
+	bool boolarr[] = {true, true, true, true, true};
+	struct List *boollist;
 
 	// empty array
-	createBoolArrayLiteral(&boollist, boolarr1, 0);
-	printf("Length of list: %d\n", length(&boollist));
+	size_t bool_size = sizeof(bool);
+	int bool_depth = 1;
+	boollist = initList(&bool_size, &bool_depth);
+	printf("Length of list: %d\n", length(boollist));
 
 	// print array
 	printf("Print contents of list: ");
-	traverseList(&boollist, &printBool);
+	traverseList(boollist, &printBool);
 	printf("\n");
 
 	// array literal
-	createBoolArrayLiteral(&boollist, boolarr2, 5);
-	printf("Length of list: %d\n", length(&boollist));
+	for(int i = 0; i < sizeof(boolarr)/sizeof(boolarr[0]); i++) {
+		addFront(boollist, &boolarr[i]);
+	}
+	reverseList(boollist);
+	printf("Length of list: %d\n", length(boollist));
 
 	// print array
 	printf("Print contents of list: ");
-	traverseList(&boollist, &printBool);
+	traverseList(boollist, &printBool);
 	printf("\n");
 
 	// access
 	int bool_a = 1;
 	printf("Find Node at index 1: ");
-	printf("%s\n", *(bool *)getElement(&boollist, &bool_a) ? "true" : "false");
+	printf("%s\n", *(bool *)getElement(boollist, &bool_a) ? "true" : "false");
 
 	// index_of
 	bool bool_b = true;
-	printf("Element 'true' is at index: %d\n", findIndexOfBoolNode(&boollist, &bool_b));
+	printf("Element 'true' is at index: %d\n", getIndex(boollist, &bool_b));
   
 	// contains 
 	bool bool_c = false;
 	printf("Does list contain element 'false': ");
-	if( containsBool(&boollist, &bool_c) )
+	if( contains(boollist, &bool_c) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -406,7 +377,7 @@ int main()
 	// contains
 	bool bool_c1 = true;
 	printf("Does list contain element 'true': ");
-	if( containsBool(&boollist, &bool_c1) )
+	if( contains(boollist, &bool_c1) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -415,64 +386,68 @@ int main()
 	bool bool_d = false;
 	int bool_pos = 1;
 	printf("Insert element 'false' at position 1: ");
-	insertElement(&boollist, &bool_pos, &bool_d);
-	traverseList(&boollist, &printBool);
+	insertElement(boollist, &bool_pos, &bool_d);
+	traverseList(boollist, &printBool);
 	printf("\n");
 
 	// assign
 	bool bool_e = true;
 	printf("Set element at position 1 to be 'true' instead: ");
-	assignElement(&boollist, &bool_pos, &bool_e);
-	traverseList(&boollist, &printBool);
+	assignElement(boollist, &bool_pos, &bool_e);
+	traverseList(boollist, &printBool);
 	printf("\n");
 
 	// delete
 	printf("Remove element at position 1: ");
-	removeNode(&boollist, &bool_pos);
-	traverseList(&boollist, &printBool);
+	removeNode(boollist, &bool_pos);
+	traverseList(boollist, &printBool);
 	printf("\n");
 
-	removeAllNodes(&boollist);
+	removeAllNodes(boollist);
 
 	printf("\n");
 
 	/********************************************************************* STRING ARRAYS ***************/
 
-	char *strarr1[0];
-	char *strarr2[] = {"abc", "def", "ghi", "jkl", "mno"};
-	struct List strlist;
+	char *strarr[] = {"abc", "def", "ghi", "jkl", "mno"};
+	struct List *strlist;
 
 	// empty array
-	createStrArrayLiteral(&strlist, strarr1, 0);
-	printf("Length of list: %d\n", length(&strlist));
+	size_t str_size = sizeof(char *);
+	int str_depth = 1;
+	strlist = initList(&str_size, &str_depth);
+	printf("Length of list: %d\n", length(strlist));
 
 	// print array
 	printf("Print contents of list: ");
-	traverseList(&strlist, &printStr);
+	traverseList(strlist, &printStr);
 	printf("\n");
 
 	// array literal
-	createStrArrayLiteral(&strlist, strarr2, 5);
-	printf("Length of list: %d\n", length(&strlist));
+	for(int i = 0; i < sizeof(strarr)/sizeof(strarr[0]); i++) {
+		addFront(strlist, strarr[i]);
+	}
+	reverseList(strlist);
+	printf("Length of list: %d\n", length(strlist));
 
 	// print array
 	printf("Print contents of list: ");
-	traverseList(&strlist, &printStr);
+	traverseList(strlist, &printStr);
 	printf("\n");
 
 	// access
 	int str_a = 1;
 	printf("Find Node at index 1: ");
-	printf("%s\n", (char *)getElement(&strlist, &str_a));
+	printf("%s\n", (char *)getElement(strlist, &str_a));
 
 	// index_of
 	char *str_b = "def";
-	printf("Element 'def' is at index: %d\n", findIndexOfStrNode(&strlist, str_b));
+	printf("Element 'def' is at index: %d\n", getIndex(strlist, str_b));
   
 	// contains 
 	char *str_c = "hello";
 	printf("Does list contain element 'hello': ");
-	if( containsStr(&strlist, str_c) )
+	if( contains(strlist, str_c) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -480,7 +455,7 @@ int main()
 	// contains
 	char *str_c1 = "abc";
 	printf("Does list contain element 'abc': ");
-	if( containsStr(&strlist, str_c1) )
+	if( contains(strlist, str_c1) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -489,64 +464,68 @@ int main()
 	char *str_d = "yay";
 	int str_pos = 1;
 	printf("Insert element 'yay' at position 1: ");
-	insertElement(&strlist, &str_pos, str_d);
-	traverseList(&strlist, &printStr);
+	insertElement(strlist, &str_pos, str_d);
+	traverseList(strlist, &printStr);
 	printf("\n");
 
 	// assign
 	char *str_e = "wow";
 	printf("Set element at position 1 to be 'wow' instead: ");
-	assignElement(&strlist, &str_pos, str_e);
-	traverseList(&strlist, &printStr);
+	assignElement(strlist, &str_pos, str_e);
+	traverseList(strlist, &printStr);
 	printf("\n");
 
 	// delete
 	printf("Remove element at position 1: ");
-	removeNode(&strlist, &str_pos);
-	traverseList(&strlist, &printStr);
+	removeNode(strlist, &str_pos);
+	traverseList(strlist, &printStr);
 	printf("\n");
 
-	removeAllNodes(&strlist);
+	removeAllNodes(strlist);
 
 	printf("\n");
 
 	/******************************************************************** INT ARRAYS ******************/
 	
-	int intarr1[0];
-	int intarr2[] = {10, 2, 3, 7, 50};
-	struct List intlist;
+	int intarr[] = {10, 2, 3, 7, 50};
+	struct List *intlist;
 
 	// empty array
-	createIntArrayLiteral(&intlist, intarr1, 0);
-	printf("Length of list: %d\n", length(&intlist));
+	size_t int_size = sizeof(int);
+	int int_depth = 1;
+	intlist = initList(&int_size, &int_depth);
+	printf("Length of list: %d\n", length(intlist));
 
 	// print array
 	printf("Print contents of list: ");
-	traverseList(&intlist, &printInt);
+	traverseList(intlist, &printInt);
 	printf("\n");
 
 	// array literal
-	createIntArrayLiteral(&intlist, intarr2, 5);
-	printf("Length of list: %d\n", length(&intlist));
+	for(int i = 0; i < sizeof(intarr)/sizeof(intarr[0]); i++) {
+		addFront(intlist, &intarr[i]);
+	}
+	reverseList(intlist);
+	printf("Length of list: %d\n", length(intlist));
 
 	// print array
 	printf("Print contents of list: ");
-	traverseList(&intlist, &printInt);
+	traverseList(intlist, &printInt);
 	printf("\n");
 
 	// access
 	int int_a = 1;
 	printf("Find Node at index 1: ");
-	printf("%d\n", *(int *)getElement(&intlist, &int_a));
+	printf("%d\n", *(int *)getElement(intlist, &int_a));
 
 	// index_of
 	int int_b = 2;
-	printf("Element 2 is at index: %d\n", findIndexOfIntNode(&intlist, &int_b));
+	printf("Element 2 is at index: %d\n", getIndex(intlist, &int_b));
   
 	// contains 
 	int int_c = 7;
 	printf("Does list contain element 7: ");
-	if( containsInt(&intlist, &int_c) )
+	if( contains(intlist, &int_c) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -554,7 +533,7 @@ int main()
 	// contains
 	int int_c1 = -7;
 	printf("Does list contain element -7: ");
-	if( containsInt(&intlist, &int_c1) )
+	if( contains(intlist, &int_c1) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -563,24 +542,25 @@ int main()
 	int int_d = 8;
 	int int_pos = 1;
 	printf("Insert element 8 at position 1: ");
-	insertElement(&intlist, &int_pos, &int_d);
-	traverseList(&intlist, &printInt);
+	insertElement(intlist, &int_pos, &int_d);
+	traverseList(intlist, &printInt);
 	printf("\n");
 
 	// assign
 	int int_e = 20;
 	printf("Set element at position 1 to be 20 instead: ");
-	assignElement(&intlist, &int_pos, &int_e);
-	traverseList(&intlist, &printInt);
+	assignElement(intlist, &int_pos, &int_e);
+	traverseList(intlist, &printInt);
 	printf("\n");
 
 	// delete
 	printf("Remove element at position 1: ");
-	removeNode(&intlist, &int_pos);
-	traverseList(&intlist, &printInt);
+	removeNode(intlist, &int_pos);
+	traverseList(intlist, &printInt);
 	printf("\n");
 
-	removeAllNodes(&intlist);
+	removeAllNodes(intlist);
+
 	return 0;
 }
 
