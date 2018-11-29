@@ -113,7 +113,7 @@ let check (begin_list, loop_list, end_list, config_list) =
                       in let l' = List.map check_array l  in
               let types e = 
                       let (a, _)  = expr e in
-                      if a != arraytype then raise(Failure("array of different types expected" ^
+                      if a != arraytype then raise(Failure("array of different types, expected" ^
                       string_of_typ arraytype ^ " found " ^ string_of_typ a))
                       in let _ = List.map types l in (ArrayType(arraytype), SArrayLit(l'))
               else (Void, SArrayLit([])) 
