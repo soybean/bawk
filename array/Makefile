@@ -13,7 +13,7 @@ clean:
 	rm -f *.o core mylist
 
 .PHONY: all
-all: clean mylist-test
+all: clean mylist
 
 .PHONY: valgrind
 valgrind: mylist
