@@ -16,16 +16,18 @@ struct List {
 	int *depth;
 };
 
-// Global variable for linked list
-struct List list;
-
 // Initialize and return an empty list.
 struct List *initList(size_t *size_of_type, int *depth)
 {
-	list.head = 0;
-	list.size_of_type = size_of_type;
-	list.depth = depth;
-	return &list;
+	struct List *list = malloc( sizeof(struct List) );
+	if(list == NULL){
+		perror("malloc returned NULL");
+		exit(1);
+	}
+	list->head = 0;
+	list->size_of_type = size_of_type;
+	list->depth = depth;
+	return list;
 }
 
 // Traverse the list, calling f() with each data item.
