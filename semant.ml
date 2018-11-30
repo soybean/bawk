@@ -113,14 +113,14 @@ let check (begin_list, loop_list, end_list, config_list) =
                       in let l' = List.map check_array l  in
               let types e = 
                       let (a, _)  = expr e in
-                      if a != arraytype then raise(Failure("array of different types, expected" ^
+                      if a <> arraytype then raise(Failure("array of different types, expected" ^
                       string_of_typ arraytype ^ " found " ^ string_of_typ a))
                       in let _ = List.map types l in (ArrayType(arraytype), SArrayLit(l'))
               else (Void, SArrayLit([])) 
       | ArrayDeref (e1, e2) as e ->
           let (arr, e1') = expr e1
           and (num, e2') = expr e2 in
-          if num != Int then raise(Failure("Int expression expected in " ^ string_of_expr e))
+          if num <> Int then raise(Failure("Int expression expected in " ^ string_of_expr e))
         else let find_typ arr = 
                      match arr with
                      ArrayType(t) -> t 
@@ -162,27 +162,27 @@ let check (begin_list, loop_list, end_list, config_list) =
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
       | Increment(a) as e ->
          let (et, e') =  expr a in
-         if (et != Int) then raise (Failure("Int expected for " ^ string_of_expr e))
+         if (et <> Int) then raise (Failure("Int expected for " ^ string_of_expr e))
          else (Int, SIncrement(et, e'))
       | Decrement(a) as e ->
          let (et, e') = expr a in
-         if (et != Int) then raise (Failure("Int expected for " ^ string_of_expr e))
+         if (et <> Int) then raise (Failure("Int expected for " ^ string_of_expr e))
          else (Int, SDecrement(et, e'))
       | Strcat(e1, e2) as e ->
          let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
-         if (t1 != String || t2 != String) then raise(Failure("Strings expected for " ^ string_of_expr e))
+         if (t1 <> String || t2 != String) then raise(Failure("Strings expected for " ^ string_of_expr e))
          else (String, SStrcat((t1, e1'), (t2, e2')))
       | Rgxeq(e1, e2) as e ->
          let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
-         if (t1 != Rgx || t2 != Rgx) then raise(Failure("Rgx expected for " ^ string_of_expr e))
+         if (t1 <> Rgx || t2 != Rgx) then raise(Failure("Rgx expected for " ^ string_of_expr e))
          else (Bool, SRgxeq((t1, e1'), (t2, e2')))
       | Rgxneq(e1, e2) as e ->
          let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
-         if (t1 != Rgx || t2 != Rgx) then raise(Failure("Rgx expected for " ^ string_of_expr e))
+         if (t1 <> Rgx || t2 <> Rgx) then raise(Failure("Rgx expected for " ^ string_of_expr e))
          else (Bool, SRgxneq((t1, e1'), (t2, e2')))
       | Rgxcomp(e1, e2) as e ->
          let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
-         if ((t1 = Rgx && t2 = String) || (t1 = String && t2 != Rgx)) then
+         if ((t1 = Rgx && t2 = String) || (t1 = String && t2 = Rgx)) then
                  (Bool, SRgxcomp((t1, e1'), (t2, e2')))
          else raise(Failure("Different types expected for " ^ string_of_expr e))
       | Rgxnot(e1, e2) as e ->
@@ -337,7 +337,7 @@ let check (begin_list, loop_list, end_list, config_list) =
       | Id s       -> (type_of_identifier s, SId s)
       | Access(a) as acc ->
              let (a, a') = expr a in
-             if a != Int then raise (Failure ("incorrect access in " ^ string_of_expr acc))
+             if a <> Int then raise (Failure ("incorrect access in " ^ string_of_expr acc))
              else (String, SAccess(a, a'))
       | ArrayLit l -> if List.length l > 0 then 
               let typ = expr(List.nth l 0) in
@@ -347,14 +347,14 @@ let check (begin_list, loop_list, end_list, config_list) =
                       in let l' = List.map check_array l  in
               let types e = 
                       let (a, _)  = expr e in
-                      if a != arraytype then raise(Failure("array of different types, expected " ^
+                      if a <> arraytype then raise(Failure("array of different types, expected " ^
                       string_of_typ arraytype ^ " found " ^ string_of_typ a))
                       in let _ = List.map types l in (ArrayType(arraytype), SArrayLit(l'))
               else (Void, SArrayLit([]))
       | ArrayDeref (e1, e2) as e ->
           let (arr, e1') = expr e1
           and (num, e2') = expr e2 in
-          if num != Int then raise(Failure("Int expression expected in " ^ string_of_expr e))
+          if num <> Int then raise(Failure("Int expression expected in " ^ string_of_expr e))
         else let find_typ arr = 
                      match arr with
                      ArrayType(t) -> t 
@@ -396,23 +396,23 @@ let check (begin_list, loop_list, end_list, config_list) =
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
       | Increment(a) as e ->
          let (et, e') =  expr a in
-         if (et != Int) then raise (Failure("Int expected for " ^ string_of_expr e))
+         if (et <> Int) then raise (Failure("Int expected for " ^ string_of_expr e))
          else (Int, SIncrement(et, e'))
       | Decrement(a) as e ->
          let (et, e') = expr a in
-         if (et != Int) then raise (Failure("Int expected for " ^ string_of_expr e))
+         if (et <> Int) then raise (Failure("Int expected for " ^ string_of_expr e))
          else (Int, SDecrement(et, e'))
       | Strcat(e1, e2) as e ->
          let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
-         if (t1 != String || t2 != String) then raise(Failure("Strings expected for " ^ string_of_expr e))
+         if (t1 <> String || t2 <> String) then raise(Failure("Strings expected for " ^ string_of_expr e))
          else (String, SStrcat((t1, e1'), (t2, e2')))
       | Rgxeq(e1, e2) as e ->
          let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
-         if (t1 != Rgx || t2 != Rgx) then raise(Failure("Rgx expected for " ^ string_of_expr e))
+         if (t1 <> Rgx || t2 <> Rgx) then raise(Failure("Rgx expected for " ^ string_of_expr e))
          else (Bool, SRgxeq((t1, e1'), (t2, e2')))
       | Rgxneq(e1, e2) as e ->
          let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
-         if (t1 != Rgx || t2 != Rgx) then raise(Failure("Rgx expected for " ^ string_of_expr e))
+         if (t1 <> Rgx || t2 <> Rgx) then raise(Failure("Rgx expected for " ^ string_of_expr e))
          else (Bool, SRgxneq((t1, e1'), (t2, e2')))
       | Rgxcomp(e1, e2) as e ->
          let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
