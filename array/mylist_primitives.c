@@ -12,20 +12,22 @@ struct Node {
 // A linked list. 'head' points to the first node in the list.
 struct List {
 	struct Node *head;
-	size_t *size_of_type;
-	int *depth;
+	size_t size_of_type;
+	int depth;
 };
 
-// Global variable for linked list
-struct List list;
-
 // Initialize and return an empty list.
-struct List *initList(size_t *size_of_type, int *depth)
+struct List *initList(size_t size_of_type, int depth)
 {
-	list.head = 0;
-	list.size_of_type = size_of_type;
-	list.depth = depth;
-	return &list;
+	struct List *list = malloc( sizeof(struct List) );
+	if(list == NULL){
+		perror("malloc returned NULL");
+		exit(1);
+	}
+	list->head = 0;
+	list->size_of_type = size_of_type;
+	list->depth = depth;
+	return list;
 }
 
 // Traverse the list, calling f() with each data item.
@@ -259,21 +261,21 @@ int compareInts(const void *a, const void *b)
 // Contains int
 bool contains(struct List *list, const void *dataSought)
 {
-	if (*(list->size_of_type) == sizeof(bool)) {
+	if (list->size_of_type == sizeof(bool)) {
 		struct Node *node = findNode(list, dataSought, (int (*)(const void *, const void *))compareBools);
 		if (node)
 			return true;
 		return false;
 	}
 	
-	if (*(list->size_of_type) == sizeof(int)) {
+	if (list->size_of_type == sizeof(int)) {
 		struct Node *node = findNode(list, dataSought, (int (*)(const void *, const void *))compareInts);
 		if (node)
 			return true;
 		return false;
 	}
 	
-	if (*(list->size_of_type) == sizeof(char *)) {
+	if (list->size_of_type == sizeof(char *)) {
 		struct Node *node = findNode(list, dataSought, (int (*)(const void *, const void *))strcmp);
 		if (node)
 			return true;
@@ -284,11 +286,11 @@ bool contains(struct List *list, const void *dataSought)
 
 int getIndex(struct List *list, const void *dataSought)
 { 
-	if (*(list->size_of_type) == sizeof(bool))
+	if (list->size_of_type == sizeof(bool))
 		return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))compareBools);
-	if (*(list->size_of_type) == sizeof(int)) 
+	if (list->size_of_type == sizeof(int)) 
 		return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))compareInts);
-	if (*(list->size_of_type) == sizeof(char *))
+	if (list->size_of_type == sizeof(char *))
 		return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))strcmp);
 	return -1;
 }
@@ -337,7 +339,7 @@ int main()
 	// empty array
 	size_t bool_size = sizeof(bool);
 	int bool_depth = 1;
-	boollist = initList(&bool_size, &bool_depth);
+	boollist = initList(bool_size, bool_depth);
 	printf("Length of list: %d\n", length(boollist));
 
 	// print array
@@ -415,7 +417,7 @@ int main()
 	// empty array
 	size_t str_size = sizeof(char *);
 	int str_depth = 1;
-	strlist = initList(&str_size, &str_depth);
+	strlist = initList(str_size, str_depth);
 	printf("Length of list: %d\n", length(strlist));
 
 	// print array
@@ -490,10 +492,26 @@ int main()
 	int intarr[] = {10, 2, 3, 7, 50};
 	struct List *intlist;
 
+	/*************** test creating a nested list *********************/
+	printf("\nTesting creating a nested list: \n");	
+	struct List *nestedlist;
+	size_t nested_size = sizeof(intlist);	
+	int nested_depth = 1;
+	nestedlist = initList(nested_size, nested_depth);
+	for(int i = 0; i < 4; i++) {
+		addFront(nestedlist, &intarr);
+	}
+	reverseList(nestedlist);
+	printf("Length of list: %d\n", length(nestedlist));
+	printf("\n\n");
+
+	removeAllNodes(nestedlist);
+	/*************** test creating a nested list *********************/
+
 	// empty array
 	size_t int_size = sizeof(int);
 	int int_depth = 1;
-	intlist = initList(&int_size, &int_depth);
+	intlist = initList(int_size, int_depth);
 	printf("Length of list: %d\n", length(intlist));
 
 	// print array
