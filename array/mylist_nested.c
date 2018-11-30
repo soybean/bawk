@@ -444,10 +444,10 @@ int main()
 	printf("Find Node at index 1: ");
 	traverseList(elem, &printInt);
 
-/*	
 	// index_of
 	printf("Element [10,20,30] is at index: %d\n", getIndex(intlist, elem));
-  
+
+/*  
 	// contains 
 	int int_c = 7;
 	printf("Does list contain element 7: ");
