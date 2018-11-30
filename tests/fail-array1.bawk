@@ -3,6 +3,6 @@ BEGIN {}
 LOOP {}
 
 END {
-  void a[]; # Fail: Creating an array of voids
+  void[] a; # Fail: Creating an array of voids
   a = [];
 }

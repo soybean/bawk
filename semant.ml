@@ -271,13 +271,12 @@ let check (begin_list, loop_list, end_list, config_list) =
 	  SFor(expr e1, check_bool_expr e2, expr e3, check_stmt st)
       | EnhancedFor(s1, s2, st) ->
           let s2_type = type_of_identifier s2 in
-          let s2_type_string = string_of_typ s2_type in
           (match s2_type with
           Bool | Rgx | String | Int | Void ->
-                  raise (Failure("cannot iterate over type " ^ s2_type_string))
+                  raise (Failure("cannot iterate over type " ^ string_of_typ s2_type))
           | ArrayType(t) ->
           if (string_of_typ t = string_of_typ (type_of_identifier s1)) then SEnhancedFor(s1, s2, check_stmt st) 
-          else raise(Failure("mismatch in " ^ string_of_typ (type_of_identifier s1) ^ " and " ^ s2_type_string)))
+          else raise(Failure("mismatch in " ^ string_of_typ (type_of_identifier s1) ^ " and " ^ string_of_typ s2_type)))
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
       | Return e -> let (t, e') = expr e in
         if t = func.ret_type then SReturn (t, e') 
@@ -506,13 +505,12 @@ let check (begin_list, loop_list, end_list, config_list) =
 	  SFor(expr e1, check_bool_expr e2, expr e3, check_stmt st)
       | EnhancedFor(s1, s2, st) ->
           let s2_type = type_of_identifier s2 in
-          let s2_type_string = string_of_typ s2_type in
           (match s2_type with
           Bool | Rgx | String | Int | Void ->
-                  raise (Failure("cannot iterate over type " ^ s2_type_string))
+                  raise (Failure("cannot iterate over type " ^ string_of_typ s2_type))
           | ArrayType(t) ->
           if (string_of_typ t = string_of_typ (type_of_identifier s1)) then SEnhancedFor(s1, s2, check_stmt st) 
-          else raise(Failure("mismatch in " ^ string_of_typ (type_of_identifier s1) ^ " and " ^ s2_type_string)))
+          else raise(Failure("mismatch in " ^ string_of_typ (type_of_identifier s1) ^ " and " ^ string_of_typ s2_type)))
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
       | Return _ -> raise (
 	  Failure ("return must be in a function"))
