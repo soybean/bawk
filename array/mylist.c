@@ -502,6 +502,8 @@ int main()
 	reverseList(nestedlist);
 	printf("Length of list: %d\n", length(nestedlist));
 	printf("\n\n");
+
+	removeAllNodes(nestedlist);
 	/*************** test creating a nested list *********************/
 
 	// empty array
