@@ -16,6 +16,59 @@ struct List {
 	int depth;
 };
 
+// Traverse list to find length of list
+int length(struct List *list) {
+	struct Node *node = list->head;
+	int count = 0;
+	while(node) {
+		node = node->next;
+		count++;
+	}
+	return count;
+}
+
+// function given to compare bools
+int compareBools(const void *a, const void *b)
+{
+	if (*(bool *)a < *(bool *)b) return -1;
+	if (*(bool *)a > *(bool *)b) return 1;
+	return 0;
+}
+
+// function given to compare ints
+int compareInts(const void *a, const void *b)
+{
+	if (*(int *)a < *(int *)b) return -1;
+	if (*(int *)a > *(int *)b) return 1;
+	return 0;
+}
+
+int compareLists(const void *a, const void *b, int (*compar)(const void *, const void *))
+{
+	struct List *lista = (struct List *)a;
+	struct List *listb = (struct List *)b;
+	if ( length(lista) != length(listb) )
+		return -1;
+	if ( lista->depth > 1 ) {
+		return compareLists(a, b, compar);
+	}
+	if ( lista->depth == 1) {
+		struct Node *nodea = lista->head;
+		struct Node *nodeb = listb->head;
+		int total = 0;
+		while( nodea ) {
+ 			total += abs(compar(nodea->data, nodeb->data));
+			nodea = nodea->next;
+			nodeb = nodeb->next;
+ 		}
+		if ( total == 0 )
+			return 0;
+		else
+			return -1;
+	}
+	return -1;
+}
+
 // Initialize and return an empty list.
 struct List *initList(size_t size_of_type, int depth)
 {
@@ -54,17 +107,6 @@ struct Node *findByIndex(struct List *list, int indexSought)
 	return NULL;
 }
 
-// Traverse list to find length of list
-int length(struct List *list) {
-	struct Node *node = list->head;
-	int count = 0;
-	while(node) {
-		node = node->next;
-		count++;
-	}
-	return count;
-}
-
 /*
  * Traverse the list, comparing each data item with 'dataSought' using
  * 'compar' function.  ('compar' returns 0 if the data pointed to by
@@ -76,10 +118,19 @@ int length(struct List *list) {
 struct Node *findNode(struct List *list, const void *dataSought, int (*compar)(const void *, const void *))
 {
 	struct Node *node = list->head;
-	while(node) {
-		if( compar(dataSought, node->data) == 0 )
-			return node;
-		node = node->next;
+	if(list->depth == 1) {
+		while(node) {
+			if( compar(dataSought, node->data) == 0 )
+				return node;
+			node = node->next;
+		}
+	}
+	if(list->depth > 1) {
+		while(node) {
+			if( compareLists(dataSought, node->data, compar) == 0 )
+				return node;
+			node = node->next;
+		}
 	}
 	return NULL;    
 }
@@ -89,11 +140,23 @@ int findIndexOfNode(struct List *list, const void *dataSought, int (*compar)(con
 { 
 	struct Node *node = list->head;
 	int count = 0;
-	while(node) {
-		if( compar(dataSought, node->data) == 0 )
-			return count;
-		node = node->next;
-		count++;
+	if(list->depth == 1) {
+		while(node) {
+			if( compar(dataSought, node->data) == 0 ) {
+				return count;
+			}
+			node = node->next;
+			count++;
+		}
+	}
+	if(list->depth > 1) {
+		while(node) {
+			if( compareLists(dataSought, node->data, compar) == 0 ) {
+				return count;
+			}
+			node = node->next;
+			count++;
+		}
 	}
 	return count;
 }
@@ -242,59 +305,6 @@ void *getElement(struct List *list, int index)
 	return node_by_index->data;
 }
 
-// function given to compare bools
-int compareBools(const void *a, const void *b)
-{
-	if (*(bool *)a < *(bool *)b) return -1;
-	if (*(bool *)a > *(bool *)b) return 1;
-	return 0;
-}
-
-// function given to compare ints
-int compareInts(const void *a, const void *b)
-{
-	if (*(int *)a < *(int *)b) return -1;
-	if (*(int *)a > *(int *)b) return 1;
-	return 0;
-}
-
-// Contains int
-bool contains(struct List *list, const void *dataSought)
-{
-	if (list->size_of_type == sizeof(bool)) {
-		struct Node *node = findNode(list, dataSought, (int (*)(const void *, const void *))compareBools);
-		if (node)
-			return true;
-		return false;
-	}
-	
-	if (list->size_of_type == sizeof(int)) {
-		struct Node *node = findNode(list, dataSought, (int (*)(const void *, const void *))compareInts);
-		if (node)
-			return true;
-		return false;
-	}
-	
-	if (list->size_of_type == sizeof(char *)) {
-		struct Node *node = findNode(list, dataSought, (int (*)(const void *, const void *))strcmp);
-		if (node)
-			return true;
-		return false;
-	}
-	return false;
-}
-
-int getIndex(struct List *list, const void *dataSought)
-{ 
-	if (list->size_of_type == sizeof(bool))
-		return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))compareBools);
-	if (list->size_of_type == sizeof(int)) 
-		return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))compareInts);
-	if (list->size_of_type == sizeof(char *))
-		return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))strcmp);
-	return -1;
-}
-
 void insertElement(struct List *list, int index, void *insert)
 {
 	if (index == 0)
@@ -331,6 +341,211 @@ static void printInt(void *p)
 
 int main()
 {
+	int nested[3][3] = {{1, 2, 3}, {10, 20, 30}, {100, 200, 300}};
+	struct List *nestedlist;
+	
+	struct List *intlist1;
+	size_t sub_size1 = sizeof(int);
+	int sub_depth1 = 1;
+	intlist1 = initList(sub_size1, sub_depth1);
+	for(int j = 0; j < sizeof(nested[0])/sizeof(nested[0][0]); j++) {	
+		addFront(intlist1, &nested[0][j]);
+	}
+	reverseList(intlist1);
+
+	struct List *intlist2;
+	size_t sub_size2 = sizeof(int);
+	int sub_depth2 = 1;
+	intlist2 = initList(sub_size2, sub_depth2);
+	for(int j = 0; j < sizeof(nested[1])/sizeof(nested[1][0]); j++) {
+		addFront(intlist2, &nested[1][j]);
+	}
+	reverseList(intlist2);
+
+	// compare lists
+	int x = compareLists(intlist1, intlist2, (int (*)(const void *, const void *))compareInts);
+	printf("[1,2,3] == [10,20,30]? %d\n", x);
+	
+	int y = compareLists(intlist1, intlist1, (int (*)(const void *, const void *))compareInts);
+	printf("[1,2,3] == [1,2,3]? %d\n", y);
+
+	// empty array
+	size_t nested_size = sizeof(nestedlist);
+	int depth = 2;
+	nestedlist = initList(nested_size, depth);
+	printf("Length of list: %d\n", length(nestedlist));
+	
+	// array literal
+	for(int i = 0; i < sizeof(nested)/sizeof(nested[0]); i++) {
+		size_t sub_size = sizeof(int);
+		int sub_depth = 1;
+		struct List *sublist = initList(sub_size, sub_depth);
+		for(int j = 0; j < sizeof(nested[i])/sizeof(nested[i][0]); j++) {
+			addFront(sublist, &nested[i][j]);
+		}
+		reverseList(sublist);
+		addFront(nestedlist, sublist);
+	}
+	reverseList(nestedlist);
+	printf("Length of list: %d\n", length(nestedlist));
+
+	// print array
+	printf("Print contents of list: ");
+	struct Node *nested_node = nestedlist->head;
+	while(nested_node) {
+		traverseList(nested_node->data, &printInt);
+		nested_node = nested_node->next;
+	}
+	printf("\n");
+
+	// access
+	int nested_int_a = 1;
+	struct List *elem = (struct List *)getElement(nestedlist, nested_int_a);
+	printf("Find Node at index 1: ");
+	traverseList(elem, &printInt);
+	printf("\n");
+
+	// index_of
+	printf("Element [10,20,30] is at index: %d\n", findIndexOfNode(nestedlist, elem, (int (*)(const void *, const void *))compareInts));
+
+	// contains 
+	printf("Does list contain element [10,20,30]: ");
+	if( findNode(nestedlist, elem, (int (*)(const void *, const void *))compareInts) )
+		printf("YES\n");
+	else
+		printf("NO\n");
+
+	int test[] = {0, 0, 0};
+	struct List *testlist;
+	size_t test_size = sizeof(int);
+	int test_depth = 1;
+	testlist = initList(test_size, test_depth);
+	for(int j = 0; j < sizeof(test)/sizeof(test[0]); j++) {
+		addFront(testlist, &test[j]);
+	} 
+	reverseList(testlist);
+
+	// contains
+	printf("Does list contain element [0,0,0]: ");
+	if( findNode(nestedlist, testlist, (int (*)(const void *, const void *))compareInts) )
+		printf("YES\n");
+	else
+		printf("NO\n");
+
+	// insert
+	int nested_int_pos = 1;
+	printf("Insert element [0,0,0] at position 1: ");
+	insertElement(nestedlist, nested_int_pos, testlist);
+	struct Node *node1 = nestedlist->head;
+	while(node1) {
+		traverseList(node1->data, &printInt);
+		node1 = node1->next;
+	}
+	printf("\n");
+
+	// assign
+	printf("Set element at position 1 to be [10,20,30] instead: ");
+	assignElement(nestedlist, nested_int_pos, intlist2);
+	struct Node *node2 = nestedlist->head;
+	while(node2) {
+		traverseList(node2->data, &printInt);
+		node2 = node2->next;
+	}
+	printf("\n");
+
+	// delete
+	int nested_int_pos1 = 0;
+	printf("Remove element at position 0: ");
+	removeNode(nestedlist, nested_int_pos1);
+	struct Node *node3 = nestedlist->head;
+	while(node3) {
+		traverseList(node3->data, &printInt);
+		node3 = node3->next;
+	}
+	printf("\n");
+
+	removeAllNodes(nestedlist);
+
+	printf("\n");
+
+	/******************************* STRING ARRAYS  *******************************/
+
+	char *strarr[] = {"abc", "def", "ghi", "jkl", "mno"};
+	struct List *strlist;
+
+	// empty array
+	size_t str_size = sizeof(char *);
+	int str_depth = 1;
+	strlist = initList(str_size, str_depth);
+	printf("Length of list: %d\n", length(strlist));
+
+	// print array
+	printf("Print contents of list: ");
+	traverseList(strlist, &printStr);
+	printf("\n");
+
+	// array literal
+	for(int i = 0; i < sizeof(strarr)/sizeof(strarr[0]); i++) {
+		addFront(strlist, strarr[i]);
+	}
+	reverseList(strlist);
+	printf("Length of list: %d\n", length(strlist));
+
+	// print array
+	printf("Print contents of list: ");
+	traverseList(strlist, &printStr);
+	printf("\n");
+
+	// access
+	int str_a = 1;
+	printf("Find Node at index 1: ");
+	printf("%s\n", (char *)getElement(strlist, str_a));
+
+	// index_of
+	char *str_b = "def";
+	printf("Element 'def' is at index: %d\n", findIndexOfNode(strlist, str_b, (int (*)(const void *, const void *))strcmp));
+  
+	// contains 
+	char *str_c = "hello";
+	printf("Does list contain element 'hello': ");
+	if( findNode(strlist, str_c, (int (*)(const void *, const void *))strcmp) )
+		printf("YES\n");
+	else
+		printf("NO\n");
+
+	// contains
+	char *str_c1 = "abc";
+	printf("Does list contain element 'abc': ");
+	if( findNode(strlist, str_c1, (int (*)(const void *, const void *))strcmp) )
+		printf("YES\n");
+	else
+		printf("NO\n");
+
+	// insert
+	char *str_d = "yay";
+	int str_pos = 1;
+	printf("Insert element 'yay' at position 1: ");
+	insertElement(strlist, str_pos, str_d);
+	traverseList(strlist, &printStr);
+	printf("\n");
+
+	// assign
+	char *str_e = "wow";
+	printf("Set element at position 1 to be 'wow' instead: ");
+	assignElement(strlist, str_pos, str_e);
+	traverseList(strlist, &printStr);
+	printf("\n");
+
+	// delete
+	printf("Remove element at position 1: ");
+	removeNode(strlist, str_pos);
+	traverseList(strlist, &printStr);
+	printf("\n");
+
+	removeAllNodes(strlist);
+
+	printf("\n");
+
 	/********************************************************************* BOOL ARRAYS ****************/
 
 	bool boolarr[] = {true, true, true, true, true};
@@ -366,12 +581,12 @@ int main()
 
 	// index_of
 	bool bool_b = true;
-	printf("Element 'true' is at index: %d\n", getIndex(boollist, &bool_b));
+	printf("Element 'true' is at index: %d\n", findIndexOfNode(boollist, &bool_b, (int (*)(const void *, const void *))compareBools));
   
 	// contains 
 	bool bool_c = false;
 	printf("Does list contain element 'false': ");
-	if( contains(boollist, &bool_c) )
+	if( findNode(boollist, &bool_c, (int (*)(const void *, const void *))compareBools) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -379,7 +594,7 @@ int main()
 	// contains
 	bool bool_c1 = true;
 	printf("Does list contain element 'true': ");
-	if( contains(boollist, &bool_c1) )
+	if( findNode(boollist, &bool_c1, (int (*)(const void *, const void *))compareBools) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -409,104 +624,10 @@ int main()
 
 	printf("\n");
 
-	/********************************************************************* STRING ARRAYS ***************/
-
-	char *strarr[] = {"abc", "def", "ghi", "jkl", "mno"};
-	struct List *strlist;
-
-	// empty array
-	size_t str_size = sizeof(char *);
-	int str_depth = 1;
-	strlist = initList(str_size, str_depth);
-	printf("Length of list: %d\n", length(strlist));
-
-	// print array
-	printf("Print contents of list: ");
-	traverseList(strlist, &printStr);
-	printf("\n");
-
-	// array literal
-	for(int i = 0; i < sizeof(strarr)/sizeof(strarr[0]); i++) {
-		addFront(strlist, strarr[i]);
-	}
-	reverseList(strlist);
-	printf("Length of list: %d\n", length(strlist));
-
-	// print array
-	printf("Print contents of list: ");
-	traverseList(strlist, &printStr);
-	printf("\n");
-
-	// access
-	int str_a = 1;
-	printf("Find Node at index 1: ");
-	printf("%s\n", (char *)getElement(strlist, str_a));
-
-	// index_of
-	char *str_b = "def";
-	printf("Element 'def' is at index: %d\n", getIndex(strlist, str_b));
-  
-	// contains 
-	char *str_c = "hello";
-	printf("Does list contain element 'hello': ");
-	if( contains(strlist, str_c) )
-		printf("YES\n");
-	else
-		printf("NO\n");
-
-	// contains
-	char *str_c1 = "abc";
-	printf("Does list contain element 'abc': ");
-	if( contains(strlist, str_c1) )
-		printf("YES\n");
-	else
-		printf("NO\n");
-
-	// insert
-	char *str_d = "yay";
-	int str_pos = 1;
-	printf("Insert element 'yay' at position 1: ");
-	insertElement(strlist, str_pos, str_d);
-	traverseList(strlist, &printStr);
-	printf("\n");
-
-	// assign
-	char *str_e = "wow";
-	printf("Set element at position 1 to be 'wow' instead: ");
-	assignElement(strlist, str_pos, str_e);
-	traverseList(strlist, &printStr);
-	printf("\n");
-
-	// delete
-	printf("Remove element at position 1: ");
-	removeNode(strlist, str_pos);
-	traverseList(strlist, &printStr);
-	printf("\n");
-
-	removeAllNodes(strlist);
-
-	printf("\n");
-
-	/******************************************************************** INT ARRAYS ******************/
+		/******************************************************************** INT ARRAYS ******************/
 	
 	int intarr[] = {10, 2, 3, 7, 50};
 	struct List *intlist;
-
-	/*************** test creating a nested list *********************/
-	printf("\nTesting creating a nested list: \n");	
-	struct List *nestedlist;
-	size_t nested_size = sizeof(intlist);	
-	int nested_depth = 1;
-	nestedlist = initList(nested_size, nested_depth);
-	for(int i = 0; i < 4; i++) {
-		addFront(nestedlist, &intarr);
-	}
-	reverseList(nestedlist);
-	printf("Length of list: %d\n", length(nestedlist));
-	printf("\n\n");
-
-	removeAllNodes(nestedlist);
-	/*************** test creating a nested list *********************/
 
 	// empty array
 	size_t int_size = sizeof(int);
@@ -538,12 +659,12 @@ int main()
 
 	// index_of
 	int int_b = 2;
-	printf("Element 2 is at index: %d\n", getIndex(intlist, &int_b));
+	printf("Element 2 is at index: %d\n", findIndexOfNode(intlist, &int_b, (int (*)(const void *, const void *))compareInts));
   
 	// contains 
 	int int_c = 7;
 	printf("Does list contain element 7: ");
-	if( contains(intlist, &int_c) )
+	if( findNode(intlist, &int_c, (int (*)(const void *, const void *))compareInts) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -551,7 +672,7 @@ int main()
 	// contains
 	int int_c1 = -7;
 	printf("Does list contain element -7: ");
-	if( contains(intlist, &int_c1) )
+	if( findNode(intlist, &int_c1, (int (*)(const void *, const void *))compareInts) )
 		printf("YES\n");
 	else
 		printf("NO\n");
