@@ -371,9 +371,17 @@ let check (begin_list, loop_list, end_list, config_list) =
         in (find_typ arr, SArrayDeref((arr, e1'), (num, e2')))
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, _) -> raise (Failure ("illegal assignment of NF"))
-      | Assign(e1, e2) as ex -> 
+      | Assign(e1, e2) as ex ->
+          let check_expr typ e = 
+                  let (t, et') = 
+                          match e with
+                          ArrayLit(l) ->
+                                  if List.length l > 0 then expr e
+                                  else (typ, SArrayLit([]))
+                          |_ -> expr e 
+        in (t, et') in
           let (lt, e1') = expr e1 
-          and (rt, e2') = expr e2 in 
+          in let (rt, e2') = check_expr lt e2 in
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
           in (check_assign lt rt err, SAssign((lt, e1'), (rt, e2')))
