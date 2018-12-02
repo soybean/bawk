@@ -185,7 +185,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
     	    | A.Geq     -> L.build_icmp L.Icmp.Sge
           | _         -> raise (Failure "no binary operation")
         ) e1' e2' "tmp" builder
-
       | A.Unop(uop, e) ->
         let e' = expr builder e in
         (match uop with
@@ -336,6 +335,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
       rhs = expr builder e2
       in ignore(L.build_store rhs lhs builder); rhs
     | A.Access (a) -> L.build_call access_func [| L.param loop_func 0; expr builder a|] "access" builder
+    | A.Increment(e) -> A.Assign(e, A.Binop(e, A.Add, A.Literal(1))); expr builder e
+    | A.Decrement(e) -> A.Assign(e, A.Binop(e, A.Sub, A.Literal(1))); expr builder e
     | _ -> raise (Failure "end expr no pattern match") 
     
   in 
