@@ -271,7 +271,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | A.String -> L.build_ret (L.const_pointer_null str_t)
       | t -> L.build_ret (L.const_int (ltype_of_typ t) 0))
 
-  (*--- end of build_func_body--- *)
+  (*----- END OF build_func_body ----- *)
     
   in
   (*
@@ -307,36 +307,35 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
   in
 
-  let lookup n builder = try
-    match builder with
+  let lookup n builder is_loop = try
+    match is_loop with
 
-    endbuilder -> ignore(Printf.printf "lookup endbuilder\n" ); StringMap.find n end_local_vars
-    | loopbuilder -> ignore(Printf.printf "lookup loopbuilder\n" ); StringMap.find n loop_local_vars
+    false-> StringMap.find n end_local_vars
+    | true -> StringMap.find n loop_local_vars
   with Not_found -> StringMap.find n global_vars
-  
 
   in
 
   let string_format_str = L.build_global_stringptr "%s\n" "fmt" loopbuilder in
 
-  let rec expr builder = function
+  let rec loopend_expr builder is_loop = function
     A.StringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
       L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
     | A.Literal i -> L.const_int i32_t i
-    | A.ArrayLit a -> List.iter print_string (List.map A.string_of_expr a);  array_gen builder a
-    | A.Id s -> L.build_load (lookup s builder) s builder 
+    | A.ArrayLit a -> array_gen builder is_loop a
+    | A.Id s -> L.build_load (lookup s builder is_loop) s builder 
     | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
     | A.Assign (e1, e2) ->
         (*print_string ("assign: " ^ (A.string_of_expr (A.Assign (e1, e2))));*)
       let lhs = match e1 with
         (* TODO: A.ArrayDeref *)
-        A.Id i -> ignore(Printf.printf "lhs assign \n"); lookup i builder
+        A.Id i -> lookup i builder is_loop
         | _ -> raise (Failure "left side not found")
-      and rhs = expr builder e2
+      and rhs = loopend_expr builder is_loop e2
       in ignore(L.build_store rhs lhs builder); rhs
     | A.Binop(e1, op, e2) ->
-        let e1' = expr builder e1
-        and e2' = expr builder e2 in
+        let e1' = loopend_expr builder is_loop e1
+        and e2' = loopend_expr builder is_loop e2 in
         (match op with
           A.Add       -> L.build_add
           | A.Sub     -> L.build_sub
@@ -354,25 +353,25 @@ let translate (begin_block, loop_block, end_block, config_block) =
         ) e1' e2' "tmp" builder
 
     | A.Unop(uop, e) ->
-        let e' = expr builder e in
+        let e' = loopend_expr builder is_loop e in
         (match uop with
           A.Neg -> L.build_neg
           | A.Not -> L.build_not
           | _ -> raise (Failure "no unary operation")
         ) e' "tmp" builder 
     | A.Call ("print", [e]) ->
-      L.build_call printf_func [| string_format_str ; (expr builder e) |] "printf" builder
-    | A.Call ("int_to_string", [e]) -> L.build_call int_to_string_func [| expr builder e |] "int_to_string" builder
-    | A.Call ("string_to_int", [e]) -> L.build_call string_to_int_func [| expr builder e |] "string_to_int" builder
+      L.build_call printf_func [| string_format_str ; (loopend_expr builder is_loop e) |] "printf" builder
+    | A.Call ("int_to_string", [e]) -> L.build_call int_to_string_func [| loopend_expr builder is_loop e |] "int_to_string" builder
+    | A.Call ("string_to_int", [e]) -> L.build_call string_to_int_func [| loopend_expr builder is_loop e |] "string_to_int" builder
     | A.Call (f, args) ->
       let (fdef, fdecl) = StringMap.find f function_decls in
-      let llargs = List.rev (List.map (expr builder) (List.rev args)) in
+      let llargs = List.rev (List.map (loopend_expr builder is_loop) (List.rev args)) in
 	    let result = (match fdecl.A.ret_type with 
         A.Void -> ""
         | _ -> f ^ "_result") in
         L.build_call fdef (Array.of_list llargs) result builder
-    | A.Access (a) -> L.build_call access_func [| L.param loop_func 0; expr builder a|] "access" builder
-    | _ -> raise (Failure "end expr no pattern match") 
+    | A.Access (a) -> L.build_call access_func [| L.param loop_func 0; loopend_expr builder is_loop a|] "access" builder
+    | _ -> raise (Failure "end loopend_expr no pattern match") 
   
   and
 
@@ -384,7 +383,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
   find_arr_type arr = L.const_int i32_t 8
   and get_depth = L.const_int i32_t 1
 
-  and array_gen builder arr =
+  and array_gen builder is_loop arr =
     (* most inner array has type --> initList gives ptr, which you can use for struct List**)
     let arr_type = find_arr_type arr in (* type of 1 depth down *)
     let depth = get_depth in (* will be changed later *)
@@ -394,28 +393,33 @@ let translate (begin_block, loop_block, end_block, config_block) =
     in 
 
     let add_front e = 
-      let red_expr = expr builder e in
+      let red_expr = loopend_expr builder is_loop e in
       ignore(L.build_call addfront_func [| lst; L.const_inttoptr red_expr ptr_t|] "addFront" builder)
     in
     List.iter add_front arr; lst
 
   in 
 
+  let rec iter_mult f arg1 arg2 lst = match lst with
+    [] -> ()
+    | x :: xs -> f arg1 arg2 x; iter_mult f arg1 arg2 xs
 
-  let rec stmt builder = function
-    A.Expr ex -> ignore (expr builder ex); builder
-    | A.Block sl -> List.fold_left stmt builder sl
+  in
+
+  let rec stmt builder is_loop = function
+    A.Expr ex -> ignore (loopend_expr builder is_loop ex); builder
+    | A.Block sl -> ignore(iter_mult stmt builder is_loop sl); builder
     | A.If (predicate, then_stmt, else_stmt) ->
-        let bool_val = expr builder predicate in
+        let bool_val = loopend_expr builder is_loop predicate in
   	    let merge_bb = L.append_block context "merge" loop_func in
            let build_br_merge = L.build_br merge_bb in (* partial function *)
 
   	    let then_bb = L.append_block context "then" loop_func in
-  	    add_terminal (stmt (L.builder_at_end context then_bb) then_stmt)
+  	    add_terminal (stmt (L.builder_at_end context then_bb) is_loop then_stmt)
   	    build_br_merge;
 
   	    let else_bb = L.append_block context "else" loop_func in
-  	    add_terminal (stmt (L.builder_at_end context else_bb) else_stmt)
+  	    add_terminal (stmt (L.builder_at_end context else_bb) is_loop else_stmt)
   	    build_br_merge;
 
   	    ignore(L.build_cond_br bool_val then_bb else_bb builder);
@@ -425,16 +429,16 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	      ignore(L.build_br pred_bb builder);
 
 	      let body_bb = L.append_block context "while_body" loop_func in
-	      add_terminal (stmt (L.builder_at_end context body_bb) body)
+	      add_terminal (stmt (L.builder_at_end context body_bb) is_loop body)
 	      (L.build_br pred_bb);
 
 	      let pred_builder = L.builder_at_end context pred_bb in
-	      let bool_val = expr pred_builder predicate in
+	      let bool_val = loopend_expr pred_builder is_loop predicate in
 
 	      let merge_bb = L.append_block context "merge" loop_func in
 	      ignore(L.build_cond_br bool_val body_bb merge_bb pred_builder);
 	      L.builder_at_end context merge_bb
-    | A.For (e1, e2, e3, body) -> stmt builder
+    | A.For (e1, e2, e3, body) -> stmt builder is_loop
 	      ( A.Block [A.Expr e1 ; A.While (e2, A.Block [body ; A.Expr e3]) ] )
     | _ -> raise (Failure "statement no pattern match")
     
@@ -442,14 +446,14 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
   (*--- Build loop block ---*)
   let build_loop_block loop_block =
-    ignore(stmt loopbuilder (Block (snd loop_block)));
+    ignore(stmt loopbuilder true (Block (snd loop_block)));
     add_terminal loopbuilder L.build_ret_void
   
     in 
 
   (*--- Build end block ---*)
   let build_end_block end_block =
-    ignore(stmt endbuilder (Block (snd end_block)));
+    ignore(stmt endbuilder false (Block (snd end_block)));
     add_terminal endbuilder L.build_ret_void
 
   in

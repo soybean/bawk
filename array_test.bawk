@@ -2,8 +2,10 @@ BEGIN {}
 LOOP {
   int b;
   b = 1;
+  print(int_to_string(b));
 }
 END {
   int a;
   a = 2;
+  print(int_to_string(a));
 }
