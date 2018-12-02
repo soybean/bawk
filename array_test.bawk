@@ -1,0 +1,9 @@
+BEGIN {}
+LOOP {
+  int b;
+  b = 1;
+}
+END {
+  int a;
+  a = 2;
+}
