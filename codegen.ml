@@ -17,7 +17,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	and i1_t       = L.i1_type     context
 	and str_t 	   = L.pointer_type ( L.i8_type context ) 
   and arr_t      = L.pointer_type ( L.i8_type context )
-  (*and node_t     = L.pointer_type ( L.i8_type context )*)
   and ptr_t      = L.pointer_type ( L.i8_type context )
 	and void_t     = L.void_type   context in
 
@@ -28,9 +27,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	| A.Void  -> void_t
 	| A.String -> str_t
   | A.ArrayType t -> arr_t
-  (*| A.ArrayType t -> match t with
-      A.Int -> array_t  
-      _ -> raise (Failure "array type unsupported")*)
   | _ -> raise (Failure "types no pattern match")
 	in
 
@@ -326,7 +322,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
     | A.Id s -> L.build_load (lookup s builder is_loop) s builder 
     | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
     | A.Assign (e1, e2) ->
-        (*print_string ("assign: " ^ (A.string_of_expr (A.Assign (e1, e2))));*)
       let lhs = match e1 with
         (* TODO: A.ArrayDeref *)
         A.Id i -> lookup i builder is_loop
