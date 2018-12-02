@@ -366,6 +366,13 @@ let translate (begin_block, loop_block, end_block, config_block) =
         | _ -> f ^ "_result") in
         L.build_call fdef (Array.of_list llargs) result builder
     | A.Access (a) -> L.build_call access_func [| L.param loop_func 0; loopend_expr builder is_loop a|] "access" builder
+    | A.Assign (e1, e2) ->
+      let lhs = loopend_expr builder is_loop e1 and 
+      rhs = loopend_expr builder is_loop e2
+      in ignore(L.build_store rhs lhs builder); rhs
+    | A.Access (a) -> L.build_call access_func [| L.param loop_func 0; loopend_expr builder is_loop a|] "access" builder
+    | A.Increment(e) -> A.Assign(e, A.Binop(e, A.Add, A.Literal(1))); loopend_expr builder is_loop e
+    | A.Decrement(e) -> A.Assign(e, A.Binop(e, A.Sub, A.Literal(1))); loopend_expr builder is_loop e
     | _ -> raise (Failure "end loopend_expr no pattern match") 
   
   and
@@ -393,14 +400,14 @@ let translate (begin_block, loop_block, end_block, config_block) =
     in
     List.iter add_front arr; lst
 
-    | A.Assign (e1, e2) ->
+    (*| A.Assign (e1, e2) ->
       let lhs = expr builder e1 and 
       rhs = expr builder e2
       in ignore(L.build_store rhs lhs builder); rhs
     | A.Access (a) -> L.build_call access_func [| L.param loop_func 0; expr builder a|] "access" builder
     | A.Increment(e) -> A.Assign(e, A.Binop(e, A.Add, A.Literal(1))); expr builder e
     | A.Decrement(e) -> A.Assign(e, A.Binop(e, A.Sub, A.Literal(1))); expr builder e
-    | _ -> raise (Failure "end expr no pattern match") 
+    | _ -> raise (Failure "end expr no pattern match") *)
     
   in 
 
