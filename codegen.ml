@@ -27,7 +27,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	| A.Bool  -> i1_t
 	| A.Void  -> void_t
 	| A.String -> str_t
-        | A.ArrayType t -> arr_t
+  | A.ArrayType t -> arr_t
         | _ -> raise (Failure "types no pattern match")
 	in
 
@@ -51,6 +51,11 @@ let translate (begin_block, loop_block, end_block, config_block) =
     L.function_type i32_t [| str_t |] in
   let string_to_int_func : L.llvalue = 
     L.declare_function "string_to_int" string_to_int_t the_module in
+
+  let concat_t : L.lltype =
+    L.function_type str_t [| str_t; str_t|] in
+  let concat_func : L.llvalue =
+    L.declare_function "concat" concat_t the_module in
 
   let access_t : L.lltype =
     L.function_type str_t [| str_t; i32_t|] in
@@ -212,6 +217,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
           | A.Not -> L.build_not
           | _ -> raise (Failure "no unary operation")
         ) e' "tmp" builder; 
+      | SStrcat(e1, e2) -> L.build_call concat_func [| expr builder e1; expr builder e2 |] "concat" builder
       | SCall ("print", [e]) ->
     		L.build_call printf_func [| string_format_str builder; (expr builder e)|] "printf" builder
       | SCall (f, args) ->
@@ -383,6 +389,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
     | SAccess (a) -> L.build_call access_func [| L.param loop_func 0; loopend_expr builder is_loop a|] "access" builder
     | SIncrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Add, (A.Int, SLiteral(1)))))) in loopend_expr builder is_loop e2
     | SDecrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Sub, (A.Int, SLiteral(1)))))) in loopend_expr builder is_loop e2
+    | SStrcat(e1, e2) -> L.build_call concat_func [| loopend_expr builder is_loop e1; loopend_expr builder is_loop e2 |] "concat" builder
     | _ -> raise (Failure "end loopend_expr no pattern match") 
   
   and
