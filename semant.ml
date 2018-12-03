@@ -550,18 +550,9 @@ let check (begin_list, loop_list, end_list, config_list) =
       
   in 
   let check_config config_list =  
-    (* Return a semantically-checked expression, i.e., with a type *)
-    let expr = function
-        Literal l -> (Int, SLiteral l)
-      | StringLiteral l -> (String, SStringLiteral l)
-      | RgxLiteral l -> (Rgx, SRgxLiteral l)
-      | Noexpr     -> (Void, SNoexpr)
-      | _ -> raise (Failure("shouldn't be using this expression in config block"))
-    in
-
     match config_list with
-    RSAssign e -> SRSAssign (expr e)
-    | FSAssign e -> SFSAssign (expr e) 
+    RSAssign e -> SRSAssign ((String, SStringLiteral l))
+    | FSAssign e -> SFSAssign ((String, SStringLiteral l)) 
         
   in 
   ((globals, List.map check_function functions), 
