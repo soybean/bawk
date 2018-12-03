@@ -15,6 +15,24 @@ int string_to_int(char *a) {
   return atoi(a);
 }
 
+char *bool_to_string(int a) {
+  if(a) {
+    return "True";
+  }
+  else {
+    return "False";
+  }
+  /*printf("%c", a);*/
+  return "";
+  /*if (strcmp(a,"true") == 0){
+    return "True";
+  }
+  else {
+    return "False";
+  }
+  */
+}
+
 char* int_to_string(int a) {
   int length = snprintf( NULL, 0, "%d", a);
   char* str = malloc( length + 1 );

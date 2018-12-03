@@ -41,6 +41,11 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let int_to_string_func : L.llvalue =
     L.declare_function "int_to_string" int_to_string_t the_module in
 
+  let bool_to_string_t : L.lltype =
+    L.function_type str_t [| i1_t |] in
+  let bool_to_string_func : L.llvalue = 
+    L.declare_function "bool_to_string" bool_to_string_t the_module in
+
   let string_to_int_t : L.lltype =
     L.function_type i32_t [| str_t |] in
   let string_to_int_func : L.llvalue = 
@@ -358,6 +363,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
       L.build_call printf_func [| string_format_str ; (loopend_expr builder is_loop e) |] "printf" builder
     | A.Call ("int_to_string", [e]) -> L.build_call int_to_string_func [| loopend_expr builder is_loop e |] "int_to_string" builder
     | A.Call ("string_to_int", [e]) -> L.build_call string_to_int_func [| loopend_expr builder is_loop e |] "string_to_int" builder
+    | A.Call ("bool_to_string", [e]) -> L.build_call bool_to_string_func [| loopend_expr builder is_loop e |] "bool_to_string" builder
     | A.Call (f, args) ->
       let (fdef, fdecl) = StringMap.find f function_decls in
       let llargs = List.rev (List.map (loopend_expr builder is_loop) (List.rev args)) in
