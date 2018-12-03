@@ -314,7 +314,7 @@ let check (begin_list, loop_list, end_list, config_list) =
     }
   in 
     
-  let stmt block_list =
+  let stmt boo block_list =
    
           let (locals,_) = block_list in 
     (* Raise an exception if the given rvalue type cannot be assigned to
@@ -344,6 +344,8 @@ let check (begin_list, loop_list, end_list, config_list) =
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
       | Access(a) as acc ->
+             if boo = true then raise(Failure ("shouldn't use $ in end"))
+             else
              let (a, a') = expr a in
              if a <> Int then raise (Failure ("incorrect access in " ^ string_of_expr acc))
              else (String, SAccess(a, a'))
@@ -547,5 +549,5 @@ let check (begin_list, loop_list, end_list, config_list) =
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
       
   in ((globals, List.map check_function functions), 
-  (loop_locals, stmt loop_list), 
-  (end_locals, stmt end_list), config_list)
+  (loop_locals, stmt false loop_list), 
+  (end_locals, stmt true end_list), config_list)
