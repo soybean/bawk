@@ -216,7 +216,7 @@ let check (begin_list, loop_list, end_list, config_list) =
                         ^ string_of_typ t1 ^ " expected arraytype"))
                 | ArrayType(t) ->
                         if (string_of_typ t = string_of_typ(t3) && t3 != Void) 
-                        then (t1, SCall("insert", [(t1, e1');(t2, e2');(t3, e3')]))
+                        then (Void, SCall("insert", [(t1, e1');(t2, e2');(t3, e3')]))
                         else raise(Failure("cannot perform insert on " ^ string_of_typ t1 ^ " and " ^ 
                         string_of_typ t3 ^ " at index " ^ string_of_typ t2))) 
      | Call("delete", args) as delete -> 
@@ -460,7 +460,7 @@ let check (begin_list, loop_list, end_list, config_list) =
                         ^ string_of_typ t1 ^ " expected arraytype"))
                 | ArrayType(t) ->
                         if (string_of_typ t = string_of_typ(t3) && t3 != Void) 
-                        then (t1, SCall("insert", [(t1, e1');(t2, e2');(t3, e3')]))
+                        then (Void, SCall("insert", [(t1, e1');(t2, e2');(t3, e3')]))
                         else raise(Failure("cannot perform insert on " ^ string_of_typ t1 ^ " and " ^ 
                         string_of_typ t3 ^ " at index " ^ string_of_typ t2))) 
      | Call("delete", args) as delete -> 
