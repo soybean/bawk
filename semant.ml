@@ -550,9 +550,13 @@ let check (begin_list, loop_list, end_list, config_list) =
       
   in 
   let check_config config_list =  
+    let expr = function
+            StringLiteral l -> (String, SStringLiteral l)
+      |_ -> raise(Failure("shouldn't have this expr in config"))
+    in
     match config_list with
-    RSAssign e -> SRSAssign ((String, SStringLiteral l))
-    | FSAssign e -> SFSAssign ((String, SStringLiteral l)) 
+    RSAssign e -> SRSAssign (expr e)
+    | FSAssign e -> SFSAssign (expr e) 
         
   in 
   ((globals, List.map check_function functions), 
