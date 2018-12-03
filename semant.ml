@@ -130,11 +130,19 @@ let check (begin_list, loop_list, end_list, config_list) =
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, _) -> raise (Failure ("illegal assignment of NF"))
       | Assign(e1, e2) as ex ->
+          let check_expr typ e = 
+                  let (t, et') = 
+                          match e with
+                          ArrayLit(l) ->
+                                  if List.length l > 0 then expr e
+                                  else (typ, SArrayLit([]))
+                          |_ -> expr e 
+        in (t, et') in
           let (lt, e1') = expr e1 
-          and (rt, e2') = expr e2 in
+          in let (rt, e2') = check_expr lt e2 in
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
-          in (check_assign lt rt err, SAssign((lt, e1'), (rt, e2'))) 
+          in (check_assign lt rt err, SAssign((lt, e1'), (rt, e2')))
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
@@ -306,7 +314,7 @@ let check (begin_list, loop_list, end_list, config_list) =
     }
   in 
     
-  let stmt block_list =
+  let stmt boo block_list =
    
           let (locals,_) = block_list in 
     (* Raise an exception if the given rvalue type cannot be assigned to
@@ -336,6 +344,8 @@ let check (begin_list, loop_list, end_list, config_list) =
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
       | Access(a) as acc ->
+             if boo = true then raise(Failure ("shouldn't use $ in end"))
+             else
              let (a, a') = expr a in
              if a <> Int then raise (Failure ("incorrect access in " ^ string_of_expr acc))
              else (String, SAccess(a, a'))
@@ -363,12 +373,20 @@ let check (begin_list, loop_list, end_list, config_list) =
         in (find_typ arr, SArrayDeref((arr, e1'), (num, e2')))
       | NumFields -> (Int, SNumFields)
       | Assign(NumFields, _) -> raise (Failure ("illegal assignment of NF"))
-      | Assign(e1, e2) as ex -> 
+      | Assign(e1, e2) as ex ->
+          let check_expr typ e = 
+                  let (t, et') = 
+                          match e with
+                          ArrayLit(l) ->
+                                  if List.length l > 0 then expr e
+                                  else (typ, SArrayLit([]))
+                          |_ -> expr e 
+        in (t, et') in
           let (lt, e1') = expr e1 
-          and (rt, e2') = expr e2 in 
+          in let (rt, e2') = check_expr lt e2 in
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
-          in (check_assign lt rt err, SAssign((lt, e1'), (rt, e2'))) 
+          in (check_assign lt rt err, SAssign((lt, e1'), (rt, e2')))
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
@@ -531,5 +549,5 @@ let check (begin_list, loop_list, end_list, config_list) =
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
       
   in ((globals, List.map check_function functions), 
-  (loop_locals, stmt loop_list), 
-  (end_locals, stmt end_list), config_list)
+  (loop_locals, stmt false loop_list), 
+  (end_locals, stmt true end_list), config_list)

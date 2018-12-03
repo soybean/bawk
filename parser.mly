@@ -145,8 +145,8 @@ expr:
   | expr OR expr                 { Binop($1, Or, $3) }
   | expr PLUSEQ expr             { Binop($1, Pluseq, $3) } 
   | expr MINUSEQ expr            { Binop($1, Minuseq, $3) }
-  | INCREMENT expr               { Increment($2) }
-  | DECREMENT expr               { Decrement($2) }
+  | expr INCREMENT               { Increment($1) }
+  | expr DECREMENT               { Decrement($1) }
   | expr STRCAT expr             { Strcat($1,$3) }
   | expr RGXEQ expr              { Rgxeq($1, $3) }
   | expr RGXNEQ expr             { Rgxneq($1, $3)}

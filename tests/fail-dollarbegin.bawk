@@ -1,0 +1,6 @@
+BEGIN {
+string hello;
+hello = $0;
+}
+LOOP {}
+END {}

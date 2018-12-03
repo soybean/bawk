@@ -12,7 +12,7 @@
 }*/
 
 int string_to_int(char *a) {
-  return atoi(cleaned);
+  return atoi(a);
 }
 
 char* int_to_string(int a) {

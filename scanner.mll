@@ -10,7 +10,8 @@ rule token = parse
 | "["        { LSQUARE }
 | "]"        { RSQUARE }
 | ";"        { SEMI }
-| '"'        { read_string (Buffer.create 0) lexbuf }
+| '"'        { read_string (Buffer.create 17) lexbuf }
+| "'"        { read_rgx (Buffer.create 17) lexbuf }
 | "&"        { STRCAT }
 | "$"        { DOLLAR }
 | ","        { COMMA }
@@ -58,7 +59,6 @@ rule token = parse
 | "false"    { FALSE }
 | "in"       { IN }
 | ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }
-| "\"" [^'\"']* "\"" as lxm { STRING_LITERAL(lxm) }
 | "\'" [^'\'']* "\'" as lxm { RGX_LITERAL(lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 | eof { EOF }
@@ -84,3 +84,14 @@ and read_string buf =
     }
   | _ { raise (Failure ("Illegal string character: " ^ Lexing.lexeme lexbuf)) }
   | eof { raise (Failure ("String is not terminated")) }
+
+and read_rgx buf =
+  parse
+  | '"'       { RGX_LITERAL (Buffer.contents buf) }
+  | [^ '"']+
+    { Buffer.add_string buf (Lexing.lexeme lexbuf);
+      read_string buf lexbuf
+    }
+  | _ { raise (Failure ("Illegal string character: " ^ Lexing.lexeme lexbuf)) }
+  | eof { raise (Failure ("String is not terminated")) }
+

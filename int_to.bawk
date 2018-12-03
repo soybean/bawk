@@ -4,7 +4,14 @@ BEGIN {
   }  
 }
 LOOP {
-  print($8);
+  int c;
+  c = 0;
+  c++;
+  c++;
+  c++;
+  c--;
+  print(int_to_string(c));
+  print($0);
 }
 END {
   print("end test");
