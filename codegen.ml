@@ -371,8 +371,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
       rhs = loopend_expr builder is_loop e2
       in ignore(L.build_store rhs lhs builder); rhs
     | A.Access (a) -> L.build_call access_func [| L.param loop_func 0; loopend_expr builder is_loop a|] "access" builder
-    | A.Increment(e) -> A.Assign(e, A.Binop(e, A.Add, A.Literal(1))); loopend_expr builder is_loop e
-    | A.Decrement(e) -> A.Assign(e, A.Binop(e, A.Sub, A.Literal(1))); loopend_expr builder is_loop e
+    | A.Increment(e) -> let e2 = A.Assign(e, A.Binop(e, A.Add, A.Literal(1))) in loopend_expr builder is_loop e2
+    | A.Decrement(e) -> let e2 = A.Assign(e, A.Binop(e, A.Sub, A.Literal(1))) in loopend_expr builder is_loop e2
     | _ -> raise (Failure "end loopend_expr no pattern match") 
   
   and
