@@ -50,7 +50,18 @@ int compareLists(const void *a, const void *b, int (*compar)(const void *, const
 	if ( length(lista) != length(listb) )
 		return -1;
 	if ( lista->depth > 1 ) {
-		return compareLists(a, b, compar);
+		struct Node *nodea = lista->head;
+ 		struct Node *nodeb = listb->head;
+ 		int total = 0;
+		while( nodea ) {
+ 			total += abs(compareLists(nodea->data, nodeb->data, compar));
+ 			nodea = nodea->next;
+			nodeb = nodeb->next;
+		} 
+		if ( total == 0 )
+ 			return 0;
+		else
+			return -1;
 	}
 	if ( lista->depth == 1) {
 		struct Node *nodea = lista->head;
