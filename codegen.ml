@@ -1,5 +1,6 @@
 module L = Llvm
 module A = Ast
+open Sast
 
 module StringMap = Map.Make(String)
 
@@ -26,8 +27,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	| A.Bool  -> i1_t
 	| A.Void  -> void_t
 	| A.String -> str_t
-  | A.ArrayType t -> arr_t
-  | _ -> raise (Failure "types no pattern match")
+        | A.ArrayType t -> arr_t
+        | _ -> raise (Failure "types no pattern match")
 	in
 
   (* Declare built-in functions *)
@@ -107,9 +108,9 @@ let translate (begin_block, loop_block, end_block, config_block) =
   (*---Build config block ---*)
   let build_config_block configblock =
     let configexpr builder = function
-      A.RSAssign e -> let get_string = function A.StringLiteral s ->  s | _ -> "" in 
+      SRSAssign e -> let get_string ((_, e): sexpr) = match e with SStringLiteral s ->  s | _ -> "" in 
       ignore(L.build_global_string (get_string e) "RS" builder); builder
-      | A.FSAssign e -> let get_string = function A.StringLiteral s -> s | _ -> "" in 
+      | SFSAssign e -> let get_string ((_,e): sexpr) = match e with SStringLiteral s -> s | _ -> "" in 
       ignore(L.build_global_string (get_string e) "FS" builder); builder
     
     in
@@ -122,12 +123,12 @@ let translate (begin_block, loop_block, end_block, config_block) =
   in
 
   (*--- Build begin block: function declarations ---*)
-  let function_decls : (L.llvalue * A.func_decl) StringMap.t =
+  let function_decls : (L.llvalue * sfunc_decl) StringMap.t =
     let function_decl m fdecl =
       let formal_types =
-	      Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.A.formals)
-      and name = fdecl.A.fname
-      in let ftype = L.function_type (ltype_of_typ fdecl.ret_type) formal_types in
+	      Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.sformals)
+      and name = fdecl.sfname
+      in let ftype = L.function_type (ltype_of_typ fdecl.sret_type) formal_types in
       StringMap.add name (L.define_function name ftype the_module, fdecl) m in
    
     List.fold_left function_decl StringMap.empty (snd begin_block)
@@ -137,7 +138,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
   (*--- Build function bodies defined in BEGIN block ---*)
   let build_function_body fdecl =
-    let (the_function, _) = StringMap.find fdecl.A.fname function_decls in
+    let (the_function, _) = StringMap.find fdecl.sfname function_decls in
     let func_builder = L.builder_at_end context (L.entry_block the_function) in
     let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
     
@@ -154,10 +155,10 @@ let translate (begin_block, loop_block, end_block, config_block) =
       
       in
 
-      let formals = List.fold_left2 add_formal StringMap.empty fdecl.A.formals
+      let formals = List.fold_left2 add_formal StringMap.empty fdecl.sformals
           (Array.to_list (L.params the_function)) in
 
-      List.fold_left add_local formals fdecl.A.locals
+      List.fold_left add_local formals fdecl.slocals
    
     in
 
@@ -167,54 +168,56 @@ let translate (begin_block, loop_block, end_block, config_block) =
     in
  
 
-    let rec expr builder = function
-      A.StringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
+    let rec expr builder((_,e): sexpr) = match e with
+      SStringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
 			  L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
-			| A.BoolLit b  -> L.const_int i1_t (if b then 1 else 0)
+      | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
       (*| A.RgxLiteral r ->
       | A.ArrayLit a -> *)
-      | A.Literal i -> L.const_int i32_t i
-      | A.Noexpr -> L.const_int i32_t 0
-      | A.Id i -> L.build_load (lookup i) i builder
-      | A.Assign (e1, e2) ->
-          let lhs = match e1 with
+      | SLiteral i -> L.const_int i32_t i
+      | SNoexpr -> L.const_int i32_t 0
+      | SId i -> L.build_load (lookup i) i builder
+      | SAssign (e1, e2) ->
+          let (_, e) = e1 in
+          let lhs = match e with 
+        (*  let lhs ((_, e1): sexpr)= match e1 with*)
             (* TODO: A.ArrayDeref *)
-            A.Id i -> lookup i
+            SId i -> lookup i
             | _ -> raise (Failure "No match on left") 
           and rhs = expr builder e2
           in ignore(L.build_store rhs lhs builder); rhs
       (* TODO: handle strings and rgx by building binop_gen function (see Decaf)*)
-      | A.Binop(e1, op, e2) ->
+      | SBinop(e1, op, e2) ->
         let e1' = expr builder e1
         and e2' = expr builder e2 in
         (match op with
-          A.Add       -> L.build_add
+            A.Add       -> L.build_add
           | A.Sub     -> L.build_sub
-    	    | A.Mult    -> L.build_mul
-    	    | A.Div     -> L.build_sdiv
+    	  | A.Mult    -> L.build_mul
+    	  | A.Div     -> L.build_sdiv
           | A.And     -> L.build_and
-    	    | A.Or      -> L.build_or
-    	    | A.Equal   -> L.build_icmp L.Icmp.Eq
-    	    | A.Neq     -> L.build_icmp L.Icmp.Ne
-    	    | A.Less    -> L.build_icmp L.Icmp.Slt
-    	    | A.Leq     -> L.build_icmp L.Icmp.Sle
-    	    | A.Greater -> L.build_icmp L.Icmp.Sgt
-    	    | A.Geq     -> L.build_icmp L.Icmp.Sge
+    	  | A.Or      -> L.build_or
+    	  | A.Equal   -> L.build_icmp L.Icmp.Eq
+    	  | A.Neq     -> L.build_icmp L.Icmp.Ne
+    	  | A.Less    -> L.build_icmp L.Icmp.Slt
+    	  | A.Leq     -> L.build_icmp L.Icmp.Sle
+    	  | A.Greater -> L.build_icmp L.Icmp.Sgt
+    	  | A.Geq     -> L.build_icmp L.Icmp.Sge
           | _         -> raise (Failure "no binary operation")
         ) e1' e2' "tmp" builder
-      | A.Unop(uop, e) ->
+      | SUnop(uop, e) ->
         let e' = expr builder e in
         (match uop with
           A.Neg -> L.build_neg
           | A.Not -> L.build_not
           | _ -> raise (Failure "no unary operation")
         ) e' "tmp" builder; 
-      | A.Call ("print", [e]) ->
+      | SCall ("print", [e]) ->
     		L.build_call printf_func [| string_format_str builder; (expr builder e)|] "printf" builder
-      | A.Call (f, args) ->
+      | SCall (f, args) ->
         let (fdef, fdecl) = StringMap.find f function_decls in
         let llargs = List.rev (List.map (expr builder) (List.rev args)) in
-	      let result = (match fdecl.A.ret_type with 
+	      let result = (match fdecl.sret_type with 
                         A.Void -> ""
                       | _ -> f ^ "_result") in
          L.build_call fdef (Array.of_list llargs) result builder
@@ -223,12 +226,12 @@ let translate (begin_block, loop_block, end_block, config_block) =
     in 
 
     let rec stmt builder = function
-      A.Expr ex -> ignore(expr builder ex); builder 
-      | A.Block sl -> List.fold_left stmt builder sl
-      | A.Return e -> ignore (match fdecl.A.ret_type with
+      SExpr ex -> ignore(expr builder ex); builder 
+      | SBlock sl -> List.fold_left stmt builder sl
+      | SReturn e -> ignore (match fdecl.sret_type with
           A.Void -> L.build_ret_void builder
           | _ -> L.build_ret (expr builder e) builder); builder
-      | A.If (predicate, then_stmt, else_stmt) ->
+      | SIf (predicate, then_stmt, else_stmt) ->
         let bool_val = expr builder predicate in
   	    let merge_bb = L.append_block context "merge" the_function in
            let build_br_merge = L.build_br merge_bb in (* partial function *)
@@ -243,13 +246,13 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
   	    ignore(L.build_cond_br bool_val then_bb else_bb builder);
   	    L.builder_at_end context merge_bb
-      | A.While (predicate, body) ->
+      | SWhile (predicate, body) ->
 	      let pred_bb = L.append_block context "while" the_function in
 	      ignore(L.build_br pred_bb builder);
 
 	      let body_bb = L.append_block context "while_body" the_function in
 	      add_terminal (stmt (L.builder_at_end context body_bb) body)
-	      (L.build_br pred_bb);
+              (L.build_br pred_bb);
 
 	      let pred_builder = L.builder_at_end context pred_bb in
 	      let bool_val = expr pred_builder predicate in
@@ -257,15 +260,15 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	      let merge_bb = L.append_block context "merge" the_function in
 	      ignore(L.build_cond_br bool_val body_bb merge_bb pred_builder);
 	      L.builder_at_end context merge_bb
-      | A.For (e1, e2, e3, body) -> stmt builder
-	      ( A.Block [A.Expr e1 ; A.While (e2, A.Block [body ; A.Expr e3]) ] )
+      | SFor (e1, e2, e3, body) -> stmt builder
+	      ( SBlock [SExpr e1 ; SWhile (e2, SBlock [body ; SExpr e3]) ] )
       | _ -> raise (Failure "stmt no pattern match")
     in
 
-    let func_builder = stmt func_builder (Block fdecl.A.body) in
+    let func_builder = stmt func_builder (SBlock fdecl.sbody) in
 
     (* return types for functions *)
-    add_terminal func_builder (match fdecl.ret_type with
+    add_terminal func_builder (match fdecl.sret_type with
       A.Void -> L.build_ret_void
       | A.Int -> L.build_ret (L.const_int i32_t 0)
       | A.Bool -> L.build_ret (L.const_int i1_t 0)
@@ -319,21 +322,22 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
   let string_format_str = L.build_global_stringptr "%s\n" "fmt" loopbuilder in
 
-  let rec loopend_expr builder is_loop = function
-    A.StringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
+  let rec loopend_expr builder is_loop((_, e):sexpr) = match e with
+    SStringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
       L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
-    | A.Literal i -> L.const_int i32_t i
-    | A.ArrayLit a -> array_gen builder is_loop a
-    | A.Id s -> L.build_load (lookup s builder is_loop) s builder 
-    | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
-    | A.Assign (e1, e2) ->
-      let lhs = match e1 with
+    | SLiteral i -> L.const_int i32_t i
+    | SArrayLit a -> array_gen builder is_loop a
+    | SId s -> L.build_load (lookup s builder is_loop) s builder 
+    | SBoolLit b -> L.const_int i1_t (if b then 1 else 0)
+    | SAssign (e1, e2) ->
+      let (_, e) = e1 in
+      let lhs = match e with
         (* TODO: A.ArrayDeref *)
-        A.Id i -> lookup i builder is_loop
+        SId i -> lookup i builder is_loop
         | _ -> raise (Failure "left side not found")
       and rhs = loopend_expr builder is_loop e2
       in ignore(L.build_store rhs lhs builder); rhs
-    | A.Binop(e1, op, e2) ->
+    | SBinop(e1, op, e2) ->
         let e1' = loopend_expr builder is_loop e1
         and e2' = loopend_expr builder is_loop e2 in
         (match op with
@@ -352,33 +356,33 @@ let translate (begin_block, loop_block, end_block, config_block) =
           | _         -> raise (Failure "no binary operation")
         ) e1' e2' "tmp" builder
 
-    | A.Unop(uop, e) ->
+    | SUnop(uop, e) ->
         let e' = loopend_expr builder is_loop e in
         (match uop with
           A.Neg -> L.build_neg
           | A.Not -> L.build_not
           | _ -> raise (Failure "no unary operation")
         ) e' "tmp" builder 
-    | A.Call ("print", [e]) ->
+    | SCall ("print", [e]) ->
       L.build_call printf_func [| string_format_str ; (loopend_expr builder is_loop e) |] "printf" builder
-    | A.Call ("int_to_string", [e]) -> L.build_call int_to_string_func [| loopend_expr builder is_loop e |] "int_to_string" builder
-    | A.Call ("string_to_int", [e]) -> L.build_call string_to_int_func [| loopend_expr builder is_loop e |] "string_to_int" builder
-    | A.Call ("bool_to_string", [e]) -> L.build_call bool_to_string_func [| loopend_expr builder is_loop e |] "bool_to_string" builder
-    | A.Call (f, args) ->
+    | SCall ("int_to_string", [e]) -> L.build_call int_to_string_func [| loopend_expr builder is_loop e |] "int_to_string" builder
+    | SCall ("string_to_int", [e]) -> L.build_call string_to_int_func [| loopend_expr builder is_loop e |] "string_to_int" builder
+    | SCall ("bool_to_string", [e]) -> L.build_call bool_to_string_func [| loopend_expr builder is_loop e |] "bool_to_string" builder
+    | SCall (f, args) ->
       let (fdef, fdecl) = StringMap.find f function_decls in
       let llargs = List.rev (List.map (loopend_expr builder is_loop) (List.rev args)) in
-	    let result = (match fdecl.A.ret_type with 
+	    let result = (match fdecl.sret_type with 
         A.Void -> ""
         | _ -> f ^ "_result") in
         L.build_call fdef (Array.of_list llargs) result builder
-    | A.Access (a) -> L.build_call access_func [| L.param loop_func 0; loopend_expr builder is_loop a|] "access" builder
-    | A.Assign (e1, e2) ->
+    | SAccess (a) -> L.build_call access_func [| L.param loop_func 0; loopend_expr builder is_loop a|] "access" builder
+    | SAssign (e1, e2) ->
       let lhs = loopend_expr builder is_loop e1 and 
       rhs = loopend_expr builder is_loop e2
       in ignore(L.build_store rhs lhs builder); rhs
-    | A.Access (a) -> L.build_call access_func [| L.param loop_func 0; loopend_expr builder is_loop a|] "access" builder
-    | A.Increment(e) -> let e2 = A.Assign(e, A.Binop(e, A.Add, A.Literal(1))) in loopend_expr builder is_loop e2
-    | A.Decrement(e) -> let e2 = A.Assign(e, A.Binop(e, A.Sub, A.Literal(1))) in loopend_expr builder is_loop e2
+    | SAccess (a) -> L.build_call access_func [| L.param loop_func 0; loopend_expr builder is_loop a|] "access" builder
+    | SIncrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Add, (A.Int, SLiteral(1)))))) in loopend_expr builder is_loop e2
+    | SDecrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Sub, (A.Int, SLiteral(1)))))) in loopend_expr builder is_loop e2
     | _ -> raise (Failure "end loopend_expr no pattern match") 
   
   and
@@ -415,9 +419,9 @@ let translate (begin_block, loop_block, end_block, config_block) =
   in
 
   let rec stmt builder is_loop = function
-    A.Expr ex -> ignore (loopend_expr builder is_loop ex); builder
-    | A.Block sl -> ignore(iter_mult stmt builder is_loop sl); builder
-    | A.If (predicate, then_stmt, else_stmt) ->
+    SExpr ex -> ignore (loopend_expr builder is_loop ex); builder
+    | SBlock sl -> ignore(iter_mult stmt builder is_loop sl); builder
+    | SIf (predicate, then_stmt, else_stmt) ->
         let bool_val = loopend_expr builder is_loop predicate in
   	    let merge_bb = L.append_block context "merge" loop_func in
            let build_br_merge = L.build_br merge_bb in (* partial function *)
@@ -432,7 +436,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
   	    ignore(L.build_cond_br bool_val then_bb else_bb builder);
   	    L.builder_at_end context merge_bb
-    | A.While (predicate, body) ->
+    | SWhile (predicate, body) ->
 	      let pred_bb = L.append_block context "while" loop_func in
 	      ignore(L.build_br pred_bb builder);
 
@@ -446,22 +450,22 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	      let merge_bb = L.append_block context "merge" loop_func in
 	      ignore(L.build_cond_br bool_val body_bb merge_bb pred_builder);
 	      L.builder_at_end context merge_bb
-    | A.For (e1, e2, e3, body) -> stmt builder is_loop
-	      ( A.Block [A.Expr e1 ; A.While (e2, A.Block [body ; A.Expr e3]) ] )
+    | SFor (e1, e2, e3, body) -> stmt builder is_loop
+	      ( SBlock [SExpr e1 ; SWhile (e2, SBlock [body ; SExpr e3]) ] )
     | _ -> raise (Failure "statement no pattern match")
     
   in
 
   (*--- Build loop block ---*)
   let build_loop_block loop_block =
-    ignore(stmt loopbuilder true (Block (snd loop_block)));
+    ignore(stmt loopbuilder true (SBlock (snd loop_block)));
     add_terminal loopbuilder L.build_ret_void
   
     in 
 
   (*--- Build end block ---*)
   let build_end_block end_block =
-    ignore(stmt endbuilder false (Block (snd end_block)));
+    ignore(stmt endbuilder false (SBlock (snd end_block)));
     add_terminal endbuilder L.build_ret_void
 
   in
