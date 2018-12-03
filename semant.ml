@@ -548,6 +548,83 @@ let check (begin_list, loop_list, end_list, config_list) =
 	SBlock(sl) -> sl
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
       
-  in ((globals, List.map check_function functions), 
+  in 
+  let check_config config_list =
+
+    (* Raise an exception if the given rvalue type cannot be assigned to
+       the given lvalue type *)
+    let check_assign lvaluet rvaluet err =
+       if (lvaluet = rvaluet) then lvaluet else raise (Failure err)
+    in   
+    (* Return a semantically-checked expression, i.e., with a type *)
+    let rec expr = function
+        Literal l -> (Int, SLiteral l)
+      | StringLiteral l -> (String, SStringLiteral l)
+      | BoolLit l  -> (Bool, SBoolLit l)
+      | RgxLiteral l -> (Rgx, SRgxLiteral l)
+      | Noexpr     -> (Void, SNoexpr)
+      | Id s       -> (type_of_identifier s, SId s)
+      | Access a ->raise (Failure("access " ^ string_of_expr a ^ " should not be called in config"))
+      | ArrayLit(l) -> if List.length l > 0 then 
+              let typ = expr(List.nth l 0) in
+              let (arraytype, _) = typ in
+              let check_array e =
+                      let (et, e') = expr e in (et, e')
+                      in let l' = List.map check_array l  in
+              let types e = 
+                      let (a, _)  = expr e in
+                      if a <> arraytype then raise(Failure("array of different types, expected" ^
+                      string_of_typ arraytype ^ " found " ^ string_of_typ a))
+                      in let _ = List.map types l in (ArrayType(arraytype), SArrayLit(l'))
+              else (Void, SArrayLit([])) 
+      | NumFields -> (Int, SNumFields)
+      | Assign(NumFields, _) -> raise (Failure ("illegal assignment of NF"))
+      | Assign(e1, e2) as ex ->
+          let check_expr typ e = 
+                  let (t, et') = 
+                          match e with
+                          ArrayLit(l) ->
+                                  if List.length l > 0 then expr e
+                                  else (typ, SArrayLit([]))
+                          |_ -> expr e 
+        in (t, et') in
+          let (lt, e1') = expr e1 
+          in let (rt, e2') = check_expr lt e2 in
+          let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
+            string_of_typ rt ^ " in " ^ string_of_expr ex
+          in (check_assign lt rt err, SAssign((lt, e1'), (rt, e2')))
+      | Unop(op, e) as ex -> 
+          let (t, e') = expr e in
+          let ty = match op with
+            Neg when t = Int -> Int
+          | Not when t = Bool -> Bool
+          | _ -> raise (Failure ("illegal unary operator " ^ 
+                                 string_of_uop op ^ string_of_typ t ^
+                                 " in " ^ string_of_expr ex)) 
+          in (ty, SUnop(op, (t, e')))
+      | Binop(e1, op, e2) as e -> 
+          let (t1, e1') = expr e1 
+          and (t2, e2') = expr e2 in
+          let same = t1 = t2 in
+          (* Determine expression type based on operator and operand types *)
+          let ty = match op with
+            Add | Sub | Mult | Div | Pluseq | Minuseq when same && t1 = Int   -> Int
+          | Equal | Neq            when same               -> Bool
+          | Less | Leq | Greater | Geq
+                     when same && (t1 = Int || t1 = String) -> Bool
+          | And | Or when same && t1 = Bool -> Bool
+          | _ -> raise (
+	      Failure ("illegal binary operator "  ^
+                       string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
+                       string_of_typ t2 ^ " in " ^ string_of_expr e))
+          in (ty, SBinop((t1, e1'), op, (t2, e2')))
+    in
+
+    let config_expr = function
+    RSAssign e -> SRSAssign (expr e)
+    | FSAssign e -> SFSAssign (expr e) 
+    
+  in 
+  ((globals, List.map check_function functions), 
   (loop_locals, stmt false loop_list), 
-  (end_locals, stmt true end_list), config_list)
+  (end_locals, stmt true end_list), List.map check_config config_list)
