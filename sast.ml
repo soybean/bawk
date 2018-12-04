@@ -15,6 +15,8 @@ and sx =
   | SArrayLit of sexpr list
   | SArrayDeref of sexpr * sexpr
   | SAccess of sexpr
+  | SPluseq of sexpr * sexpr
+  | SMinuseq of sexpr * sexpr
   | SIncrement of sexpr
   | SDecrement of sexpr
   | SStrcat of sexpr * sexpr
@@ -74,6 +76,8 @@ let rec string_of_sexpr (t, e) =
   | SRgxnot(a, b) -> string_of_sexpr a ^ string_of_sexpr b
   | SRgxeq(a, b) -> string_of_sexpr a ^ string_of_sexpr b
   | SRgxneq(a, b) -> string_of_sexpr a ^ string_of_sexpr b
+  | SPluseq(a, b) -> string_of_sexpr a ^ string_of_sexpr b
+  | SMinuseq(a, b) -> string_of_sexpr a ^ string_of_sexpr b
   | SIncrement(a) -> string_of_sexpr a
   | SDecrement(a) -> string_of_sexpr a
   | SUnop(o, e) -> string_of_uop o ^ string_of_sexpr e  
