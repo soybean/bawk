@@ -7,8 +7,12 @@
 
 // this function returns true if a matches the rgx b, false otherwise
 int equals(char *a, char *b) {
-  b++;
-  b[strlen(b) - 1] = 0;
+  if (b[0] == '\'') {
+    b++;
+  }
+  if (b[strlen(b) - 1] == '\'') {
+    b[strlen(b) - 1] = 0;
+  }
   regex_t regex;
   int comp = regcomp(&regex, b, REG_EXTENDED|REG_NOSUB);
   if (comp) {
@@ -20,4 +24,9 @@ int equals(char *a, char *b) {
     return 1;
   }
   return 0;
+}
+
+int nequals(char *a, char *b) {
+  int opp = equals(a, b);
+  return !opp;
 }

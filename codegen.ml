@@ -62,6 +62,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
     L.function_type i1_t [| str_t; str_t |] in
   let rgxcomp_func : L.llvalue =
     L.declare_function "equals" rgxcomp_t the_module in
+  let rgxnot_func : L.llvalue =
+    L.declare_function "nequals" rgxcomp_t the_module in
 
   let access_t : L.lltype =
     L.function_type str_t [| str_t; i32_t|] in
@@ -380,6 +382,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
         ) e' "tmp" builder 
 
     | SRgxcomp (e1, e2) -> L.build_call rgxcomp_func [| loopend_expr builder is_loop e1; loopend_expr builder is_loop e2 |] "equals" builder
+    | SRgxnot (e1, e2) -> L.build_call rgxnot_func [| loopend_expr builder is_loop e1; loopend_expr builder is_loop e2 |] "nequals" builder
     | SCall ("print", [e]) ->
       L.build_call printf_func [| string_format_str ; (loopend_expr builder is_loop e) |] "printf" builder
     | SCall ("int_to_string", [e]) -> L.build_call int_to_string_func [| loopend_expr builder is_loop e |] "int_to_string" builder
