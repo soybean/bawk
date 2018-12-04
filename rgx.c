@@ -1,10 +1,14 @@
 #include <regex.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
+#include <string.h>
 
 
 // this function returns true if a matches the rgx b, false otherwise
 int equals(char *a, char *b) {
+  b++;
+  b[strlen(b) - 1] = 0;
   regex_t regex;
   int comp = regcomp(&regex, b, REG_EXTENDED|REG_NOSUB);
   if (comp) {
