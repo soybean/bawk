@@ -7,7 +7,7 @@
 # "make all" removes all previously generated files and builds the executable
 
 .PHONY : all
-all : san clean bawk.native convert.o structure.o mylist.o
+all : san clean bawk.native convert.o structure.o mylist.o rgx.o
 
 san:
 	if [[ -f _build/sanitize.sh ]] ; then _build/sanitize.sh ; fi
@@ -32,6 +32,9 @@ convert : convert.c cc -o convert convert.c
 
 .PHONY : structure
 structure : structure.c cc -o structure structure.c
+
+.PHONY : rgx
+rgx : rgx.c cc -o rgx rgx.c
 
 .PHONY : array
 array : mylist.c cc -o array mylist.c
