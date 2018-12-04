@@ -16,6 +16,6 @@ END {
   print(bool_to_string(!false));
   print(bool_to_string(!true));
   print(int_to_string(-10));
-  print(int_to_string(--42));
-  print(int_to_string(++42));
+  print(int_to_string(42--));
+  print(int_to_string(42++));
 }

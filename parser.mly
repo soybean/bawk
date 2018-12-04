@@ -143,8 +143,8 @@ expr:
   | expr GEQ expr                { Binop($1, Geq, $3) } 
   | expr AND expr                { Binop($1, And, $3) } 
   | expr OR expr                 { Binop($1, Or, $3) }
-  | expr PLUSEQ expr             { Binop($1, Pluseq, $3) } 
-  | expr MINUSEQ expr            { Binop($1, Minuseq, $3) }
+  | expr PLUSEQ expr             { Pluseq($1, $3) } 
+  | expr MINUSEQ expr            { Minuseq($1, $3) }
   | expr INCREMENT               { Increment($1) }
   | expr DECREMENT               { Decrement($1) }
   | expr STRCAT expr             { Strcat($1,$3) }

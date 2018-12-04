@@ -158,7 +158,7 @@ let check (begin_list, loop_list, end_list, config_list) =
           let same = t1 = t2 in
           (* Determine expression type based on operator and operand types *)
           let ty = match op with
-            Add | Sub | Mult | Div | Pluseq | Minuseq when same && t1 = Int   -> Int
+            Add | Sub | Mult | Div when same && t1 = Int   -> Int
           | Equal | Neq            when same               -> Bool
           | Less | Leq | Greater | Geq
                      when same && (t1 = Int || t1 = String) -> Bool
@@ -178,8 +178,16 @@ let check (begin_list, loop_list, end_list, config_list) =
          else (Int, SDecrement(et, e'))
       | Strcat(e1, e2) as e ->
          let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
-         if (t1 <> String || t2 != String) then raise(Failure("Strings expected for " ^ string_of_expr e))
+         if (t1 <> String || t2 <> String) then raise(Failure("Strings expected for " ^ string_of_expr e))
          else (String, SStrcat((t1, e1'), (t2, e2')))
+      | Pluseq(e1, e2) as e -> 
+         let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
+         if (t1 <> Int || t2 <> Int) then raise (Failure("Ints are expected for " ^ string_of_expr e))
+         else (Int, SPluseq((t1, e1'), (t2, e2')))
+      | Minuseq(e1, e2) as e ->
+         let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
+         if (t1 <> Int || t2 <> Int) then raise (Failure("Ints are expected for " ^ string_of_expr e))
+         else (Int, SMinuseq((t1, e1'), (t2, e2')))
       | Rgxeq(e1, e2) as e ->
          let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
          if (t1 <> Rgx || t2 != Rgx) then raise(Failure("Rgx expected for " ^ string_of_expr e))
@@ -216,7 +224,7 @@ let check (begin_list, loop_list, end_list, config_list) =
                         ^ string_of_typ t1 ^ " expected arraytype"))
                 | ArrayType(t) ->
                         if (string_of_typ t = string_of_typ(t3) && t3 != Void) 
-                        then (t1, SCall("insert", [(t1, e1');(t2, e2');(t3, e3')]))
+                        then (Void, SCall("insert", [(t1, e1');(t2, e2');(t3, e3')]))
                         else raise(Failure("cannot perform insert on " ^ string_of_typ t1 ^ " and " ^ 
                         string_of_typ t3 ^ " at index " ^ string_of_typ t2))) 
      | Call("delete", args) as delete -> 
@@ -402,7 +410,7 @@ let check (begin_list, loop_list, end_list, config_list) =
           let same = t1 = t2 in
           (* Determine expression type based on operator and operand types *)
           let ty = match op with
-            Add | Sub | Mult | Div | Pluseq | Minuseq when same && t1 = Int   -> Int
+            Add | Sub | Mult | Div when same && t1 = Int   -> Int
           | Equal | Neq            when same               -> Bool
           | Less | Leq | Greater | Geq
                      when same && (t1 = Int || t1 = String) -> Bool
@@ -424,6 +432,14 @@ let check (begin_list, loop_list, end_list, config_list) =
          let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
          if (t1 <> String || t2 <> String) then raise(Failure("Strings expected for " ^ string_of_expr e))
          else (String, SStrcat((t1, e1'), (t2, e2')))
+      | Pluseq(e1, e2) as e ->
+         let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
+         if (t1 <> Int || t2 <> Int) then raise (Failure("Ints expected for " ^ string_of_expr e))
+         else (Int, SPluseq((t1, e1'), (t2, e2')))
+      | Minuseq(e1, e2) as e ->
+         let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
+         if (t1 <> Int || t2 <> Int) then raise (Failure("Ints expected for " ^ string_of_expr e))
+         else (Int, SMinuseq((t1, e1'), (t2, e2')))
       | Rgxeq(e1, e2) as e ->
          let (t1, e1') = expr e1 and (t2, e2') = expr e2 in
          if (t1 <> Rgx || t2 <> Rgx) then raise(Failure("Rgx expected for " ^ string_of_expr e))
@@ -460,7 +476,7 @@ let check (begin_list, loop_list, end_list, config_list) =
                         ^ string_of_typ t1 ^ " expected arraytype"))
                 | ArrayType(t) ->
                         if (string_of_typ t = string_of_typ(t3) && t3 != Void) 
-                        then (t1, SCall("insert", [(t1, e1');(t2, e2');(t3, e3')]))
+                        then (Void, SCall("insert", [(t1, e1');(t2, e2');(t3, e3')]))
                         else raise(Failure("cannot perform insert on " ^ string_of_typ t1 ^ " and " ^ 
                         string_of_typ t3 ^ " at index " ^ string_of_typ t2))) 
      | Call("delete", args) as delete -> 
@@ -548,6 +564,17 @@ let check (begin_list, loop_list, end_list, config_list) =
 	SBlock(sl) -> sl
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
       
-  in ((globals, List.map check_function functions), 
+  in 
+  let check_config config_list =  
+    let expr = function
+            StringLiteral l -> (String, SStringLiteral l)
+      |_ -> raise(Failure("shouldn't have this expr in config"))
+    in
+    match config_list with
+    RSAssign e -> SRSAssign (expr e)
+    | FSAssign e -> SFSAssign (expr e) 
+        
+  in 
+  ((globals, List.map check_function functions), 
   (loop_locals, stmt false loop_list), 
-  (end_locals, stmt true end_list), config_list)
+  (end_locals, stmt true end_list), List.map check_config config_list)

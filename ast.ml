@@ -1,5 +1,5 @@
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | 
-          Geq | And | Or | Pluseq | Minuseq
+          Geq | And | Or 
 
 type uop = Not | Neg  
 
@@ -20,6 +20,8 @@ type expr =
   | ArrayLit of expr list
   | ArrayDeref of expr * expr
   | Access of expr
+  | Pluseq of expr * expr
+  | Minuseq of expr * expr
   | Increment of expr
   | Decrement of expr
   | Strcat of expr * expr
@@ -72,9 +74,7 @@ let string_of_op = function
   | Greater -> ">" 
   | Geq -> ">=" 
   | And -> "&&" 
-  | Or -> "||" 
-  | Pluseq -> "+=" 
-  | Minuseq -> "-=" 
+  | Or -> "||"
 
 
 let string_of_uop = function
@@ -105,6 +105,8 @@ let rec string_of_expr = function
   | Rgxnot(e, e1) -> string_of_expr e ^ "!~" ^ string_of_expr e1
   | Increment(e) -> string_of_expr e ^ "++"
   | Decrement(e) -> string_of_expr e ^ "--"
+  | Pluseq(e, e1) -> string_of_expr e ^ "+=" ^ string_of_expr e1
+  | Minuseq(e, e1) -> string_of_expr e ^ "-=" ^ string_of_expr e1
   | NumFields -> "NF"
   | Noexpr -> ""
 

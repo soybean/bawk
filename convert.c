@@ -11,8 +11,36 @@
   return atoi(cleaned);
 }*/
 
+char *concat(char *a, char *b) {
+  char *str = malloc(strlen(a) + strlen(b));
+  size_t len1 = strlen(a), len2 = strlen(b);
+  char *concat = (char*) malloc(len1 + len2 + 1);
+
+  memcpy(concat, a, len1);
+  memcpy(concat+len1, b, len2+1);
+  return concat;
+}
+
 int string_to_int(char *a) {
   return atoi(a);
+}
+
+char *bool_to_string(int a) {
+  if(a) {
+    return "True";
+  }
+  else {
+    return "False";
+  }
+  /*printf("%c", a);*/
+  return "";
+  /*if (strcmp(a,"true") == 0){
+    return "True";
+  }
+  else {
+    return "False";
+  }
+  */
 }
 
 char* int_to_string(int a) {
