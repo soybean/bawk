@@ -87,8 +87,8 @@ and read_string buf =
 
 and read_rgx buf =
   parse
-  | '"'       { RGX_LITERAL (Buffer.contents buf) }
-  | [^ '"']+
+  | "'"       { RGX_LITERAL (Buffer.contents buf) }
+  | [^ "'"]+
     { Buffer.add_string buf (Lexing.lexeme lexbuf);
       read_string buf lexbuf
     }
