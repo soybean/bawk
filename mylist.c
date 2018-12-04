@@ -5,7 +5,7 @@
 
 // A node in a linked list.
 struct Node {
-	void *data;
+	unsigned long data;
 	struct Node *next;
 };
 
@@ -54,7 +54,7 @@ int compareLists(const void *a, const void *b, int (*compar)(const void *, const
  		struct Node *nodeb = listb->head;
  		int total = 0;
 		while( nodea ) {
- 			total += abs(compareLists(nodea->data, nodeb->data, compar));
+ 			total += abs(compareLists((void *)(nodea->data), (void *)(nodeb->data), compar));
  			nodea = nodea->next;
 			nodeb = nodeb->next;
 		} 
@@ -68,7 +68,7 @@ int compareLists(const void *a, const void *b, int (*compar)(const void *, const
 		struct Node *nodeb = listb->head;
 		int total = 0;
 		while( nodea ) {
- 			total += abs(compar(nodea->data, nodeb->data));
+ 			total += abs(compar((void *)(nodea->data), (void *)(nodeb->data)));
 			nodea = nodea->next;
 			nodeb = nodeb->next;
  		}
@@ -99,7 +99,7 @@ void traverseList(struct List *list, void (*f)(void *))
 {
 	struct Node *node = list->head;
 	while(node) {
-		f(node->data);
+		f((void *)(node->data));
 		node = node->next;
 	}
 }
@@ -131,14 +131,14 @@ struct Node *findNode(struct List *list, const void *dataSought, int (*compar)(c
 	struct Node *node = list->head;
 	if(list->depth == 1) {
 		while(node) {
-			if( compar(dataSought, node->data) == 0 )
+			if( compar(dataSought, (void *)(node->data)) == 0 )
 				return node;
 			node = node->next;
 		}
 	}
 	if(list->depth > 1) {
 		while(node) {
-			if( compareLists(dataSought, node->data, compar) == 0 )
+			if( compareLists(dataSought, (void *)(node->data), compar) == 0 )
 				return node;
 			node = node->next;
 		}
@@ -153,7 +153,7 @@ int findIndexOfNode(struct List *list, const void *dataSought, int (*compar)(con
 	int count = 0;
 	if(list->depth == 1) {
 		while(node) {
-			if( compar(dataSought, node->data) == 0 ) {
+			if( compar(dataSought, (void *)(node->data)) == 0 ) {
 				return count;
 			}
 			node = node->next;
@@ -162,7 +162,7 @@ int findIndexOfNode(struct List *list, const void *dataSought, int (*compar)(con
 	}
 	if(list->depth > 1) {
 		while(node) {
-			if( compareLists(dataSought, node->data, compar) == 0 ) {
+			if( compareLists(dataSought, (void *)(node->data), compar) == 0 ) {
 				return count;
 			}
 			node = node->next;
@@ -176,7 +176,7 @@ int findIndexOfNode(struct List *list, const void *dataSought, int (*compar)(con
  * and return the 'data' pointer that was stored in the node. 
  * Returns NULL if the list is empty 
  */
-void *removeNode(struct List *list, int indexSought)
+unsigned long removeNode(struct List *list, int indexSought)
 { 
 	struct Node *node = list->head;
 	int indexAt = 0;
@@ -185,7 +185,7 @@ void *removeNode(struct List *list, int indexSought)
 	if ( list->head ) {
 		// if remove first index, it's just like popFront()
 		if ( indexSought == 0 ) {
-			void *data = list->head->data;
+			unsigned long data = list->head->data;
 			struct Node *node = list->head;
 			list->head = list->head->next;
 			free(node);
@@ -195,7 +195,7 @@ void *removeNode(struct List *list, int indexSought)
 		// remove index other than first index
 		while(node) {
 			if( indexSought - 1 == indexAt ) {
-				void *data = node->next->data;
+				unsigned long data = node->next->data;
 				struct Node *deletedNode = node->next;
 				node->next = node->next->next;
 				free(deletedNode);
@@ -205,7 +205,7 @@ void *removeNode(struct List *list, int indexSought)
 			indexAt++;
 		}
 	}	
-	return NULL;
+	return 0;
 }
 
 /*
@@ -213,16 +213,16 @@ void *removeNode(struct List *list, int indexSought)
  * node, and return the 'data' pointer that was stored in the node.
  * Returns NULL is the list is empty.
  */
-void *popFront(struct List *list)
+unsigned long popFront(struct List *list)
 {
 	if(list->head) {
-		void *data = list->head->data;
+		unsigned long data = list->head->data;
 		struct Node *node = list->head;
 		list->head = list->head->next;
 		free(node);
 		return data;
 	}
-	return NULL;
+	return 0;
 }
 
 // Remove all nodes from the list, deallocating the memory for the nodes.
@@ -242,7 +242,7 @@ void removeAllNodes(struct List *list)
  * 
  * It returns the newly created node on success and NULL on failure.
  */
-struct Node *addFront(struct List *list, void *data)
+struct Node *addFront(struct List *list, unsigned long data)
 {
 	struct Node *node = malloc( sizeof(struct Node) );
 	if(node == NULL){
@@ -270,7 +270,7 @@ struct Node *addFront(struct List *list, void *data)
  * 
  * It returns the newly created node on success and NULL on failure.
  */
-struct Node *addAfter(struct List *list, struct Node *prevNode, void *data)
+struct Node *addAfter(struct List *list, struct Node *prevNode, unsigned long data)
 {
 	struct Node *node = malloc( sizeof(struct Node) );
 	if( prevNode ) {
@@ -310,13 +310,13 @@ void reverseList(struct List *list)
 }
 
 // Array access
-void *getElement(struct List *list, int index) 
+unsigned long getElement(struct List *list, int index) 
 {
 	struct Node *node_by_index = findByIndex(list, index);
 	return node_by_index->data;
 }
 
-void insertElement(struct List *list, int index, void *insert)
+void insertElement(struct List *list, int index, unsigned long insert)
 {
 	if (index == 0)
 		addFront(list, insert);
@@ -327,7 +327,7 @@ void insertElement(struct List *list, int index, void *insert)
 	}
 }
 
-void assignElement(struct List *list, int index, void *insert)
+void assignElement(struct List *list, int index, unsigned long insert)
 {
 	struct Node *node = findByIndex(list, index);
 	node->data = insert;
@@ -349,4 +349,5 @@ static void printInt(void *p)
 {	
 	printf("%d ", *(int *)p);
 }
+
 

@@ -349,16 +349,16 @@ let translate (begin_block, loop_block, end_block, config_block) =
         (match op with
           A.Add       -> L.build_add
           | A.Sub     -> L.build_sub
-    	    | A.Mult    -> L.build_mul
-    	    | A.Div     -> L.build_sdiv
+    	  | A.Mult    -> L.build_mul
+    	  | A.Div     -> L.build_sdiv
           | A.And     -> L.build_and
-    	    | A.Or      -> L.build_or
-    	    | A.Equal   -> L.build_icmp L.Icmp.Eq
-    	    | A.Neq     -> L.build_icmp L.Icmp.Ne
-    	    | A.Less    -> L.build_icmp L.Icmp.Slt
-    	    | A.Leq     -> L.build_icmp L.Icmp.Sle
-    	    | A.Greater -> L.build_icmp L.Icmp.Sgt
-    	    | A.Geq     -> L.build_icmp L.Icmp.Sge
+    	  | A.Or      -> L.build_or
+    	  | A.Equal   -> L.build_icmp L.Icmp.Eq
+    	  | A.Neq     -> L.build_icmp L.Icmp.Ne
+    	  | A.Less    -> L.build_icmp L.Icmp.Slt
+    	  | A.Leq     -> L.build_icmp L.Icmp.Sle
+    	  | A.Greater -> L.build_icmp L.Icmp.Sgt
+    	  | A.Geq     -> L.build_icmp L.Icmp.Sge
           | _         -> raise (Failure "no binary operation")
         ) e1' e2' "tmp" builder
 
@@ -389,6 +389,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
     | SAccess (a) -> L.build_call access_func [| L.param loop_func 0; loopend_expr builder is_loop a|] "access" builder
     | SIncrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Add, (A.Int, SLiteral(1)))))) in loopend_expr builder is_loop e2
     | SDecrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Sub, (A.Int, SLiteral(1)))))) in loopend_expr builder is_loop e2
+    | SPluseq(e1, e2) -> let e = (A.Int, SAssign(e1, (A.Int, SBinop(e1, A.Add, e2)))) in loopend_expr builder is_loop e
+    | SMinuseq(e1, e2) -> let e = (A.Int, SAssign(e1, (A.Int, SBinop(e1, A.Sub, e2)))) in loopend_expr builder is_loop e
     | SStrcat(e1, e2) -> L.build_call concat_func [| loopend_expr builder is_loop e1; loopend_expr builder is_loop e2 |] "concat" builder
     | _ -> raise (Failure "end loopend_expr no pattern match") 
   
