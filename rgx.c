@@ -6,7 +6,7 @@
 
 
 // this function returns true if a matches the rgx b, false otherwise
-int equals(char *a, char *b) {
+int comp(char *a, char *b) {
   if (b[0] == '\'') {
     b++;
   }
@@ -26,7 +26,18 @@ int equals(char *a, char *b) {
   return 0;
 }
 
-int nequals(char *a, char *b) {
-  int opp = equals(a, b);
+int ncomp(char *a, char *b) {
+  int opp = comp(a, b);
   return !opp;
+}
+
+int equals(char *a, char *b) {
+  if (strcmp(a, b) == 0) {
+    return 1;
+  }
+  return 0;
+}
+
+int nequals(char *a, char *b) {
+  return !equals(a, b);
 }

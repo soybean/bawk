@@ -61,8 +61,13 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let rgxcomp_t : L.lltype =
     L.function_type i1_t [| str_t; str_t |] in
   let rgxcomp_func : L.llvalue =
-    L.declare_function "equals" rgxcomp_t the_module in
+    L.declare_function "comp" rgxcomp_t the_module in
   let rgxnot_func : L.llvalue =
+    L.declare_function "ncomp" rgxcomp_t the_module in
+
+  let rgxeq_func : L.llvalue =
+    L.declare_function "equals" rgxcomp_t the_module in
+  let rgxneq_func : L.llvalue =
     L.declare_function "nequals" rgxcomp_t the_module in
 
   let access_t : L.lltype =
@@ -381,8 +386,10 @@ let translate (begin_block, loop_block, end_block, config_block) =
           | _ -> raise (Failure "no unary operation")
         ) e' "tmp" builder 
 
-    | SRgxcomp (e1, e2) -> L.build_call rgxcomp_func [| loopend_expr builder is_loop e1; loopend_expr builder is_loop e2 |] "equals" builder
-    | SRgxnot (e1, e2) -> L.build_call rgxnot_func [| loopend_expr builder is_loop e1; loopend_expr builder is_loop e2 |] "nequals" builder
+    | SRgxcomp (e1, e2) -> L.build_call rgxcomp_func [| loopend_expr builder is_loop e1; loopend_expr builder is_loop e2 |] "comp" builder
+    | SRgxnot (e1, e2) -> L.build_call rgxnot_func [| loopend_expr builder is_loop e1; loopend_expr builder is_loop e2 |] "ncomp" builder
+    | SRgxeq (e1, e2) -> L.build_call rgxeq_func [| loopend_expr builder is_loop e1; loopend_expr builder is_loop e2 |] "equals" builder
+    | SRgxneq (e1, e2) -> L.build_call rgxneq_func [| loopend_expr builder is_loop e1; loopend_expr builder is_loop e2 |] "nequals" builder
     | SCall ("print", [e]) ->
       L.build_call printf_func [| string_format_str ; (loopend_expr builder is_loop e) |] "printf" builder
     | SCall ("int_to_string", [e]) -> L.build_call int_to_string_func [| loopend_expr builder is_loop e |] "int_to_string" builder
