@@ -494,6 +494,38 @@ int main()
 	threeDlist = initList(threeD_size, threeD_depth);
 	printf("Length of list: %d\n", length(threeDlist));
 
+	addFront(threeDlist, nestedlist);
+	addFront(threeDlist, nestedlist);
+	reverseList(threeDlist);
+	printf("Length of list: %d\n", length(threeDlist));
+
+	// index_of
+	printf("Element [10,20,30] is at index: %d\n", findIndexOfNode(threeDlist, nestedlist, (int (*)(const void *, const void *))compareInts));
+
+	 // contains 
+	printf("Does list contain element [10,20,30]: ");
+	if( findNode(threeDlist, nestedlist, (int (*)(const void *, const void *))compareInts) )
+		printf("YES\n");
+	else
+		printf("NO\n");
+
+	// insert
+	int threeD_int_pos = 1;	
+	printf("Insert element [0,0,0] at position 1 \n");	
+	insertElement(threeDlist, threeD_int_pos, nestedlist);
+	printf("Length of list: %d\n", length(threeDlist));
+
+	// assign
+	printf("Set element at position 1 to be [10,20,30] instead \n");
+	assignElement(threeDlist, threeD_int_pos, nestedlist);
+	printf("Length of list: %d\n", length(threeDlist));
+
+	// delete
+	int threeD_int_pos1 = 0;
+	printf("Remove element at position 0 \n");
+	removeNode(threeDlist, threeD_int_pos1);
+	printf("Length of list: %d\n", length(threeDlist));
+
 /*
 	// array literal
 	for(int i = 0; i < sizeof(nested)/sizeof(nested[0]); i++) {

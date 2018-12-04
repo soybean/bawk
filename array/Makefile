@@ -4,17 +4,17 @@ CFLAGS = -g -Wall $(INCLUDES)
 LDFLAGS = -g
 LDLIBS =
 
-mylist_nested: mylist_nested.o
+mylist: mylist.o
 
-mylist_nested.o: mylist_nested.c
+mylist.o: mylist.c
 
 .PHONY: clean
 clean:
-	rm -f *.o core mylist_nested
+	rm -f *.o core mylist
 
 .PHONY: all
-all: clean mylist_nested
+all: clean mylist
 
 .PHONY: valgrind
-valgrind: mylist_nested
-	valgrind --leak-check=yes ./mylist_nested
+valgrind: mylist
+	valgrind --leak-check=yes ./mylist
