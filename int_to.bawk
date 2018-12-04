@@ -4,14 +4,16 @@ BEGIN {
   }  
 }
 LOOP {
-  int c;
-  c = 0;
-  c++;
-  c++;
-  c++;
-  c--;
-  print(int_to_string(c));
-  print($0);
+
+  rgx x;
+  string y;
+  bool b;
+  x = 'hello([0-9]*)world';
+  y = "hello42world";
+  b = y ~ x;
+  print(bool_to_string(b));
+
+
 }
 END {
   print("end test");
