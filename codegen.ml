@@ -58,10 +58,10 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let concat_func : L.llvalue =
     L.declare_function "concat" concat_t the_module in
 
-  let rgxeq_t : L.lltype =
+  let rgxcomp_t : L.lltype =
     L.function_type i1_t [| str_t; str_t |] in
-  let rgxeq_func : L.llvalue =
-    L.declare_function "equals" rgxeq_t the_module in
+  let rgxcomp_func : L.llvalue =
+    L.declare_function "equals" rgxcomp_t the_module in
 
   let access_t : L.lltype =
     L.function_type str_t [| str_t; i32_t|] in
@@ -224,7 +224,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
           | _ -> raise (Failure "no unary operation")
         ) e' "tmp" builder; 
       | SStrcat(e1, e2) -> L.build_call concat_func [| expr builder e1; expr builder e2 |] "concat" builder
-      | SRgxeq (e1, e2) -> L.build_call rgxeq_func [| expr builder e1; expr builder e2 |] "equals" builder
       | SCall ("print", [e]) ->
     		L.build_call printf_func [| string_format_str builder; (expr builder e)|] "printf" builder
       | SCall (f, args) ->
@@ -380,7 +379,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
           | _ -> raise (Failure "no unary operation")
         ) e' "tmp" builder 
 
-    | SRgxcomp (e1, e2) -> L.build_call rgxeq_func [| loopend_expr builder is_loop e1; loopend_expr builder is_loop e2 |] "equals" builder
+    | SRgxcomp (e1, e2) -> L.build_call rgxcomp_func [| loopend_expr builder is_loop e1; loopend_expr builder is_loop e2 |] "equals" builder
     | SCall ("print", [e]) ->
       L.build_call printf_func [| string_format_str ; (loopend_expr builder is_loop e) |] "printf" builder
     | SCall ("int_to_string", [e]) -> L.build_call int_to_string_func [| loopend_expr builder is_loop e |] "int_to_string" builder
