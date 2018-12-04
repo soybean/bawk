@@ -3,13 +3,11 @@
 #include <string.h>
 
 /* This function converts a string to an int */
-/*int string_to_int(char *a) {
+int string_to_int(char *a) {
   char *cleaned = malloc(strlen(a) + 1);
   strcpy(cleaned, a);
-  cleaned++;
-  cleaned[strlen(cleaned)-1] = 0;
   return atoi(cleaned);
-}*/
+}
 
 char *concat(char *a, char *b) {
   char *str = malloc(strlen(a) + strlen(b));
@@ -32,15 +30,7 @@ char *bool_to_string(int a) {
   else {
     return "False";
   }
-  /*printf("%c", a);*/
   return "";
-  /*if (strcmp(a,"true") == 0){
-    return "True";
-  }
-  else {
-    return "False";
-  }
-  */
 }
 
 char* int_to_string(int a) {
