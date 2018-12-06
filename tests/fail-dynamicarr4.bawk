@@ -1,0 +1,9 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+  int[] a;
+  a = [1,2,3];
+  delete(a, 4); # Fail: Deleting element that does not exist
+}

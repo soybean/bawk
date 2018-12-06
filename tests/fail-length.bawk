@@ -1,0 +1,9 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+	int x;
+	x = 0;
+	length(x); # Fail: Finding length of int
+}

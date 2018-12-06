@@ -1,0 +1,7 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+	print(rgx_to_string(2)); # Fail: Passing a int instead of rgx
+}

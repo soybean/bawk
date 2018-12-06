@@ -1,0 +1,7 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+	print(int_to_string("hi")); # Fail: Passing a string instead of int
+}
