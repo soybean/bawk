@@ -3,5 +3,5 @@ BEGIN {}
 LOOP {}
 
 END {
-	print(5) # Fail: Printing an int instead of a string
+	print(5); # Fail: Printing an int instead of a string
 }
