@@ -1,0 +1,7 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+	'[0]*' ~ true; # Fail: Comparing rgx and bool
+}
