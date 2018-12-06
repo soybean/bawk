@@ -231,6 +231,13 @@ let translate (begin_block, loop_block, end_block, config_block) =
           | _ -> raise (Failure "no unary operation")
         ) e' "tmp" builder; 
       | SStrcat(e1, e2) -> L.build_call concat_func [| expr builder e1; expr builder e2 |] "concat" builder
+      | SRgxcomp (e1, e2) -> L.build_call rgxcomp_func [| expr builder e1; expr builder e2 |] "comp" builder
+      | SRgxnot (e1, e2) -> L.build_call rgxnot_func [| expr builder e1; expr builder e2 |] "ncomp" builder
+      | SRgxeq (e1, e2) -> L.build_call rgxeq_func [| expr builder e1; expr builder e2 |] "equals" builder
+      | SRgxneq (e1, e2) -> L.build_call rgxneq_func [| expr builder e1; expr builder e2 |] "nequals" builder
+      | SCall ("int_to_string", [e]) -> L.build_call int_to_string_func [| expr builder e |] "int_to_string" builder
+      | SCall ("string_to_int", [e]) -> L.build_call string_to_int_func [| expr builder e |] "string_to_int" builder
+      | SCall ("bool_to_string", [e]) -> L.build_call bool_to_string_func [| expr builder e |] "bool_to_string" builder
       | SCall ("print", [e]) ->
     		L.build_call printf_func [| string_format_str builder; (expr builder e)|] "printf" builder
       | SCall (f, args) ->
