@@ -27,6 +27,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	| A.Bool  -> i1_t
 	| A.Void  -> void_t
 	| A.String -> str_t
+  | A.Rgx -> str_t
   | A.ArrayType t -> arr_t
         | _ -> raise (Failure "types no pattern match")
 	in
@@ -56,6 +57,18 @@ let translate (begin_block, loop_block, end_block, config_block) =
     L.function_type str_t [| str_t; str_t|] in
   let concat_func : L.llvalue =
     L.declare_function "concat" concat_t the_module in
+
+  let rgxcomp_t : L.lltype =
+    L.function_type i1_t [| str_t; str_t |] in
+  let rgxcomp_func : L.llvalue =
+    L.declare_function "comp" rgxcomp_t the_module in
+  let rgxnot_func : L.llvalue =
+    L.declare_function "ncomp" rgxcomp_t the_module in
+
+  let rgxeq_func : L.llvalue =
+    L.declare_function "equals" rgxcomp_t the_module in
+  let rgxneq_func : L.llvalue =
+    L.declare_function "nequals" rgxcomp_t the_module in
 
   let access_t : L.lltype =
     L.function_type str_t [| str_t; i32_t|] in
@@ -197,14 +210,14 @@ let translate (begin_block, loop_block, end_block, config_block) =
         and e2' = expr builder e2 in
         (match op with
             A.Add       -> L.build_add
-          | A.Sub     -> L.build_sub
-    	  | A.Mult    -> L.build_mul
-    	  | A.Div     -> L.build_sdiv
-          | A.And     -> L.build_and
-    	  | A.Or      -> L.build_or
-    	  | A.Equal   -> L.build_icmp L.Icmp.Eq
-    	  | A.Neq     -> L.build_icmp L.Icmp.Ne
-    	  | A.Less    -> L.build_icmp L.Icmp.Slt
+            | A.Sub     -> L.build_sub
+            | A.Mult    -> L.build_mul
+            | A.Div     -> L.build_sdiv
+            | A.And     -> L.build_and
+    	      | A.Or      -> L.build_or
+    	      | A.Equal   -> L.build_icmp L.Icmp.Eq
+    	      | A.Neq     -> L.build_icmp L.Icmp.Ne
+    	      | A.Less    -> L.build_icmp L.Icmp.Slt
     	  | A.Leq     -> L.build_icmp L.Icmp.Sle
     	  | A.Greater -> L.build_icmp L.Icmp.Sgt
     	  | A.Geq     -> L.build_icmp L.Icmp.Sge
@@ -332,6 +345,9 @@ let translate (begin_block, loop_block, end_block, config_block) =
     SStringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
       L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
     | SLiteral i -> L.const_int i32_t i
+    (*| SRgxLiteral r -> let l = SStringLiteral r in loopend_expr builder is_loop r *)
+    | SRgxLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
+      L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
     | SArrayLit a -> array_gen builder is_loop a
     | SId s -> L.build_load (lookup s builder is_loop) s builder 
     | SBoolLit b -> L.const_int i1_t (if b then 1 else 0)
@@ -369,6 +385,11 @@ let translate (begin_block, loop_block, end_block, config_block) =
           | A.Not -> L.build_not
           | _ -> raise (Failure "no unary operation")
         ) e' "tmp" builder 
+
+    | SRgxcomp (e1, e2) -> L.build_call rgxcomp_func [| loopend_expr builder is_loop e1; loopend_expr builder is_loop e2 |] "comp" builder
+    | SRgxnot (e1, e2) -> L.build_call rgxnot_func [| loopend_expr builder is_loop e1; loopend_expr builder is_loop e2 |] "ncomp" builder
+    | SRgxeq (e1, e2) -> L.build_call rgxeq_func [| loopend_expr builder is_loop e1; loopend_expr builder is_loop e2 |] "equals" builder
+    | SRgxneq (e1, e2) -> L.build_call rgxneq_func [| loopend_expr builder is_loop e1; loopend_expr builder is_loop e2 |] "nequals" builder
     | SCall ("print", [e]) ->
       L.build_call printf_func [| string_format_str ; (loopend_expr builder is_loop e) |] "printf" builder
     | SCall ("int_to_string", [e]) -> L.build_call int_to_string_func [| loopend_expr builder is_loop e |] "int_to_string" builder
