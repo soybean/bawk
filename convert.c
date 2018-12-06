@@ -19,10 +19,6 @@ char *concat(char *a, char *b) {
   return concat;
 }
 
-int string_to_int(char *a) {
-  return atoi(a);
-}
-
 char *bool_to_string(int a) {
   if(a) {
     return "True";
