@@ -7,7 +7,7 @@ BEGIN {
 LOOP {}
 
 END {
-  print(bool_to_string(foo("hello", '[0-9]*')));
+  print(bool_to_string(foo("1234", '[0]')));
 }
 
 CONFIG {}
