@@ -3,6 +3,8 @@ BEGIN {}
 LOOP {}
 
 END {
+	int x;
+	x = 42;
   print(bool_to_string(true));
   print(bool_to_string(false));
   print(bool_to_string(true && true));
@@ -16,6 +18,6 @@ END {
   print(bool_to_string(!false));
   print(bool_to_string(!true));
   print(int_to_string(-10));
-  print(int_to_string(42--));
-  print(int_to_string(42++));
+  print(int_to_string(x--));
+  print(int_to_string(x++));
 }
