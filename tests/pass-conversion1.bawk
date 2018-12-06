@@ -1,0 +1,11 @@
+BEGIN {
+  function void eight() {
+    string_to_int("8");
+  }
+}
+
+LOOP {}
+
+END {
+  eight();
+}
