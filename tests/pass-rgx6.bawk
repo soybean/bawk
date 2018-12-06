@@ -1,5 +1,5 @@
 BEGIN {
-  function bool foo(rgx a, string b) {
+  function bool foo(string a, rgx b) {
     return a !~ b;
   }
 }
@@ -7,7 +7,7 @@ BEGIN {
 LOOP {}
 
 END {
-  print(bool_to_string(foo('[0-9]*', "[0-9]*")));
+  print(bool_to_string(foo("hello", '[0-9]*')));
 }
 
 CONFIG {}
