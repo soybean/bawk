@@ -1,7 +1,0 @@
-BEGIN {}
-
-LOOP {
-  print(int_to_string(string_to_int(8)));
-}
-
-END {}

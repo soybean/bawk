@@ -1,0 +1,7 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+	print(bool_to_string('[0-9]*')); # Fail: Passing a rgx instead of bool
+}

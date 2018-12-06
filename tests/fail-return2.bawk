@@ -1,0 +1,9 @@
+BEGIN {
+	function int foo() {
+		# Fail: Missing return statement
+	}
+}
+
+LOOP {}
+
+END {}
