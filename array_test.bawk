@@ -1,16 +1,16 @@
 BEGIN {}
-LOOP {
-  int b;
-  b = 1;
-  print(int_to_string(b));
-}
+LOOP {}
 END {
-  int a;
-  int[] c;
+  #int[] a;
+  #a = [1, 2, 3];
 
-  a = 2;
-  print(int_to_string(a));
+  #string[] b;
+  #b = ["a", "b", "c"];
 
-  c = [1];
+  string[][] c;
+  c = [["a", "b"], ["d"]];
+
+  #int[][] d;
+  #d = [[1, 2], [3]];
 
 }

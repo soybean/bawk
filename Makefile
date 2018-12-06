@@ -10,7 +10,7 @@
 all : san clean bawk.native convert.o structure.o mylist.o
 
 san:
-	if [[ -f _build/sanitize.sh ]] ; then _build/sanitize.sh ; fi
+	if [ -f _build/sanitize.sh ] ; then _build/sanitize.sh ; fi
 
 # "make bawk.native" compiles the compiler
 

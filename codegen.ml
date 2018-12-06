@@ -3,7 +3,7 @@ module A = Ast
 open Sast
 
 module StringMap = Map.Make(String)
-
+(* TODO: pretty print errors *)
 let translate (begin_block, loop_block, end_block, config_block) =
 
   let context = L.global_context () in
@@ -13,13 +13,23 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	let the_module = L.create_module context "Bawk" in
 
 	(* Get types from the context *)
-	let i32_t      = L.i32_type    context
+  let i64_t      = L.i64_type    context
+  and i32_t      = L.i32_type    context
 	and i8_t       = L.i8_type     context
 	and i1_t       = L.i1_type     context
 	and str_t 	   = L.pointer_type ( L.i8_type context ) 
-  and arr_t      = L.pointer_type ( L.i8_type context )
   and ptr_t      = L.pointer_type ( L.i8_type context )
 	and void_t     = L.void_type   context in
+  (*let void_p_t   = L.pointer_type ( L.i8_type_context) in*)
+  let node_t     = let node_t = L.named_struct_type context "Node" in
+                   L.struct_set_body node_t [| i64_t ; L.pointer_type node_t |] false;
+                   node_t in
+  let node_p_t   = L.pointer_type node_t in
+  let arr_t      = let arr_t = L.named_struct_type context "Array" in
+                   L.struct_set_body arr_t [| node_p_t ; i32_t ; i32_t |] false;
+                   arr_t
+         
+  in let arr_p_t = L.pointer_type arr_t in
 
 	(* Return the LLVM type for a bawk type *)
 	let ltype_of_typ = function
@@ -27,9 +37,21 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	| A.Bool  -> i1_t
 	| A.Void  -> void_t
 	| A.String -> str_t
-  | A.ArrayType t -> arr_t
-        | _ -> raise (Failure "types no pattern match")
-	in
+  | A.ArrayType t -> arr_p_t
+  | _ -> raise (Failure "types no pattern match")
+	
+  in
+
+  (* Array helper functions *)
+  let arr_elem_type = function 
+    A.ArrayType t -> t
+    | _ -> raise (Failure "not an array type")
+  in
+
+  let rec arr_depth = function
+    A.ArrayType t -> (arr_depth t) + 1
+    | _ -> 0
+  in
 
   (* Declare built-in functions *)
 	let printf_t : L.lltype = 
@@ -64,12 +86,12 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
   (* array functions *)
   let initlist_t : L.lltype =
-    L.function_type arr_t [| i32_t; i32_t |] in
+    L.function_type arr_p_t [| i64_t; i32_t |] in
   let initlist_func : L.llvalue =
     L.declare_function "initList" initlist_t the_module in
 
   let addfront_t : L.lltype =
-    L.function_type ptr_t [| arr_t; ptr_t|] in
+    L.function_type node_t [| arr_p_t; i64_t|] in
   let addfront_func : L.llvalue =
     L.declare_function "addFront" addfront_t the_module in
 
@@ -328,11 +350,11 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
   let string_format_str = L.build_global_stringptr "%s\n" "fmt" loopbuilder in
 
-  let rec loopend_expr builder is_loop((_, e):sexpr) = match e with
+  let rec loopend_expr builder is_loop((ty, e):sexpr) = match e with
     SStringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
       L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
     | SLiteral i -> L.const_int i32_t i
-    | SArrayLit a -> array_gen builder is_loop a
+    | SArrayLit a -> array_gen builder is_loop ty a
     | SId s -> L.build_load (lookup s builder is_loop) s builder 
     | SBoolLit b -> L.const_int i1_t (if b then 1 else 0)
     | SAssign (e1, e2) ->
@@ -397,25 +419,51 @@ let translate (begin_block, loop_block, end_block, config_block) =
   and
 
   (* returns ptr to size of type of 1st element of list; used for initList *)
-  (*find_arr_type arr = match List.hd arr with
-    A.Literal i -> L.size_of i32_t
+  (*find_arr_type arr ty =
+    let arr_typ = arr_elem_type ty in*)
+
+    
+
+    (*let fst = List.hd arr in
+    let (ty, _) = fst in match ty with
+
+    A.String -> L.const_int i32_t 32
+    | A.ArrayType t -> L.const_int i32_t 32
+    | A.Int -> L.const_int i32_t 4*)
+    (*A.Literal i -> L.size_of i32_t
     | A.StringLiteral s -> L.size_of str_t
     | A.ArrayLit a -> L.size_of arr_t*)
-  find_arr_type arr = L.const_int i32_t 8
-  and get_depth = L.const_int i32_t 1
 
-  and array_gen builder is_loop arr =
-    (* most inner array has type --> initList gives ptr, which you can use for struct List**)
-    let arr_type = find_arr_type arr in (* type of 1 depth down *)
-    let depth = get_depth in (* will be changed later *)
+  (*find_arr_type arr = L.const_int i32_t 8*)
+  find_arr_type arr ty = 
+    let ast_typ = arr_elem_type ty in 
+    L.size_of (ltype_of_typ ast_typ)
+
+  and get_depth ty = 
+    let depth_int = arr_depth ty in L.const_int i32_t depth_int
+
+  and array_gen builder is_loop ty arr =
+    let arr_type = find_arr_type arr ty in (* type of 1 depth down *)
+    let depth = get_depth ty in
 
     let lst =
       L.build_call initlist_func [| arr_type; depth |] "initList" builder
     in 
 
     let add_front e = 
-      let red_expr = loopend_expr builder is_loop e in
-      ignore(L.build_call addfront_func [| lst; L.const_inttoptr red_expr ptr_t|] "addFront" builder)
+      let red_expr = print_string "wefw" ; loopend_expr builder is_loop e in
+
+      let data = 
+        let t' = L.type_of red_expr in (print_string (L.string_of_lltype t')); match t' with
+          i32_t -> L.build_zext red_expr i64_t "addFrontCast" builder
+          | str_t -> L.build_zext red_expr i64_t "addFrontCast" builder
+          | arr_p_t -> L.build_pointercast red_expr i64_t "addFrontCast" builder 
+          | _ -> raise (Failure "addfront type not matched") in
+     
+      (*let ptr_cast = L.build_ptrtoint red_expr i64_t "ptrCast" builder in*)
+      (*let data = L.build_pointercast red_expr i64_t "addFrontCast" builder in*)
+      
+      ignore(L.build_call addfront_func [| lst; data |] "addFront" builder)
     in
     List.iter add_front arr; lst
 
