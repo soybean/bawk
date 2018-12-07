@@ -20,7 +20,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	and str_t 	   = L.pointer_type ( L.i8_type context ) 
   and ptr_t      = L.pointer_type ( L.i8_type context )
 	and void_t     = L.void_type   context in
-  (*let void_p_t   = L.pointer_type ( L.i8_type_context) in*)
   let node_t     = let node_t = L.named_struct_type context "Node" in
                    L.struct_set_body node_t [| i64_t ; L.pointer_type node_t |] false;
                    node_t in
@@ -28,7 +27,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let arr_t      = let arr_t = L.named_struct_type context "Array" in
                    L.struct_set_body arr_t [| node_p_t ; i32_t ; i32_t |] false;
                    arr_t
-         
   in let arr_p_t = L.pointer_type arr_t in
 
 	(* Return the LLVM type for a bawk type *)
@@ -84,6 +82,11 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let access_func : L.llvalue =
     L.declare_function "access" access_t the_module in
 
+  let arrayderef_t : L.lltype =
+    L.function_type i64_t [| arr_p_t; i32_t |] in
+  let arrayderef_func : L.llvalue =
+    L.declare_function "getElement" arrayderef_t the_module in
+
   (* array functions *)
   let initlist_t : L.lltype =
     L.function_type arr_p_t [| i64_t; i32_t |] in
@@ -94,6 +97,16 @@ let translate (begin_block, loop_block, end_block, config_block) =
     L.function_type node_t [| arr_p_t; i64_t|] in
   let addfront_func : L.llvalue =
     L.declare_function "addFront" addfront_t the_module in
+
+  let length_t : L.lltype =
+    L.function_type i32_t [| arr_p_t |] in
+  let length_func : L.llvalue =
+    L.declare_function "length" length_t the_module in
+
+  let delete_t : L.lltype =
+    L.function_type i64_t [| arr_p_t; i32_t |] in
+  let delete_func : L.llvalue =
+    L.declare_function "removeNode" delete_t the_module in
 
   let ftype = L.function_type void_t [||] in (* function takes in nothing, returns void *)
 
@@ -341,16 +354,15 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
   let lookup n builder is_loop = try
     match is_loop with
-
-    false-> StringMap.find n end_local_vars
-    | true -> StringMap.find n loop_local_vars
-  with Not_found -> StringMap.find n global_vars
+      false-> StringMap.find n end_local_vars
+      | true -> StringMap.find n loop_local_vars
+    with Not_found -> StringMap.find n global_vars
 
   in
 
   let string_format_str = L.build_global_stringptr "%s\n" "fmt" loopbuilder in
 
-  let rec loopend_expr builder is_loop((ty, e):sexpr) = match e with
+  let rec loopend_expr builder is_loop ((ty, e):sexpr) = match e with
     SStringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
       L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
     | SLiteral i -> L.const_int i32_t i
@@ -360,7 +372,10 @@ let translate (begin_block, loop_block, end_block, config_block) =
     | SAssign (e1, e2) ->
       let (_, e) = e1 in
       let lhs = match e with
-        (* TODO: A.ArrayDeref *)
+        (*SArrayDeref (ar, idx) -> 
+          let (_, arrl) = ar and (_, idxr) = idx in
+          L.build_call arrayderef_func [| lookup (loopend_expr builder is_loop ar) builder is_loop ; loopend_expr builder is_loop idxr |] "getElement" builder
+        (* TODO: A.ArrayDeref *)*)
         SId i -> lookup i builder is_loop
         | _ -> raise (Failure "left side not found")
       and rhs = loopend_expr builder is_loop e2
@@ -371,16 +386,16 @@ let translate (begin_block, loop_block, end_block, config_block) =
         (match op with
           A.Add       -> L.build_add
           | A.Sub     -> L.build_sub
-    	  | A.Mult    -> L.build_mul
-    	  | A.Div     -> L.build_sdiv
+    	    | A.Mult    -> L.build_mul
+    	    | A.Div     -> L.build_sdiv
           | A.And     -> L.build_and
-    	  | A.Or      -> L.build_or
-    	  | A.Equal   -> L.build_icmp L.Icmp.Eq
-    	  | A.Neq     -> L.build_icmp L.Icmp.Ne
-    	  | A.Less    -> L.build_icmp L.Icmp.Slt
-    	  | A.Leq     -> L.build_icmp L.Icmp.Sle
-    	  | A.Greater -> L.build_icmp L.Icmp.Sgt
-    	  | A.Geq     -> L.build_icmp L.Icmp.Sge
+    	    | A.Or      -> L.build_or
+    	    | A.Equal   -> L.build_icmp L.Icmp.Eq
+    	    | A.Neq     -> L.build_icmp L.Icmp.Ne
+    	    | A.Less    -> L.build_icmp L.Icmp.Slt
+    	    | A.Leq     -> L.build_icmp L.Icmp.Sle
+    	    | A.Greater -> L.build_icmp L.Icmp.Sgt
+    	    | A.Geq     -> L.build_icmp L.Icmp.Sge
           | _         -> raise (Failure "no binary operation")
         ) e1' e2' "tmp" builder
 
@@ -396,6 +411,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
     | SCall ("int_to_string", [e]) -> L.build_call int_to_string_func [| loopend_expr builder is_loop e |] "int_to_string" builder
     | SCall ("string_to_int", [e]) -> L.build_call string_to_int_func [| loopend_expr builder is_loop e |] "string_to_int" builder
     | SCall ("bool_to_string", [e]) -> L.build_call bool_to_string_func [| loopend_expr builder is_loop e |] "bool_to_string" builder
+    | SCall ("length", [e]) -> L.build_call length_func [| loopend_expr builder is_loop e |] "length" builder
+    | SCall ("delete", [e1; e2]) -> L.build_call delete_func [| loopend_expr builder is_loop e1 ; loopend_expr builder is_loop e2 |] "removeNode" builder
     | SCall (f, args) ->
       let (fdef, fdecl) = StringMap.find f function_decls in
       let llargs = List.rev (List.map (loopend_expr builder is_loop) (List.rev args)) in
@@ -404,10 +421,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
         | _ -> f ^ "_result") in
         L.build_call fdef (Array.of_list llargs) result builder
     | SAccess (a) -> L.build_call access_func [| L.param loop_func 0; loopend_expr builder is_loop a|] "access" builder
-    | SAssign (e1, e2) ->
-      let lhs = loopend_expr builder is_loop e1 and 
-      rhs = loopend_expr builder is_loop e2
-      in ignore(L.build_store rhs lhs builder); rhs
     | SAccess (a) -> L.build_call access_func [| L.param loop_func 0; loopend_expr builder is_loop a|] "access" builder
     | SIncrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Add, (A.Int, SLiteral(1)))))) in loopend_expr builder is_loop e2
     | SDecrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Sub, (A.Int, SLiteral(1)))))) in loopend_expr builder is_loop e2
@@ -417,24 +430,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
     | _ -> raise (Failure "end loopend_expr no pattern match") 
   
   and
-
-  (* returns ptr to size of type of 1st element of list; used for initList *)
-  (*find_arr_type arr ty =
-    let arr_typ = arr_elem_type ty in*)
-
-    
-
-    (*let fst = List.hd arr in
-    let (ty, _) = fst in match ty with
-
-    A.String -> L.const_int i32_t 32
-    | A.ArrayType t -> L.const_int i32_t 32
-    | A.Int -> L.const_int i32_t 4*)
-    (*A.Literal i -> L.size_of i32_t
-    | A.StringLiteral s -> L.size_of str_t
-    | A.ArrayLit a -> L.size_of arr_t*)
-
-  (*find_arr_type arr = L.const_int i32_t 8*)
   find_arr_type arr ty = 
     let ast_typ = arr_elem_type ty in 
     L.size_of (ltype_of_typ ast_typ)
@@ -451,18 +446,14 @@ let translate (begin_block, loop_block, end_block, config_block) =
     in 
 
     let add_front e = 
-      let red_expr = print_string "wefw" ; loopend_expr builder is_loop e in
+      let red_expr = loopend_expr builder is_loop e in
+      let ty = L.type_of red_expr in
+      let data = match  L.classify_type ty with
+        Pointer -> L.build_pointercast red_expr i64_t "addFrontCast" builder
+        | Integer -> L.build_zext red_expr i64_t "addFrontCast" builder
+        | _ -> raise (Failure "wf")
+      in
 
-      let data = 
-        let t' = L.type_of red_expr in (print_string (L.string_of_lltype t')); match t' with
-          i32_t -> L.build_zext red_expr i64_t "addFrontCast" builder
-          | str_t -> L.build_zext red_expr i64_t "addFrontCast" builder
-          | arr_p_t -> L.build_pointercast red_expr i64_t "addFrontCast" builder 
-          | _ -> raise (Failure "addfront type not matched") in
-     
-      (*let ptr_cast = L.build_ptrtoint red_expr i64_t "ptrCast" builder in*)
-      (*let data = L.build_pointercast red_expr i64_t "addFrontCast" builder in*)
-      
       ignore(L.build_call addfront_func [| lst; data |] "addFront" builder)
     in
     List.iter add_front arr; lst
