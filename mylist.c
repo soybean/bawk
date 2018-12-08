@@ -146,6 +146,13 @@ struct Node *findNode(struct List *list, const void *dataSought, int (*compar)(c
 	return NULL;    
 }
 
+int contains(struct List *list, const void *dataSought, int (*compar)(const void *, const void *)) {
+	struct Node *found = findNode(list, dataSought, compar);
+	if (found)
+		return 1;
+	return 0;
+}
+
 // Traverse list to find index of node
 int findIndexOfNode(struct List *list, const void *dataSought, int (*compar)(const void *, const void *))
 { 

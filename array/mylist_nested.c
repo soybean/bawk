@@ -146,6 +146,13 @@ struct Node *findNode(struct List *list, const void *dataSought, int (*compar)(c
 	return NULL;    
 }
 
+int contains(struct List *list, const void *dataSought, int (*compar)(const void *, const void *)) {
+	struct Node *found = findNode(list, dataSought, compar);
+	if (found)
+		return 1;
+	return 0;
+}
+
 // Traverse list to find index of node
 int findIndexOfNode(struct List *list, const void *dataSought, int (*compar)(const void *, const void *))
 { 
@@ -504,7 +511,7 @@ int main()
 
 	 // contains 
 	printf("Does list contain element [10,20,30]: ");
-	if( findNode(threeDlist, nestedlist, (int (*)(const void *, const void *))compareInts) )
+	if( contains(threeDlist, nestedlist, (int (*)(const void *, const void *))compareInts) )
 		printf("YES\n");
 	else
 		printf("NO\n");
