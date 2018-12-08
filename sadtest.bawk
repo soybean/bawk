@@ -1,0 +1,7 @@
+BEGIN {}
+
+LOOP {
+	if (true) {}
+}
+
+END {}
