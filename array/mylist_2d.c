@@ -43,6 +43,11 @@ int compareInts(const void *a, const void *b)
 	return 0;
 }
 
+int compareStrs(const void *a, const void *b)
+{
+	return strcmp((const char *)a, (const char *)b);
+}
+
 int compareLists(const void *a, const void *b, int (*compar)(const void *, const void *))
 {
 	struct List *lista = (struct List *)a;
@@ -144,6 +149,13 @@ struct Node *findNode(struct List *list, const void *dataSought, int (*compar)(c
 		}
 	}
 	return NULL;    
+}
+
+int contains(struct List *list, const void *dataSought, int (*compar)(const void *, const void *)) {
+	struct Node *found = findNode(list, dataSought, compar);
+	if (found)
+		return 1;
+	return 0;
 }
 
 // Traverse list to find index of node
@@ -421,7 +433,7 @@ int main()
 
 	// contains 
 	printf("Does list contain element [10,20,30]: ");
-	if( findNode(nestedlist, elem, (int (*)(const void *, const void *))compareInts) )
+	if( contains(nestedlist, elem, (int (*)(const void *, const void *))compareInts) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -438,7 +450,7 @@ int main()
 
 	// contains
 	printf("Does list contain element [0,0,0]: ");
-	if( findNode(nestedlist, testlist, (int (*)(const void *, const void *))compareInts) )
+	if( contains(nestedlist, testlist, (int (*)(const void *, const void *))compareInts) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -514,12 +526,12 @@ int main()
 
 	// index_of
 	char *str_b = "def";
-	printf("Element 'def' is at index: %d\n", findIndexOfNode(strlist, str_b, (int (*)(const void *, const void *))strcmp));
+	printf("Element 'def' is at index: %d\n", findIndexOfNode(strlist, str_b, (int (*)(const void *, const void *))compareStrs));
   
 	// contains 
 	char *str_c = "hello";
 	printf("Does list contain element 'hello': ");
-	if( findNode(strlist, str_c, (int (*)(const void *, const void *))strcmp) )
+	if( contains(strlist, str_c, (int (*)(const void *, const void *))compareStrs) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -527,7 +539,7 @@ int main()
 	// contains
 	char *str_c1 = "abc";
 	printf("Does list contain element 'abc': ");
-	if( findNode(strlist, str_c1, (int (*)(const void *, const void *))strcmp) )
+	if( contains(strlist, str_c1, (int (*)(const void *, const void *))compareStrs) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -597,7 +609,7 @@ int main()
 	// contains 
 	bool bool_c = false;
 	printf("Does list contain element 'false': ");
-	if( findNode(boollist, &bool_c, (int (*)(const void *, const void *))compareBools) )
+	if( contains(boollist, &bool_c, (int (*)(const void *, const void *))compareBools) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -605,7 +617,7 @@ int main()
 	// contains
 	bool bool_c1 = true;
 	printf("Does list contain element 'true': ");
-	if( findNode(boollist, &bool_c1, (int (*)(const void *, const void *))compareBools) )
+	if( contains(boollist, &bool_c1, (int (*)(const void *, const void *))compareBools) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -675,7 +687,7 @@ int main()
 	// contains 
 	int int_c = 7;
 	printf("Does list contain element 7: ");
-	if( findNode(intlist, &int_c, (int (*)(const void *, const void *))compareInts) )
+	if( contains(intlist, &int_c, (int (*)(const void *, const void *))compareInts) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -683,7 +695,7 @@ int main()
 	// contains
 	int int_c1 = -7;
 	printf("Does list contain element -7: ");
-	if( findNode(intlist, &int_c1, (int (*)(const void *, const void *))compareInts) )
+	if( contains(intlist, &int_c1, (int (*)(const void *, const void *))compareInts) )
 		printf("YES\n");
 	else
 		printf("NO\n");

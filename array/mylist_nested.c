@@ -43,6 +43,11 @@ int compareInts(const void *a, const void *b)
 	return 0;
 }
 
+int compareStrs(const void *a, const void *b)
+{
+	return strcmp((const char *)a, (const char *)b);
+}
+
 int compareLists(const void *a, const void *b, int (*compar)(const void *, const void *))
 {
 	struct List *lista = (struct List *)a;
