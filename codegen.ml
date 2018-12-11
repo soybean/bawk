@@ -110,6 +110,11 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let delete_func : L.llvalue =
     L.declare_function "removeNode" delete_t the_module in
 
+  let insert_t : L.lltype =
+    L.function_type i8_t [| arr_p_t; i32_t; i64_t |] in
+  let insert_func : L.llvalue =
+    L.declare_function "insertElement" insert_t the_module in
+
   let compare_t : L.lltype = 
     L.function_type i32_t [| i8_p_t ; i8_p_t |] in
   let compare_p_t = L.pointer_type compare_t in
@@ -413,8 +418,9 @@ let translate (begin_block, loop_block, end_block, config_block) =
     | SCall ("bool_to_string", [e]) -> L.build_call bool_to_string_func [| loopend_expr builder is_loop e |] "bool_to_string" builder
     | SCall ("length", [e]) -> L.build_call length_func [| loopend_expr builder is_loop e |] "length" builder
     | SCall ("delete", [e1; e2]) -> L.build_call delete_func [| loopend_expr builder is_loop e1 ; loopend_expr builder is_loop e2 |] "removeNode" builder
+    | SCall ("insert", [e1; e2; e3]) -> L.build_call insert_func [| loopend_expr builder is_loop e1 ; loopend_expr builder is_loop e2 ; cast_unsigned builder is_loop e3|] "insertElement" builder
     | SCall ("contains", [e1; e2]) -> 
-        L.build_call contains_func [| loopend_expr builder is_loop e1 ; cast_to_void builder is_loop e2 ; choose_compar e2 is_loop builder |] "contains" builder
+        L.build_call contains_func [| loopend_expr builder is_loop e1 ; cast_to_void builder is_loop e2 ; choose_compar e2 is_loop builder |] "contains" builder 
     | SCall (f, args) ->
       let (fdef, fdecl) = StringMap.find f function_decls in
       let llargs = List.rev (List.map (loopend_expr builder is_loop) (List.rev args)) in
@@ -432,6 +438,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
     | _ -> raise (Failure "end loopend_expr no pattern match") 
   
   and
+  (* array gen functions *)
   find_arr_type arr ty = 
     let ast_typ = arr_elem_type ty in 
     L.size_of (ltype_of_typ ast_typ)
@@ -459,8 +466,16 @@ let translate (begin_block, loop_block, end_block, config_block) =
       ignore(L.build_call addfront_func [| lst; data |] "addFront" builder)
     in
     List.iter add_front arr; lst
+
+  and cast_unsigned builder is_loop e3 =
+    let red_expr = loopend_expr builder is_loop e3 in
+    let ty = L.type_of red_expr in match (L.classify_type ty) with
+    Pointer -> L.build_pointercast red_expr i64_t "castToUnsigned" builder
+    | Integer -> L.build_zext red_expr i64_t "castToUnsigned" builder
+    | _ -> raise (Failure "unable to cast to i64")
   
-  (* cast e2 into i8* *)
+  (* comparator functions *)
+  (*- cast e2 into i8* -*)
   and cast_to_void builder is_loop e2 =
     let red_expr = loopend_expr builder is_loop e2 in
     let ty = L.type_of red_expr in match (L.classify_type ty) with
@@ -471,6 +486,10 @@ let translate (begin_block, loop_block, end_block, config_block) =
   and choose_compar e2 is_loop builder =
     let (e2_ty, e2_e) = e2 in match e2_ty with
       (*A.Int -> L.pointer_type (L.build_call compareint_func [| |])*)
+      (*A.Int -> let cast_int = L.build_zext compareint_func i32_t "intCast" builder in
+        let constint = L.const_int i32_t cast_int in
+        L.build_inttoptr constint compare_p_t "compareCast" builder*)
+
       A.Int -> L.build_zext compareint_func compare_p_t "compareCast" builder
       (*| A.Bool -> comparebools_func 
       | A.ArrayType a -> comparelists_func*)
