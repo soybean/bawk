@@ -15,8 +15,9 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	(* Get types from the context *)
   let i64_t      = L.i64_type    context
   and i32_t      = L.i32_type    context
-	and i8_t       = L.i8_type     context
-	and i1_t       = L.i1_type     context
+	and i8_t       = L.i8_type     context in
+  let i8_p_t     = L.pointer_type i8_t in
+  let i1_t       = L.i1_type     context
 	and str_t 	   = L.pointer_type ( L.i8_type context ) 
   and ptr_t      = L.pointer_type ( L.i8_type context )
 	and void_t     = L.void_type   context in
@@ -32,6 +33,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
                    L.struct_set_body arr_t [| node_p_t ; i32_t ; i32_t |] false;
                    arr_t
   in let arr_p_t = L.pointer_type arr_t in
+  let void_p_t   = L.pointer_type void_t in
 
 	(* Return the LLVM type for a bawk type *)
 	let ltype_of_typ = function
@@ -98,7 +100,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
     L.declare_function "initList" initlist_t the_module in
 
   let addfront_t : L.lltype =
-    L.function_type node_t [| arr_p_t; i64_t|] in
+    L.function_type node_p_t [| arr_p_t; i64_t|] in
   let addfront_func : L.llvalue =
     L.declare_function "addFront" addfront_t the_module in
 
@@ -111,6 +113,27 @@ let translate (begin_block, loop_block, end_block, config_block) =
     L.function_type i64_t [| arr_p_t; i32_t |] in
   let delete_func : L.llvalue =
     L.declare_function "removeNode" delete_t the_module in
+
+  let insert_t : L.lltype =
+    L.function_type i8_t [| arr_p_t; i32_t; i64_t |] in
+  let insert_func : L.llvalue =
+    L.declare_function "insertElement" insert_t the_module in
+
+  let compare_t : L.lltype = 
+    L.function_type i32_t [| i8_p_t ; i8_p_t |] in
+  let compare_p_t = L.pointer_type compare_t in
+
+  let compareint_func : L.llvalue =
+    L.declare_function "compareInts" compare_t the_module in
+  let comparebools_func : L.llvalue =
+    L.declare_function "compareBools" compare_t the_module in
+  let comparelists_func : L.llvalue = 
+    L.declare_function "compareLists" compare_t the_module in
+
+  let contains_t : L.lltype =
+    L.function_type node_p_t [| arr_p_t ; i8_p_t ; compare_p_t |] in
+  let contains_func : L.llvalue =
+    L.declare_function "findNode" contains_t the_module in
 
   let ftype = L.function_type void_t [||] in (* function takes in nothing, returns void *)
 
@@ -130,11 +153,15 @@ let translate (begin_block, loop_block, end_block, config_block) =
   (*--- Build begin block: globals ---*)
   (* Create a map of global variables after creating each *)
   let global_vars : L.llvalue StringMap.t =
-    let global_var m (t, n) = 
-      let int_init = L.const_int (ltype_of_typ t) 0 and
-      rs_init = L.const_stringz context "\n" and
-      fs_init = L.const_stringz context " " 
-      in StringMap.add n (L.define_global n int_init the_module) m
+    let global_var m (t, n) =
+      let init = match t  with
+          A.Int -> L.const_int (ltype_of_typ t) 0
+          | A.Bool -> L.const_int (ltype_of_typ t) 0
+          | A.String -> L.const_pointer_null str_t
+          | A.ArrayType a -> L.const_pointer_null arr_p_t 
+      (*rs_init = L.const_stringz context "\n" and
+      fs_init = L.const_stringz context " " *)
+      in StringMap.add n (L.define_global n init the_module) m
       (*StringMap.add "RS" (L.define_global "RS"  rs_init  the_module);
       StringMap.add "FS" (L.define_global "FS" fs_init the_module) m*)
 
@@ -216,8 +243,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
       SStringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
 			  L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
-      (*| A.RgxLiteral r ->
-      | A.ArrayLit a -> *)
       | SLiteral i -> L.const_int i32_t i
       | SNoexpr -> L.const_int i32_t 0
       | SId i -> L.build_load (lookup i) i builder
@@ -230,24 +255,23 @@ let translate (begin_block, loop_block, end_block, config_block) =
             | _ -> raise (Failure "No match on left") 
           and rhs = expr builder e2
           in ignore(L.build_store rhs lhs builder); rhs
-      (* TODO: handle strings and rgx by building binop_gen function (see Decaf)*)
       | SBinop(e1, op, e2) ->
         let e1' = expr builder e1
         and e2' = expr builder e2 in
         (match op with
             A.Add       -> L.build_add
-          | A.Sub     -> L.build_sub
-    	  | A.Mult    -> L.build_mul
-    	  | A.Div     -> L.build_sdiv
-          | A.And     -> L.build_and
-    	  | A.Or      -> L.build_or
-    	  | A.Equal   -> L.build_icmp L.Icmp.Eq
-    	  | A.Neq     -> L.build_icmp L.Icmp.Ne
-    	  | A.Less    -> L.build_icmp L.Icmp.Slt
-    	  | A.Leq     -> L.build_icmp L.Icmp.Sle
-    	  | A.Greater -> L.build_icmp L.Icmp.Sgt
-    	  | A.Geq     -> L.build_icmp L.Icmp.Sge
-          | _         -> raise (Failure "no binary operation")
+            | A.Sub     -> L.build_sub
+    	      | A.Mult    -> L.build_mul
+    	      | A.Div     -> L.build_sdiv
+            | A.And     -> L.build_and
+    	      | A.Or      -> L.build_or
+    	      | A.Equal   -> L.build_icmp L.Icmp.Eq
+    	      | A.Neq     -> L.build_icmp L.Icmp.Ne
+    	      | A.Less    -> L.build_icmp L.Icmp.Slt
+    	      | A.Leq     -> L.build_icmp L.Icmp.Sle
+    	      | A.Greater -> L.build_icmp L.Icmp.Sgt
+    	      | A.Geq     -> L.build_icmp L.Icmp.Sge
+            | _         -> raise (Failure "no binary operation")
         ) e1' e2' "tmp" builder
       | SUnop(uop, e) ->
         let e' = expr builder e in
@@ -323,25 +347,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
   (*----- END OF build_func_body ----- *)
     
   in
-  (*
-  let local_vars =
-    let add_local_loop m (t, n) =
-	    let local_var = L.build_alloca (ltype_of_typ t) n loopbuilder
-	    in StringMap.add n local_var m
-    and
-    add_local_end m (t, n) =
-      let local_var = L.build_alloca (ltype_of_typ t) n endbuilder
-      in StringMap.add n local_var m
-    in
-
-    List.fold_left add_local_loop StringMap.empty (fst loop_block);
-    List.fold_left add_local_end StringMap.empty (fst end_block) 
-    
-  in
-
-  let lookup n  = try StringMap.find n local_vars
-                   with Not_found -> StringMap.find n global_vars*)
-
   let loop_local_vars =
     let add_local_loop m (t, n) =
       let local_var = L.build_alloca (ltype_of_typ t) n loopbuilder
@@ -434,6 +439,9 @@ let translate (begin_block, loop_block, end_block, config_block) =
     | SCall ("bool_to_string", [e]) -> L.build_call bool_to_string_func [| loopend_expr builder is_loop e |] "bool_to_string" builder
     | SCall ("length", [e]) -> L.build_call length_func [| loopend_expr builder is_loop e |] "length" builder
     | SCall ("delete", [e1; e2]) -> L.build_call delete_func [| loopend_expr builder is_loop e1 ; loopend_expr builder is_loop e2 |] "removeNode" builder
+    | SCall ("insert", [e1; e2; e3]) -> L.build_call insert_func [| loopend_expr builder is_loop e1 ; loopend_expr builder is_loop e2 ; cast_unsigned builder is_loop e3|] "insertElement" builder
+    | SCall ("contains", [e1; e2]) -> 
+        L.build_call contains_func [| loopend_expr builder is_loop e1 ; cast_to_void builder is_loop e2 ; choose_compar e2 is_loop builder |] "contains" builder 
     | SCall (f, args) ->
       let (fdef, fdecl) = StringMap.find f function_decls in
       let llargs = List.rev (List.map (loopend_expr builder is_loop) (List.rev args)) in
@@ -451,6 +459,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
     | _ -> raise (Failure "end loopend_expr no pattern match") 
   
   and
+  (* array gen functions *)
   find_arr_type arr ty = 
     let ast_typ = arr_elem_type ty in 
     L.size_of (ltype_of_typ ast_typ)
@@ -472,12 +481,40 @@ let translate (begin_block, loop_block, end_block, config_block) =
       let data = match  L.classify_type ty with
         Pointer -> L.build_pointercast red_expr i64_t "addFrontCast" builder
         | Integer -> L.build_zext red_expr i64_t "addFrontCast" builder
-        | _ -> raise (Failure "wf")
+        | _ -> raise (Failure "unable to find type of array")
       in
 
       ignore(L.build_call addfront_func [| lst; data |] "addFront" builder)
     in
     List.iter add_front arr; lst
+
+  and cast_unsigned builder is_loop e3 =
+    let red_expr = loopend_expr builder is_loop e3 in
+    let ty = L.type_of red_expr in match (L.classify_type ty) with
+    Pointer -> L.build_pointercast red_expr i64_t "castToUnsigned" builder
+    | Integer -> L.build_zext red_expr i64_t "castToUnsigned" builder
+    | _ -> raise (Failure "unable to cast to i64")
+  
+  (* comparator functions *)
+  (*- cast e2 into i8* -*)
+  and cast_to_void builder is_loop e2 =
+    let red_expr = loopend_expr builder is_loop e2 in
+    let ty = L.type_of red_expr in match (L.classify_type ty) with
+    Pointer -> L.build_zext red_expr i8_p_t "containsCast" builder
+    | Integer -> L.build_inttoptr red_expr i8_p_t "containsCast" builder
+    | _ -> raise (Failure "Unable to cast expression 2 for contains")
+
+  and choose_compar e2 is_loop builder =
+    let (e2_ty, e2_e) = e2 in match e2_ty with
+      (*A.Int -> L.pointer_type (L.build_call compareint_func [| |])*)
+      (*A.Int -> let cast_int = L.build_zext compareint_func i32_t "intCast" builder in
+        let constint = L.const_int i32_t cast_int in
+        L.build_inttoptr constint compare_p_t "compareCast" builder*)
+
+      A.Int -> L.build_zext compareint_func compare_p_t "compareCast" builder
+      (*| A.Bool -> comparebools_func 
+      | A.ArrayType a -> comparelists_func*)
+      | _ -> raise (Failure "Unable to find comparator")
 
   in 
 
@@ -539,7 +576,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
   in
 
-  (* Call the things that happen in main *)
   build_config_block config_block;
   List.iter build_function_body (snd begin_block);
   ignore (build_loop_block loop_block);
