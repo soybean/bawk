@@ -20,6 +20,10 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	and str_t 	   = L.pointer_type ( L.i8_type context ) 
   and ptr_t      = L.pointer_type ( L.i8_type context )
 	and void_t     = L.void_type   context in
+  let i32_p_t = L.pointer_type i32_t and
+      i64_p_t = L.pointer_type i64_t in
+  let i1_p_t = L.pointer_type i1_t in
+  let str_p_t = L.pointer_type str_t in
   let node_t     = let node_t = L.named_struct_type context "Node" in
                    L.struct_set_body node_t [| i64_t ; L.pointer_type node_t |] false;
                    node_t in
@@ -372,23 +376,40 @@ let translate (begin_block, loop_block, end_block, config_block) =
     | SAssign (e1, e2) ->
       let (_, e) = e1 in
       let lhs = match e with
-        (*SArrayDeref (ar, idx) -> 
-          let (_, arrl) = ar and (_, idxr) = idx in
-          L.build_call arrayderef_func [| lookup (loopend_expr builder is_loop ar) builder is_loop ; loopend_expr builder is_loop idxr |] "getElement" builder
-        (* TODO: A.ArrayDeref *)*)
-        SId i -> lookup i builder is_loop
+        SArrayDeref (ar, idx) ->
+           let (ty, _) = ar in
+             let arr_type = match ty with
+               ArrayType t -> t
+              | _ -> raise(Failure "not an array") in
+             let v = L.build_call arrayderef_func [| loopend_expr builder is_loop ar; loopend_expr builder is_loop idx |] "getElement" builder in
+               (match arr_type with
+                   A.Int -> L.build_inttoptr v i32_p_t "arrayDeref" builder
+                 | A.Bool -> L.build_inttoptr v i1_p_t "arrayDeref" builder
+                 | A.String -> L.build_inttoptr v str_p_t "arrayDeref" builder
+                 | A.ArrayType t -> L.build_inttoptr v arr_p_t "arrayDeref" builder
+                 | _ -> raise(Failure "unmatched type")) 
+        | SId i -> lookup i builder is_loop
         | _ -> raise (Failure "left side not found")
       and rhs = loopend_expr builder is_loop e2
       in ignore(L.build_store rhs lhs builder); rhs
+    | SArrayDeref (ar, idx) ->
+        let (ty, _) = ar in
+        let arr_type = match ty with
+        ArrayType t -> t
+       | _ -> raise(Failure "not an array") in
+        let v = L.build_call arrayderef_func [| loopend_expr builder is_loop ar; loopend_expr builder is_loop idx |] "getElement" builder in
+        (match arr_type with
+        A.String -> L.build_trunc v i32_t "arrayDeref" builder
+       | _ -> raise (Failure "unmatched type")) 
     | SBinop(e1, op, e2) ->
         let e1' = loopend_expr builder is_loop e1
         and e2' = loopend_expr builder is_loop e2 in
         (match op with
-          A.Add       -> L.build_add
-          | A.Sub     -> L.build_sub
+            A.Add       -> L.build_add
+            | A.Sub     -> L.build_sub
     	    | A.Mult    -> L.build_mul
     	    | A.Div     -> L.build_sdiv
-          | A.And     -> L.build_and
+            | A.And     -> L.build_and
     	    | A.Or      -> L.build_or
     	    | A.Equal   -> L.build_icmp L.Icmp.Eq
     	    | A.Neq     -> L.build_icmp L.Icmp.Ne

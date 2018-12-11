@@ -58,7 +58,7 @@ type sprogram = sbegin_list * sloop_list * send_list * sconfig_list
 (* Pretty-printing functions *)
 
 let rec string_of_sexpr (t, e) = 
-  "(" ^ string_of_typ t ^ " : " ^ (match e with
+(*  "(" ^ string_of_typ t ^ " : " ^ *)(match e with
     SBinop(e1, o, e2) ->
       string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
   | SBoolLit(true) -> "true"
@@ -86,7 +86,7 @@ let rec string_of_sexpr (t, e) =
   | SAccess(e) -> "$" ^ string_of_sexpr e
   | SNumFields -> "NF"
   | SNoexpr -> ""
-          ) ^ ")"
+          )(* ^ ")"*)
 
 let string_of_config_sexpr = function
     SRSAssign(e) -> "RS = " ^ string_of_sexpr e ^ "\n"
