@@ -25,7 +25,6 @@ bawk.native :
 .PHONY : clean
 clean :
 	ocamlbuild -clean
-	rm *.o
 
 .PHONY : convert
 convert : convert.c cc -o convert convert.c
