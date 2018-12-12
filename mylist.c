@@ -158,6 +158,19 @@ int contains(struct List *list, const void *dataSought, int (*compar)(const void
 	return 0;
 }
 
+int contains_wrapper(struct List *list, const void *dataSought, int compare_type) {
+	if (compare_type == 0) {
+		return contains(list, dataSought, (int (*)(const void *, const void *))compareInts);
+	}
+	if (compare_type == 1) {
+		return contains(list, dataSought, (int (*)(const void *, const void *))compareBools);
+	}
+	if (compare_type == 2) {
+		return contains(list, dataSought, (int (*)(const void *, const void *))compareStrs);
+	}
+	return -1;
+}
+
 // Traverse list to find index of node
 int findIndexOfNode(struct List *list, const void *dataSought, int (*compar)(const void *, const void *))
 { 
@@ -182,6 +195,19 @@ int findIndexOfNode(struct List *list, const void *dataSought, int (*compar)(con
 		}
 	}
 	return count;
+}
+
+int findIndexOfNode_wrapper(struct List *list, const void *dataSought, int compare_type) {
+	if (compare_type == 0) {
+		return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))compareInts);
+	}
+	if (compare_type == 1) {
+		return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))compareBools);
+	}
+	if (compare_type == 2) {
+		return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))compareStrs);
+	}
+	return -1;
 }
 
 /* Remove node at specific index, deallocate the memory for the node, 
