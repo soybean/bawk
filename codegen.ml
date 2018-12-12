@@ -263,7 +263,45 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SAccess (a) -> 
 				let (loop_func, fdecl) = StringMap.find "loop" function_decls in
 				L.build_call access_func [| L.param loop_func 0; expr builder a|] "access" builder
+			| SIncrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Add, (A.Int, SLiteral(1)))))) in expr builder e2
+    	| SDecrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Sub, (A.Int, SLiteral(1)))))) in expr builder e2
+    	| SPluseq(e1, e2) -> let e = (A.Int, SAssign(e1, (A.Int, SBinop(e1, A.Add, e2)))) in expr builder e
+    	| SMinuseq(e1, e2) -> let e = (A.Int, SAssign(e1, (A.Int, SBinop(e1, A.Sub, e2)))) in expr builder e
+			| SRgxLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
+      	L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
+    	| SArrayLit a -> array_gen builder a
 			| _ -> raise (Failure "expr no pattern match") 
+
+		and
+
+  	(* returns ptr to size of type of 1st element of list; used for initList *)
+  	(*find_arr_type arr = match List.hd arr with
+    	A.Literal i -> L.size_of i32_t
+    	| A.StringLiteral s -> L.size_of str_t
+    	| A.ArrayLit a -> L.size_of arr_t*)
+  	find_arr_type arr = L.const_int i32_t 8
+  	and get_depth = L.const_int i32_t 1
+
+  	and array_gen builder arr =
+    	(* most inner array has type --> initList gives ptr, which you can use for struct List**)
+    	let arr_type = find_arr_type arr in (* type of 1 depth down *)
+    	let depth = get_depth in (* will be changed later *)
+
+    	let lst =
+     		L.build_call initlist_func [| arr_type; depth |] "initList" builder
+    	in 
+
+    	let add_front e = 
+      	let red_expr = expr builder e in
+      	ignore(L.build_call addfront_func [| lst; L.const_inttoptr red_expr ptr_t|] "addFront" builder)
+    	in
+    	List.iter add_front arr; lst
+
+  in 
+
+  let rec iter_mult f arg1 arg2 lst = match lst with
+    [] -> ()
+    | x :: xs -> f arg1 arg2 x; iter_mult f arg1 arg2 xs
         
     in 
 
