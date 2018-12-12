@@ -213,6 +213,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SAssign (e1, e2) ->
           let (_, e) = e1 in
           let lhs = match e with 
+						SId i -> lookup i
             | _ -> raise (Failure "No match on left") 
           and rhs = expr builder e2
           in ignore(L.build_store rhs lhs builder); rhs
