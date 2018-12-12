@@ -249,6 +249,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 			  L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
       | SLiteral i -> L.const_int i32_t i
+      | SArrayLit a -> array_gen builder ty a
       | SNoexpr -> L.const_int i32_t 0
       | SId i -> L.build_load (lookup i) i builder
       | SAssign (e1, e2) ->
@@ -308,6 +309,36 @@ let translate (begin_block, loop_block, end_block, config_block) =
                       | _ -> f ^ "_result") in
          L.build_call fdef (Array.of_list llargs) result builder
       | _ -> raise (Failure "begin expr no pattern match") 
+      
+    and
+  (* array gen functions *)
+  find_arr_type arr ty = 
+    let ast_typ = arr_elem_type ty in 
+    L.size_of (ltype_of_typ ast_typ)
+
+  and get_depth ty = 
+    let depth_int = arr_depth ty in L.const_int i32_t depth_int
+
+  and array_gen builder ty arr =
+    let arr_type = find_arr_type arr ty in (* type of 1 depth down *)
+    let depth = get_depth ty in
+
+    let lst =
+      L.build_call initlist_func [| arr_type; depth |] "initList" builder
+    in 
+
+    let add_front e = 
+      let red_expr = expr builder e in
+      let ty = L.type_of red_expr in
+      let data = match  L.classify_type ty with
+        Pointer -> L.build_pointercast red_expr i64_t "addFrontCast" builder
+        | Integer -> L.build_zext red_expr i64_t "addFrontCast" builder
+        | _ -> raise (Failure "unable to find type of array")
+      in
+
+      ignore(L.build_call addfront_func [| lst; data |] "addFront" builder)
+    in
+    List.iter add_front arr; L.build_call reverse_func [| lst |] "reverseList" builder; lst
         
     in 
 
