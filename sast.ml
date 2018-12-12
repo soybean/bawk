@@ -49,8 +49,8 @@ type sfunc_decl = {
   }
 
 type sbegin_list = bind list * sfunc_decl list
-type sloop_list = bind list * sstmt list
-type send_list = bind list * sstmt list
+type sloop_list = sfunc_decl
+type send_list = sfunc_decl
 type sconfig_list = sconfig_expr list
 
 type sprogram = sbegin_list * sloop_list * send_list * sconfig_list
@@ -118,13 +118,13 @@ let string_of_sbeginBlock (globals, funcs) =
   "BEGIN {\n" ^ String.concat "" (List.map string_of_vdecl globals) ^ "\n" ^
   String.concat "\n" (List.map string_of_sfdecl funcs) ^ "\n}\n"
 
-let string_of_sloopBlock (locals, stmts) = 
-  "LOOP {\n" ^ String.concat "" (List.map string_of_vdecl locals) ^ "\n" ^
-  String.concat "\n" (List.map string_of_sstmt stmts) ^ "\n}\n"
+let string_of_sloopBlock (loop_func) = 
+  "LOOP {\n" ^ String.concat "" (List.map string_of_vdecl loop_func.slocals) ^ "\n" ^
+  String.concat "\n" (List.map string_of_sstmt loop_func.sbody) ^ "\n}\n"
 
-let string_of_sendBlock (locals, stmts) = 
-  "END {\n" ^ String.concat "" (List.map string_of_vdecl locals) ^ "\n" ^
-  String.concat "\n" (List.map string_of_sstmt stmts) ^ "\n}\n"
+let string_of_sendBlock (end_func) = 
+  "END {\n" ^ String.concat "" (List.map string_of_vdecl end_func.slocals) ^ "\n" ^
+  String.concat "\n" (List.map string_of_sstmt end_func.sbody) ^ "\n}\n"
 
 let string_of_sconfigBlock (configs) = 
   "CONFIG {\n" ^ String.concat "" (List.map string_of_config_sexpr configs) ^ "\n}\n"

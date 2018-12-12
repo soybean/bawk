@@ -71,9 +71,9 @@ let check (begin_list, loop_list, end_list, config_list) =
     with Not_found -> raise (Failure ("unrecognized function " ^ s))
   in
   
-  let (loop_locals,_) = loop_list in check_binds "local" loop_locals;
+  let (loop_locals,loop_stmts) = loop_list in check_binds "local" loop_locals;
   
-  let (end_locals,_) = end_list in check_binds "local" end_locals;
+  let (end_locals,end_stmts) = end_list in check_binds "local" end_locals;
 
   let check_function func =
     (* Make sure no formals or locals are void or duplicates *)
@@ -574,7 +574,18 @@ let check (begin_list, loop_list, end_list, config_list) =
     RSAssign e -> SRSAssign (expr e)
     | FSAssign e -> SFSAssign (expr e) 
         
-  in 
+  in
+	let gen_fn name fs boo binds stmts =
+	check_function ({ 
+		ret_type = Void;
+		fname = name;
+		formals = fs;
+		locals = binds;
+		body = stmts
+	}) (* TODO: we are supposed to use the boo parameter *)
+	in 
   ((globals, List.map check_function functions), 
-  (loop_locals, stmt false loop_list), 
-  (end_locals, stmt true end_list), List.map check_config config_list)
+  gen_fn "_LOOP" [(String, "_line")] false loop_locals loop_stmts,
+  gen_fn "_END" [] true end_locals end_stmts,
+	List.map check_config config_list)
+
