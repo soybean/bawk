@@ -324,6 +324,12 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SCall ("bool_to_string", [e]) -> L.build_call bool_to_string_func [| expr builder e |] "bool_to_string" builder
       | SCall ("print", [e]) ->
     		L.build_call printf_func [| string_format_str builder; (expr builder e)|] "printf" builder
+      | SCall ("length", [e]) -> 
+        L.build_call length_func [| expr builder e |] "length" builder
+      | SCall ("delete", [e1; e2]) -> 
+        L.build_call delete_func [| expr builder e1 ; expr builder e2 |] "removeNode" builder
+      | SCall ("insert", [e1; e2; e3]) -> 
+        L.build_call insert_func [| expr builder e1 ; expr builder e2 ; cast_unsigned builder e3|] "insertElement" builder
       | SCall (f, args) ->
         let (fdef, fdecl) = StringMap.find f function_decls in
         let llargs = List.rev (List.map (expr builder) (List.rev args)) in
@@ -372,6 +378,13 @@ let translate (begin_block, loop_block, end_block, config_block) =
         ignore(L.build_call addfront_func [| lst; data |] "addFront" builder)
     in
     List.iter add_front arr; L.build_call reverse_func [| lst |] "reverseList" builder; lst
+
+    and cast_unsigned builder e3 =
+      let red_expr = expr builder e3 in
+      let ty = L.type_of red_expr in match (L.classify_type ty) with
+        Pointer -> L.build_pointercast red_expr i64_t "castToUnsigned" builder
+        | Integer -> L.build_zext red_expr i64_t "castToUnsigned" builder
+        | _ -> raise (Failure "unable to cast to i64")
 
   in 
 
