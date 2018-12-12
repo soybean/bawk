@@ -585,7 +585,7 @@ let check (begin_list, loop_list, end_list, config_list) =
 	}) (* TODO: we are supposed to use the boo parameter *)
 	in 
   ((globals, List.map check_function functions), 
-  gen_fn "_LOOP" [(String, "_line")] false loop_locals loop_stmts,
-  gen_fn "_END" [] true end_locals end_stmts,
+  gen_fn "loop" [(String, "line")] false loop_locals loop_stmts,
+  gen_fn "end" [] true end_locals end_stmts,
 	List.map check_config config_list)
 

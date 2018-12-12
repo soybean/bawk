@@ -1,9 +1,11 @@
-BEGIN {}
+BEGIN {
+}
 
 LOOP {
-	if (true) {}
+	if (true) {
+		print("hello world");
+	}
 }
 
 END {
-	#if (true) {}
 }
