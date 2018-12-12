@@ -14,12 +14,21 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
 	(* Get types from the context *)
 	let i32_t      = L.i32_type    context
+  and i64_t      = L.i64_type    context
 	and i8_t       = L.i8_type     context
-	and i1_t       = L.i1_type     context
+  and  i1_t       = L.i1_type     context
 	and str_t 	   = L.pointer_type ( L.i8_type context ) 
   and arr_t      = L.pointer_type ( L.i8_type context )
-  and ptr_t      = L.pointer_type ( L.i8_type context )
-	and void_t     = L.void_type   context in
+  and ptr_t      = L.pointer_type ( L.i8_type context ) in
+  let node_t     = let node_t = L.named_struct_type context "Node" in
+                   L.struct_set_body node_t [| i64_t ; L.pointer_type node_t |] false;
+                   node_t in
+  let node_p_t   = L.pointer_type node_t in
+  let arr_t      = let arr_t = L.named_struct_type context "Array" in
+                   L.struct_set_body arr_t [| node_p_t ; i32_t ; i32_t |] false;
+                   arr_t in
+  let arr_p_t    = L.pointer_type arr_t in
+  let void_t     = L.void_type context in
 
 	(* Return the LLVM type for a bawk type *)
 	let ltype_of_typ = function
@@ -28,9 +37,19 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	| A.Void  -> void_t
 	| A.String -> str_t
   | A.Rgx -> str_t
-  | A.ArrayType t -> arr_t
-        | _ -> raise (Failure "types no pattern match")
-	in
+  | A.ArrayType t -> arr_p_t
+  | _ -> raise (Failure "types no pattern match") in
+
+  (* Array helper functions *)
+  let arr_elem_type = function
+    A.ArrayType t -> t
+    | _ -> raise (Failure "not an array type")
+  in
+
+  let rec arr_depth = function
+    A.ArrayType t -> (arr_depth t) + 1
+    | _ -> 0
+  in
 
   (* Declare built-in functions *)
 	let printf_t : L.lltype = 
@@ -77,14 +96,44 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
   (* array functions *)
   let initlist_t : L.lltype =
-    L.function_type arr_t [| i32_t; i32_t |] in
+    L.function_type arr_p_t [| i64_t; i32_t |] in
   let initlist_func : L.llvalue =
     L.declare_function "initList" initlist_t the_module in
 
   let addfront_t : L.lltype =
-    L.function_type ptr_t [| arr_t; ptr_t|] in
+    L.function_type node_p_t [| arr_p_t; i64_t|] in
   let addfront_func : L.llvalue =
     L.declare_function "addFront" addfront_t the_module in
+
+  let arrayderef_t : L.lltype =
+    L.function_type i64_t [| arr_p_t; i32_t |] in
+  let arrayderef_func : L.llvalue =
+    L.declare_function "getElement" arrayderef_t the_module in
+
+  let arrayderef_t : L.lltype =
+    L.function_type i64_t [| arr_p_t; i32_t |] in
+  let arrayderef_func : L.llvalue =
+    L.declare_function "getElement" arrayderef_t the_module in
+
+  let reverse_t : L.lltype =
+    L.function_type i8_t [| arr_p_t |] in
+  let reverse_func : L.llvalue =
+    L.declare_function "reverseList" reverse_t the_module in
+
+  let length_t : L.lltype =
+    L.function_type i32_t [| arr_p_t |] in
+  let length_func : L.llvalue =
+    L.declare_function "length" length_t the_module in
+
+  let delete_t : L.lltype =
+    L.function_type i64_t [| arr_p_t; i32_t |] in
+  let delete_func : L.llvalue =
+    L.declare_function "removeNode" delete_t the_module in
+
+  let insert_t : L.lltype =
+    L.function_type i8_t [| arr_p_t; i32_t; i64_t |] in
+  let insert_func : L.llvalue =
+    L.declare_function "insertElement" insert_t the_module in
 
   let ftype = L.function_type void_t [||] in (* function takes in nothing, returns void *)
 
@@ -201,23 +250,45 @@ let translate (begin_block, loop_block, end_block, config_block) =
     in
  
 
-    let rec expr builder((_,e): sexpr) = match e with
+    let rec expr builder((ty,e): sexpr) = match e with
       SStringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
 			  L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
-      (*| A.RgxLiteral r ->
-      | A.ArrayLit a -> *)
       | SLiteral i -> L.const_int i32_t i
       | SNoexpr -> L.const_int i32_t 0
+      | SArrayLit a -> array_gen builder ty a
       | SId i -> L.build_load (lookup i) i builder
       | SAssign (e1, e2) ->
           let (_, e) = e1 in
           let lhs = match e with 
-						SId i -> lookup i
+            SId i -> lookup i
+            (*| SArrayDeref (ar, idx) ->
+                let (ty, _) = ar in
+                let arr_type = match ty with
+                  ArrayType t -> t
+                  | _ -> raise(Failure "not an array") in
+                let v = L.build_call arrayderef_func [| loopend_expr builder is_loop ar; loopend_expr builder is_loop idx |] "getElement" builder in
+                  (match arr_type with
+                    A.Int -> L.build_inttoptr v i32_p_t "arrayDeref" builder
+                    | A.Bool -> L.build_inttoptr v i1_p_t "arrayDeref" builder
+                    | A.String -> L.build_inttoptr v str_p_t "arrayDeref" builder
+                    | A.ArrayType t -> L.build_inttoptr v arr_p_t "arrayDeref" builder
+                    | _ -> raise(Failure "unmatched type"))  *)
             | _ -> raise (Failure "No match on left") 
           and rhs = expr builder e2
           in ignore(L.build_store rhs lhs builder); rhs
-      (* TODO: handle strings and rgx by building binop_gen function (see Decaf)*)
+      | SArrayDeref (ar, idx) ->
+        let (ty, _) = ar in
+        let arr_type = match ty with
+          ArrayType t -> t
+          | _ -> raise(Failure "not an array") in
+        let v = L.build_call arrayderef_func [| expr builder ar; expr builder idx |] "getElement" builder in
+        (match arr_type with
+          A.String -> L.build_inttoptr v str_t "arrayDeref" builder
+          | A.Int -> L.build_trunc v i32_t "arrayDeref" builder
+          | A.Bool -> L.build_trunc v i1_t "arrayDeref" builder
+          | A.ArrayType t -> L.build_inttoptr v arr_p_t "arrayDeref" builder
+          | _ -> raise (Failure "unmatched type"))
       | SBinop(e1, op, e2) ->
         let e1' = expr builder e1
         and e2' = expr builder e2 in
@@ -269,33 +340,38 @@ let translate (begin_block, loop_block, end_block, config_block) =
     	| SMinuseq(e1, e2) -> let e = (A.Int, SAssign(e1, (A.Int, SBinop(e1, A.Sub, e2)))) in expr builder e
 			| SRgxLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
       	L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
-    	| SArrayLit a -> array_gen builder a
 			| _ -> raise (Failure "expr no pattern match") 
 
 		and
 
-  	(* returns ptr to size of type of 1st element of list; used for initList *)
-  	(*find_arr_type arr = match List.hd arr with
-    	A.Literal i -> L.size_of i32_t
-    	| A.StringLiteral s -> L.size_of str_t
-    	| A.ArrayLit a -> L.size_of arr_t*)
-  	find_arr_type arr = L.const_int i32_t 8
-  	and get_depth = L.const_int i32_t 1
+    (* array gen functions *)
+    find_arr_type ty = 
+      let ast_typ = arr_elem_type ty in 
+      L.size_of (ltype_of_typ ast_typ)
 
-  	and array_gen builder arr =
-    	(* most inner array has type --> initList gives ptr, which you can use for struct List**)
-    	let arr_type = find_arr_type arr in (* type of 1 depth down *)
-    	let depth = get_depth in (* will be changed later *)
+    and get_depth ty = 
+      let depth_int = arr_depth ty in L.const_int i32_t depth_int
 
-    	let lst =
-     		L.build_call initlist_func [| arr_type; depth |] "initList" builder
-    	in 
+    and array_gen builder ty arr =
+      let arr_type = find_arr_type ty in (* type of 1 depth down *)
+      let depth = get_depth ty in
 
-    	let add_front e = 
-      	let red_expr = expr builder e in
-      	ignore(L.build_call addfront_func [| lst; L.const_inttoptr red_expr ptr_t|] "addFront" builder)
-    	in
-    	List.iter add_front arr; lst
+      let lst =
+        L.build_call initlist_func [| arr_type; depth |] "initList" builder
+      in 
+
+      let add_front e = 
+        let red_expr = expr builder e in
+        let ty = L.type_of red_expr in
+        let data = match  L.classify_type ty with
+          Pointer -> L.build_pointercast red_expr i64_t "addFrontCast" builder
+          | Integer -> L.build_zext red_expr i64_t "addFrontCast" builder
+          | _ -> raise (Failure "unable to find type of array")
+        in
+
+        ignore(L.build_call addfront_func [| lst; data |] "addFront" builder)
+    in
+    List.iter add_front arr; L.build_call reverse_func [| lst |] "reverseList" builder; lst
 
   in 
 
