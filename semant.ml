@@ -104,7 +104,10 @@ let check (begin_list, loop_list, end_list, config_list) =
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      | Access a ->raise (Failure("access " ^ string_of_expr a ^ " should not be called in begin"))
+			| Access(a) as acc ->
+						let (a, a') = expr a in
+						if a <> Int then raise (Failure ("incorrect access in " ^ string_of_expr acc))
+						else (String, SAccess(a, a'))
       | ArrayLit(l) -> if List.length l > 0 then 
               let typ = expr(List.nth l 0) in
               let (arraytype, _) = typ in
