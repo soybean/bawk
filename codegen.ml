@@ -14,9 +14,10 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
 	(* Get types from the context *)
 	let i32_t      = L.i32_type    context
-  and i64_t      = L.i64_type    context
-	and i8_t       = L.i8_type     context
-  and  i1_t       = L.i1_type     context
+  and i64_t      = L.i64_type    context in
+  let i8_t       = L.i8_type     context in
+  let i8_p_t     = L.pointer_type i8_t
+  and i1_t       = L.i1_type     context
 	and str_t 	   = L.pointer_type ( L.i8_type context ) 
   and arr_t      = L.pointer_type ( L.i8_type context )
   and ptr_t      = L.pointer_type ( L.i8_type context ) in
@@ -134,6 +135,23 @@ let translate (begin_block, loop_block, end_block, config_block) =
     L.function_type i8_t [| arr_p_t; i32_t; i64_t |] in
   let insert_func : L.llvalue =
     L.declare_function "insertElement" insert_t the_module in
+
+  let compare_t : L.lltype =
+    L.function_type i32_t [| i8_p_t ; i8_p_t |] in
+
+  let compare_p_t = L.pointer_type compare_t in 
+
+  let compareint_func : L.llvalue =
+    L.declare_function "compareInts" compare_t the_module in
+  let comparebools_func : L.llvalue =
+    L.declare_function "compareBools" compare_t the_module in
+  let comparelists_func : L.llvalue =
+    L.declare_function "compareLists" compare_t the_module in
+
+  let contains_t : L.lltype =
+    L.function_type i32_t [| arr_p_t ; i8_p_t ; compare_p_t |] in
+  let contains_func : L.llvalue =
+    L.declare_function "contains" contains_t the_module in
 
   let ftype = L.function_type void_t [||] in (* function takes in nothing, returns void *)
 
@@ -322,6 +340,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SCall ("int_to_string", [e]) -> L.build_call int_to_string_func [| expr builder e |] "int_to_string" builder
       | SCall ("string_to_int", [e]) -> L.build_call string_to_int_func [| expr builder e |] "string_to_int" builder
       | SCall ("bool_to_string", [e]) -> L.build_call bool_to_string_func [| expr builder e |] "bool_to_string" builder
+      | SCall ("contains", [e1; e2]) ->
+        L.build_call contains_func [| expr builder e1 ; cast_to_void builder e2 ; compareint_func |] "contains" builder 
       | SCall ("print", [e]) ->
     		L.build_call printf_func [| string_format_str builder; (expr builder e)|] "printf" builder
       | SCall (f, args) ->
@@ -373,6 +393,18 @@ let translate (begin_block, loop_block, end_block, config_block) =
     in
     List.iter add_front arr; L.build_call reverse_func [| lst |] "reverseList" builder; lst
 
+  and cast_to_void builder e2 =
+    let red_expr = expr builder  e2 in
+    let ty = L.type_of red_expr in match (L.classify_type ty) with
+    Pointer -> L.build_zext red_expr i8_p_t "containsCast" builder
+    | Integer -> L.build_inttoptr red_expr i8_p_t "containsCast" builder
+    | _ -> raise (Failure "Unable to cast expression 2 for contains")
+
+  and choose_compar e2 builder =
+    let (e2_ty, e2_e) = e2 in match e2_ty with
+      A.Int -> compareint_func
+      (*A.Int -> L.build_zext compareint_func compare_p_t "compareCast" builder*)
+      | _ -> raise (Failure "Unable to find comparator")
   in 
 
   let rec iter_mult f arg1 arg2 lst = match lst with
