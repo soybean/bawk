@@ -260,6 +260,18 @@ let translate (begin_block, loop_block, end_block, config_block) =
             | _ -> raise (Failure "No match on left") 
           and rhs = expr builder e2
           in ignore(L.build_store rhs lhs builder); rhs
+      | SArrayDeref (ar, idx) ->
+        let (ty, _) = ar in
+        let arr_type = match ty with
+        ArrayType t -> t
+       | _ -> raise(Failure "not an array") in
+        let v = L.build_call arrayderef_func [| loopend_expr builder is_loop ar; loopend_expr builder is_loop idx |] "getElement" builder in
+        (match arr_type with
+         A.String -> L.build_inttoptr v str_t "arrayDeref" builder
+       | A.Int -> L.build_trunc v i32_t "arrayDeref" builder
+       | A.Bool -> L.build_trunc v i1_t "arrayDeref" builder
+       | A.ArrayType t -> L.build_inttoptr v arr_p_t "arrayDeref" builder
+       | _ -> raise (Failure "unmatched type")) 
       | SBinop(e1, op, e2) ->
         let e1' = expr builder e1
         and e2' = expr builder e2 in
