@@ -1,16 +1,9 @@
 BEGIN {}
 LOOP {
-  int b;
-  b = 1;
-  print(int_to_string(b));
 }
 END {
-  int a;
   int[] c;
-
-  a = 2;
-  print(int_to_string(a));
-
-  c = [1];
+  c = [1, 2, 3];
+  contains(c, 2);
 
 }
