@@ -147,6 +147,15 @@ let translate (begin_block, loop_block, end_block, config_block) =
     
   in
 
+	let function_decls_loop : (L.llvalue * sfunc_decl) StringMap.t =
+		let function_decl m fdecl =
+			let formal_types =
+				Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.sformals)
+			and name = fdecl.sfname
+			in let ftype = L.function_type (ltype_of_typ fdecl.sret_type) formal_types in
+			StringMap.add name (L.define_function name ftype the_module, fdecl) m in
+    function_decl function_decls_no_loop_end (loop_block) in
+
 	let function_decls : (L.llvalue * sfunc_decl) StringMap.t =
 		let function_decl m fdecl =
 			let formal_types =
@@ -154,9 +163,10 @@ let translate (begin_block, loop_block, end_block, config_block) =
 			and name = fdecl.sfname
 			in let ftype = L.function_type (ltype_of_typ fdecl.sret_type) formal_types in
 			StringMap.add name (L.define_function name ftype the_module, fdecl) m in
+    function_decl function_decls_loop (end_block)
 
-		function_decl function_decls_no_loop_end (loop_block);
-		function_decl function_decls_no_loop_end (end_block)
+		(*function_decl function_decls_no_loop_end (loop_block);
+		function_decl function_decls_no_loop_end (end_block)*)
 	in
 
   (*--- Build function bodies defined in BEGIN block ---*)
@@ -203,9 +213,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SAssign (e1, e2) ->
           let (_, e) = e1 in
           let lhs = match e with 
-        (*  let lhs ((_, e1): sexpr)= match e1 with*)
-            (* TODO: A.ArrayDeref *)
-            SId i -> lookup i
             | _ -> raise (Failure "No match on left") 
           and rhs = expr builder e2
           in ignore(L.build_store rhs lhs builder); rhs
