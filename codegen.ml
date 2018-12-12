@@ -259,7 +259,10 @@ let translate (begin_block, loop_block, end_block, config_block) =
                         A.Void -> ""
                       | _ -> f ^ "_result") in
          L.build_call fdef (Array.of_list llargs) result builder
-      | _ -> raise (Failure "begin expr no pattern match") 
+      | SAccess (a) -> 
+				let (loop_func, fdecl) = StringMap.find "loop" function_decls in
+				L.build_call access_func [| L.param loop_func 0; expr builder a|] "access" builder
+			| _ -> raise (Failure "expr no pattern match") 
         
     in 
 
