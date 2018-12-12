@@ -104,6 +104,11 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let addfront_func : L.llvalue =
     L.declare_function "addFront" addfront_t the_module in
 
+  let reverse_t : L.lltype =
+    L.function_type i8_t [| arr_p_t |] in
+  let reverse_func : L.llvalue =
+    L.declare_function "reverseList" reverse_t the_module in
+
   let length_t : L.lltype =
     L.function_type i32_t [| arr_p_t |] in
   let length_func : L.llvalue =
@@ -486,7 +491,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
       ignore(L.build_call addfront_func [| lst; data |] "addFront" builder)
     in
-    List.iter add_front arr; lst
+    List.iter add_front arr; L.build_call reverse_func [| lst |] "reverseList" builder; lst
 
   and cast_unsigned builder is_loop e3 =
     let red_expr = loopend_expr builder is_loop e3 in
