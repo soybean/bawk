@@ -89,6 +89,11 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let rgxneq_func : L.llvalue =
     L.declare_function "nequals" rgxcomp_t the_module in
 
+  let rgx_to_str_t : L.lltype =
+    L.function_type str_t [| str_t |] in
+  let rgx_to_str_func : L.llvalue = 
+    L.declare_function "rgx_to_string" rgx_to_str_t the_module in
+
   let access_t : L.lltype =
     L.function_type str_t [| str_t; i32_t|] in
   let access_func : L.llvalue =
@@ -324,6 +329,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SRgxnot (e1, e2) -> L.build_call rgxnot_func [| expr builder e1; expr builder e2 |] "ncomp" builder
       | SRgxeq (e1, e2) -> L.build_call rgxeq_func [| expr builder e1; expr builder e2 |] "equals" builder
       | SRgxneq (e1, e2) -> L.build_call rgxneq_func [| expr builder e1; expr builder e2 |] "nequals" builder
+      | SCall ("rgx_to_string", [e]) -> L.build_call rgx_to_str_func [| expr builder e |] "rgx_to_string" builder
       | SCall ("int_to_string", [e]) -> L.build_call int_to_string_func [| expr builder e |] "int_to_string" builder
       | SCall ("string_to_int", [e]) -> L.build_call string_to_int_func [| expr builder e |] "string_to_int" builder
       | SCall ("bool_to_string", [e]) -> L.build_call bool_to_string_func [| expr builder e |] "bool_to_string" builder

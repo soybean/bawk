@@ -36,6 +36,16 @@ char* int_to_string(int a) {
   return str;
 }
 
+char *rgx_to_string(char *a) {
+  if (a[0] == '\'') {
+    a++;
+  }
+  if (a[strlen(a)-1] == '\'') {
+    a[strlen(a)-1] = '\0';
+  }
+  return a;
+}
+
 int numfields(char *line) {
     if (strlen(line)==1 && line[0] == '\n') {
       return 0;
