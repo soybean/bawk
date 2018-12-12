@@ -13,22 +13,22 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	let the_module = L.create_module context "Bawk" in
 
 	(* Get types from the context *)
-	let i32_t      = L.i32_type    context
-  and i64_t      = L.i64_type    context
-	and i8_t       = L.i8_type     context
-  and  i1_t       = L.i1_type     context
-	and str_t 	   = L.pointer_type ( L.i8_type context ) 
-  and arr_t      = L.pointer_type ( L.i8_type context )
-  and ptr_t      = L.pointer_type ( L.i8_type context ) in
-  let node_t     = let node_t = L.named_struct_type context "Node" in
+	let i32_t	= L.i32_type    context
+  	and i64_t	= L.i64_type    context
+	and i8_t	= L.i8_type     context
+  	and  i1_t       = L.i1_type     context
+	and str_t	= L.pointer_type ( L.i8_type context ) 
+  	and arr_t	= L.pointer_type ( L.i8_type context )
+  	and ptr_t	= L.pointer_type ( L.i8_type context ) in
+  	let node_t	= let node_t = L.named_struct_type context "Node" in
                    L.struct_set_body node_t [| i64_t ; L.pointer_type node_t |] false;
                    node_t in
-  let node_p_t   = L.pointer_type node_t in
-  let arr_t      = let arr_t = L.named_struct_type context "Array" in
-                   L.struct_set_body arr_t [| node_p_t ; i32_t ; i32_t |] false;
-                   arr_t in
-  let arr_p_t    = L.pointer_type arr_t in
-  let void_t     = L.void_type context in
+  	let node_p_t	= L.pointer_type node_t in
+  	let arr_t	= let arr_t = L.named_struct_type context "Array" in
+                   	L.struct_set_body arr_t [| node_p_t ; i32_t ; i32_t |] false;
+                   	arr_t in
+  	let arr_p_t	= L.pointer_type arr_t in
+  	let void_t	= L.void_type context in
 
 	(* Return the LLVM type for a bawk type *)
 	let ltype_of_typ = function
@@ -36,15 +36,15 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	| A.Bool  -> i1_t
 	| A.Void  -> void_t
 	| A.String -> str_t
-  | A.Rgx -> str_t
-  | A.ArrayType t -> arr_p_t
-  | _ -> raise (Failure "types no pattern match") in
+  	| A.Rgx -> str_t
+  	| A.ArrayType t -> arr_p_t
+  	| _ -> raise (Failure "types no pattern match") in
 
   (* Array helper functions *)
-  let arr_elem_type = function
-    A.ArrayType t -> t
-    | _ -> raise (Failure "not an array type")
-  in
+  	let arr_elem_type = function
+    		A.ArrayType t -> t
+    		| _ -> raise (Failure "not an array type")
+  	in
 
   let rec arr_depth = function
     A.ArrayType t -> (arr_depth t) + 1
