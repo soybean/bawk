@@ -151,6 +151,11 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let contains_func : L.llvalue =
     L.declare_function "contains_wrapper" contains_t the_module in
 
+  let indexof_t : L.lltype =
+    L.function_type i32_t [| arr_p_t ; i8_p_t ; i32_t |] in
+  let indexof_func : L.llvalue =
+    L.declare_function "findIndexOfNode_wrapper" indexof_t the_module in
+
   let ftype = L.function_type void_t [||] in (* function takes in nothing, returns void *)
 
   let ltype : L.lltype =  
@@ -353,6 +358,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
           L.build_call printf_func [| string_format_str builder; printhi |] "printf" builder;*)
         L.build_call contains_func [| expr builder e1 ; cast_to_void builder e2 ; choose_compar builder e2 |] "contains_wrapper" builder
+      | SCall ("indexOf", [e1 ; e2]) ->
+          L.build_call indexof_func [| expr builder e1 ; cast_to_void builder e2 ; choose_compar builder e2 |] "findIndexOfNode_wrapper" builder
       | SCall (f, args) ->
         let (fdef, fdecl) = StringMap.find f function_decls in
         let llargs = List.rev (List.map (expr builder) (List.rev args)) in
