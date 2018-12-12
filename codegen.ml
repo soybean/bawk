@@ -241,6 +241,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
     let (the_function, _) = StringMap.find fdecl.sfname function_decls in
     let func_builder = L.builder_at_end context (L.entry_block the_function) in
     let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
+    let pointer_format_str builder = L.build_global_stringptr "%p\n" "fmt" builder in
     
     let local_vars =
       let add_formal m (t, n) p = 
@@ -341,7 +342,13 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SCall ("string_to_int", [e]) -> L.build_call string_to_int_func [| expr builder e |] "string_to_int" builder
       | SCall ("bool_to_string", [e]) -> L.build_call bool_to_string_func [| expr builder e |] "bool_to_string" builder
       | SCall ("contains", [e1; e2]) ->
-        L.build_call contains_func [| expr builder e1 ; cast_to_void builder e2 ; compareint_func |] "contains" builder 
+          let printstr = L.build_global_string "hihihi" "print" builder in
+          let compartype = L.build_global_string (L.string_of_llvalue (choose_compar e2 builder)) "printcompare" builder in
+
+          L.build_call printf_func [| string_format_str builder; expr builder e1 |] "printf" builder;
+          L.build_call printf_func [| string_format_str builder; printstr |] "printf" builder;
+          L.build_call printf_func [| pointer_format_str builder; compartype |] "printf" builder;
+          L.build_call contains_func [| expr builder e1 ; cast_to_void builder e2 ;  choose_compar e2 builder|] "contains" builder 
       | SCall ("print", [e]) ->
     		L.build_call printf_func [| string_format_str builder; (expr builder e)|] "printf" builder
       | SCall (f, args) ->
