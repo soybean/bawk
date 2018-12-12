@@ -4,4 +4,6 @@ LOOP {
 	if (true) {}
 }
 
-END {}
+END {
+	#if (true) {}
+}
