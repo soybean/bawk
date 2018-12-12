@@ -37,6 +37,9 @@ char* int_to_string(int a) {
 }
 
 int numfields(char *line) {
+    if (strlen(line)==1 && line[0] == '\n') {
+      return 0;
+    }
     if (strlen(line)==0) {
       return 0;
     }
