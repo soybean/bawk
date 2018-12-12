@@ -36,6 +36,20 @@ char* int_to_string(int a) {
   return str;
 }
 
+int numfields(char *line) {
+    if (strlen(line)==0) {
+      return 0;
+    }
+    int numSpaces = 1;
+
+    for(int i = 0; i < strlen(line); i++) {
+      if(line[i] ==' '){
+        numSpaces++;
+      }
+    }
+    return numSpaces;
+}
+
 char *access(char *line, int field) {
   if(field == 0){
     return line;

@@ -94,6 +94,11 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let access_func : L.llvalue =
     L.declare_function "access" access_t the_module in
 
+  let numfields_t : L.lltype =
+    L.function_type i32_t [| str_t |] in
+  let numfields_func : L.llvalue =
+    L.declare_function "numfields" numfields_t the_module in
+
   (* array functions *)
   let initlist_t : L.lltype =
     L.function_type arr_p_t [| i64_t; i32_t |] in
@@ -340,7 +345,11 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SAccess (a) -> 
 				let (loop_func, fdecl) = StringMap.find "loop" function_decls in
 				L.build_call access_func [| L.param loop_func 0; expr builder a|] "access" builder
-			| SIncrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Add, (A.Int, SLiteral(1)))))) in expr builder e2
+
+      | SNumFields ->
+          let (loop_func, fdecl) = StringMap.find "loop" function_decls in
+          L.build_call numfields_func [| L.param loop_func 0 |] "numfields" builder
+
     	| SDecrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Sub, (A.Int, SLiteral(1)))))) in expr builder e2
     	| SPluseq(e1, e2) -> let e = (A.Int, SAssign(e1, (A.Int, SBinop(e1, A.Add, e2)))) in expr builder e
     	| SMinuseq(e1, e2) -> let e = (A.Int, SAssign(e1, (A.Int, SBinop(e1, A.Sub, e2)))) in expr builder e
