@@ -71,9 +71,9 @@ let check (begin_list, loop_list, end_list, config_list) =
     with Not_found -> raise (Failure ("unrecognized function " ^ s))
   in
   
-  let (loop_locals,_) = loop_list in check_binds "local" loop_locals;
+  let (loop_locals,loop_stmts) = loop_list in check_binds "local" loop_locals;
   
-  let (end_locals,_) = end_list in check_binds "local" end_locals;
+  let (end_locals,end_stmts) = end_list in check_binds "local" end_locals;
 
   let check_function func =
     (* Make sure no formals or locals are void or duplicates *)
@@ -104,7 +104,10 @@ let check (begin_list, loop_list, end_list, config_list) =
       | RgxLiteral l -> (Rgx, SRgxLiteral l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      | Access a ->raise (Failure("access " ^ string_of_expr a ^ " should not be called in begin"))
+			| Access(a) as acc ->
+						let (a, a') = expr a in
+						if a <> Int then raise (Failure ("incorrect access in " ^ string_of_expr acc))
+						else (String, SAccess(a, a'))
       | ArrayLit(l) -> if List.length l > 0 then 
               let typ = expr(List.nth l 0) in
               let (arraytype, _) = typ in
@@ -574,7 +577,18 @@ let check (begin_list, loop_list, end_list, config_list) =
     RSAssign e -> SRSAssign (expr e)
     | FSAssign e -> SFSAssign (expr e) 
         
-  in 
+  in
+	let gen_fn name fs boo binds stmts =
+	check_function ({ 
+		ret_type = Void;
+		fname = name;
+		formals = fs;
+		locals = binds;
+		body = stmts
+	}) (* TODO: we are supposed to use the boo parameter *)
+	in 
   ((globals, List.map check_function functions), 
-  (loop_locals, stmt false loop_list), 
-  (end_locals, stmt true end_list), List.map check_config config_list)
+  gen_fn "loop" [(String, "line")] false loop_locals loop_stmts,
+  gen_fn "end" [] true end_locals end_stmts,
+	List.map check_config config_list)
+
