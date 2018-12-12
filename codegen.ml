@@ -14,8 +14,9 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
 	(* Get types from the context *)
 	let i32_t	= L.i32_type    context
-  	and i64_t	= L.i64_type    context
-	and i8_t	= L.i8_type     context
+  	and i64_t	= L.i64_type    context in
+  let i8_t	= L.i8_type     context in
+  let i8_p_t = L.pointer_type i8_t
   	and  i1_t       = L.i1_type     context
 	and str_t	= L.pointer_type ( L.i8_type context ) 
   	and arr_t	= L.pointer_type ( L.i8_type context )
@@ -144,6 +145,11 @@ let translate (begin_block, loop_block, end_block, config_block) =
     L.function_type i8_t [| arr_p_t; i32_t; i64_t |] in
   let insert_func : L.llvalue =
     L.declare_function "insertElement" insert_t the_module in
+
+  let contains_t : L.lltype =
+    L.function_type i32_t [| arr_p_t ; i8_p_t ; i32_t |] in
+  let contains_func : L.llvalue =
+    L.declare_function "contains_wrapper" contains_t the_module in
 
   let ftype = L.function_type void_t [||] in (* function takes in nothing, returns void *)
 
@@ -341,6 +347,12 @@ let translate (begin_block, loop_block, end_block, config_block) =
         L.build_call delete_func [| expr builder e1 ; expr builder e2 |] "removeNode" builder
       | SCall ("insert", [e1; e2; e3]) -> 
         L.build_call insert_func [| expr builder e1 ; expr builder e2 ; cast_unsigned builder e3|] "insertElement" builder
+      | SCall ("contains", [e1; e2]) ->
+          (*let printhi = L.build_global_string "hihihi" "print" builder in
+          print_string (L.string_of_llvalue (cast_to_void builder e2));
+
+          L.build_call printf_func [| string_format_str builder; printhi |] "printf" builder;*)
+        L.build_call contains_func [| expr builder e1 ; cast_to_void builder e2 ; choose_compar builder e2 |] "contains_wrapper" builder
       | SCall (f, args) ->
         let (fdef, fdecl) = StringMap.find f function_decls in
         let llargs = List.rev (List.map (expr builder) (List.rev args)) in
@@ -400,6 +412,23 @@ let translate (begin_block, loop_block, end_block, config_block) =
         Pointer -> L.build_pointercast red_expr i64_t "castToUnsigned" builder
         | Integer -> L.build_zext red_expr i64_t "castToUnsigned" builder
         | _ -> raise (Failure "unable to cast to i64")
+
+    and cast_to_void builder e2 =
+      let red_expr = expr builder  e2 in
+      let ty = L.type_of red_expr in match (L.classify_type ty) with
+        Pointer -> L.build_zext red_expr i8_p_t "containsCast" builder
+        | Integer -> L.build_inttoptr red_expr i8_p_t "containsCast" builder
+        | _ -> raise (Failure "Unable to cast expression 2 for contains")
+
+    and choose_compar builder e2 =
+      let (e2_ty, _) = e2 in 
+      let rec compar_from_typ ty = match ty with
+        A.Int -> L.const_int i32_t 0
+        | A.Bool -> L.const_int i32_t 1
+        | A.String -> L.const_int i32_t 2
+        | A.ArrayType t -> arr_elem_type t; compar_from_typ t
+        | _ -> raise (Failure "Unable to find comparator")
+      in compar_from_typ e2_ty
 
   in 
 
