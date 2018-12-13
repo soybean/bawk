@@ -19,7 +19,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let i8_p_t = L.pointer_type i8_t
   	and  i1_t       = L.i1_type     context
 	and str_t	= L.pointer_type ( L.i8_type context ) 
-  	and arr_t	= L.pointer_type ( L.i8_type context )
+  (*	and arr_t	= L.pointer_type ( L.i8_type context ) *)
   	and ptr_t	= L.pointer_type ( L.i8_type context ) in
   	let node_t	= let node_t = L.named_struct_type context "Node" in
                    L.struct_set_body node_t [| i64_t ; L.pointer_type node_t |] false;
@@ -330,10 +330,9 @@ let translate (begin_block, loop_block, end_block, config_block) =
                   ArrayType t -> t
                   | _ -> raise(Failure "not an array") in
                 let long = match arr_type with
-                    A.Int -> L.build_zext rhs i64_t "arrayDerefAssign" builder
-                    | A.Bool -> L.build_zext rhs i64_t "arrayDerefAssign" builder
+                    A.Int | A.Bool-> L.build_zext rhs i64_t "arrayDerefAssign" builder
                     | A.String | A.Rgx -> L.build_pointercast rhs i64_t "arrayDerefAssign" builder
-                    | A.ArrayType t -> L.build_pointercast rhs i64_t "arrayDerefAssign" builder
+                    | A.ArrayType _ -> L.build_pointercast rhs i64_t "arrayDerefAssign" builder
                     | _ -> raise(Failure "unmatched type")
                 in ignore (L.build_call assign_func [| expr builder ar; expr builder idx; long |] "assignElement" builder); rhs
             | _ -> raise (Failure "No match on left"))
@@ -347,7 +346,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
           A.String | A.Rgx -> L.build_inttoptr v str_t "arrayDeref" builder
           | A.Int -> L.build_trunc v i32_t "arrayDeref" builder
           | A.Bool -> L.build_trunc v i1_t "arrayDeref" builder
-          | A.ArrayType t -> L.build_inttoptr v arr_p_t "arrayDeref" builder
+          | A.ArrayType _ -> L.build_inttoptr v arr_p_t "arrayDeref" builder
           | _ -> raise (Failure "unmatched type"))
       | SBinop(e1, op, e2) ->
         let e1' = expr builder e1
@@ -365,14 +364,12 @@ let translate (begin_block, loop_block, end_block, config_block) =
     	  | A.Leq     -> L.build_icmp L.Icmp.Sle
     	  | A.Greater -> L.build_icmp L.Icmp.Sgt
     	  | A.Geq     -> L.build_icmp L.Icmp.Sge
-          | _         -> raise (Failure "no binary operation")
         ) e1' e2' "tmp" builder
       | SUnop(uop, e) ->
         let e' = expr builder e in
         (match uop with
           A.Neg -> L.build_neg
           | A.Not -> L.build_not
-          | _ -> raise (Failure "no unary operation")
         ) e' "tmp" builder; 
       | SStrcat(e1, e2) -> L.build_call concat_func [| expr builder e1; expr builder e2 |] "concat" builder
       | SRgxcomp (e1, e2) -> L.build_call rgxcomp_func [| expr builder e1; expr builder e2 |] "comp" builder
@@ -532,6 +529,10 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	      L.builder_at_end context merge_bb
       | SFor (e1, e2, e3, body) -> stmt builder
 	      ( SBlock [SExpr e1 ; SWhile (e2, SBlock [body ; SExpr e3]) ] )
+    (*  | SEnhancedFor(str1, str2, body) -> 
+               let v = lookup str1 in
+               let arr = lookup str2 in
+               stmt builder (SBlock [ SWhile (e2, SBlock [body ; SExpr e3])]) *)
       | _ -> raise (Failure "stmt no pattern match")
     in
 
