@@ -40,31 +40,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
   	| _ -> raise (Failure "types no pattern match") in
 
 
-  let string_ops = function
-    A.Equal -> "string_equals"
-    | A.Neq -> "string_neq"
-    | A.Leq -> "string_leq"
-    | A.Geq -> "string_geq"
-    | A.Less -> "string_less"
-    | A.Greater -> "string_greater"
-  in
-
-
-  let int_ops = function
-    A.Add -> L.build_add
-    | A.Sub -> L.build_sub
-    | A.Mult -> L.build_mul
-    | A.Div -> L.build_sdiv
-    | A.And -> L.build_and
-    | A.Or -> L.build_or
-    | A.Equal -> L.build_icmp L.Icmp.Eq
-    | A.Neq -> L.build_icmp L.Icmp.Ne
-    | A.Less -> L.build_icmp L.Icmp.Slt
-    | A.Leq -> L.build_icmp L.Icmp.Sle
-    | A.Greater -> L.build_icmp L.Icmp.Sgt
-    | A.Geq -> L.build_icmp L.Icmp.Sge
-    | _ -> raise (Failure "no binary operation")
-  in
   (* Array helper functions *)
   	let arr_elem_type = function
     		A.ArrayType t -> t
@@ -123,6 +98,28 @@ let translate (begin_block, loop_block, end_block, config_block) =
     L.function_type str_t [| str_t; i32_t|] in
   let access_func : L.llvalue =
     L.declare_function "access" access_t the_module in
+
+  let strequals_t : L.lltype =
+    L.function_type i1_t [| str_t; str_t |] in
+  let strequals_func : L.llvalue = 
+    L.declare_function "streq" strequals_t the_module in
+
+  let strnequals_t : L.lltype =
+    L.function_type i1_t [| str_t; str_t |] in
+  let strnequals_func : L.llvalue = 
+    L.declare_function "strneq" strnequals_t the_module in
+
+  let strless_func : L.llvalue =
+    L.declare_function "strless" strequals_t the_module in
+
+  let strgreater_func : L.llvalue =
+    L.declare_function "strgreater" strequals_t the_module in
+
+  let strgeq_func : L.llvalue =
+    L.declare_function "strgeq" strequals_t the_module in
+
+  let strleq_func : L.llvalue =
+    L.declare_function "strleq" strequals_t the_module in
 
   let numfields_t : L.lltype =
     L.function_type i32_t [| str_t |] in
@@ -349,20 +346,34 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SBinop(e1, op, e2) ->
         let e1' = expr builder e1
         and e2' = expr builder e2 in
-        (match op with
-            A.Add       -> L.build_add
-            | A.Sub     -> L.build_sub
-            | A.Mult    -> L.build_mul
-            | A.Div     -> L.build_sdiv
-            | A.And     -> L.build_and
-    	      | A.Or      -> L.build_or
-    	      | A.Equal   -> L.build_icmp L.Icmp.Eq
-    	      | A.Neq     -> L.build_icmp L.Icmp.Ne
-    	      | A.Less    -> L.build_icmp L.Icmp.Slt
-    	  | A.Leq     -> L.build_icmp L.Icmp.Sle
-    	  | A.Greater -> L.build_icmp L.Icmp.Sgt
-    	  | A.Geq     -> L.build_icmp L.Icmp.Sge
-        ) e1' e2' "tmp" builder
+        let int_binop op = 
+          (match op with
+            A.Add -> L.build_add
+            | A.Sub -> L.build_sub
+            | A.Mult -> L.build_mul
+            | A.Div -> L.build_sdiv
+            | A.And -> L.build_and
+            | A.Or -> L.build_or
+            | A.Equal -> L.build_icmp L.Icmp.Eq
+            | A.Neq -> L.build_icmp L.Icmp.Ne
+            | A.Less -> L.build_icmp L.Icmp.Slt
+            | A.Leq -> L.build_icmp L.Icmp.Sle
+            | A.Greater -> L.build_icmp L.Icmp.Sgt
+            | A.Geq -> L.build_icmp L.Icmp.Sge
+            | _ -> raise (Failure "no binary operation")
+          ) e1' e2' "tmp" builder in
+        let str_binop op =
+          (match op with
+            A.Equal -> L.build_call strequals_func [| e1'; e2' |] "streq" builder
+            | A.Neq -> L.build_call strnequals_func [| e1'; e2' |] "strneq" builder
+            | A.Greater -> L.build_call strgreater_func [| e1'; e2' |] "strgreater" builder
+            | A.Less -> L.build_call strless_func [| e1'; e2' |] "strless" builder
+            | A.Leq -> L.build_call strleq_func [| e1'; e2' |] "strleq" builder
+            | A.Geq -> L.build_call strgeq_func [| e1'; e2' |] "strgeq" builder
+            | _ -> raise(Failure "Invalid operation on string")
+          ) in
+        if (L.type_of e1' = i32_t) then int_binop op
+        else str_binop op
       | SUnop(uop, e) ->
         let e' = expr builder e in
         (match uop with

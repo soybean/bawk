@@ -9,6 +9,30 @@ int string_to_int(char *a) {
   return atoi(cleaned);
 }
 
+int streq(char *a, char *b) {
+  return (strcmp(a, b) == 0);
+}
+
+int strneq(char *a, char *b) {
+  return (strcmp(a, b) != 0);
+}
+
+int strgreater(char *a, char *b) {
+  return (strcmp(a, b) > 0);
+}
+
+int strless(char *a, char *b) {
+  return (strcmp(a, b) < 0);
+}
+
+int strgeq(char *a, char *b) {
+  return (strcmp(a, b) >= 0);
+}
+
+int strleq(char *a, char *b) {
+  return (strcmp(a, b) <= 0);
+}
+
 char *concat(char *a, char *b) {
   char *str = malloc(strlen(a) + strlen(b));
   size_t len1 = strlen(a), len2 = strlen(b);
