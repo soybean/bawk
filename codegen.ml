@@ -28,6 +28,9 @@ let translate (begin_block, loop_block, end_block, config_block) =
   	let arr_t	= let arr_t = L.named_struct_type context "Array" in
                    	L.struct_set_body arr_t [| node_p_t ; i32_t ; i32_t |] false;
                    	arr_t in
+        let str_p_t     = L.pointer_type str_t in
+        let i32_p_t     = L.pointer_type i32_t in
+        let i1_p_t      = L.pointer_type i1_t in
   	let arr_p_t	= L.pointer_type arr_t in
   	let void_t	= L.void_type context in
 
@@ -122,7 +125,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
     L.declare_function "getElement" arrayderef_t the_module in
 
   let assign_t : L.lltype =
-    L.function_type i32_t [| arr_p_t; i32_t; i64_t |] in
+    L.function_type i8_t [| arr_p_t; i32_t; i64_t |] in
   let assign_func : L.llvalue =
     L.declare_function "assignElement" assign_t the_module in
 
@@ -280,24 +283,25 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SArrayLit a -> array_gen builder ty a
       | SId i -> L.build_load (lookup i) i builder
       | SAssign (e1, e2) ->
+          let boo = 0 in
           let (_, e) = e1 in
+          let rhs = expr builder e2 in
           let lhs = match e with 
-            SId i -> lookup i
-            (*| SArrayDeref (ar, idx) ->
-                let (ty, _) = ar in
-                let arr_type = match ty with
-                  ArrayType t -> t
-                  | _ -> raise(Failure "not an array") in
-                let v = L.build_call arrayderef_func [| loopend_expr builder is_loop ar; loopend_expr builder is_loop idx |] "getElement" builder in
-                  (match arr_type with
-                    A.Int -> L.build_inttoptr v i32_p_t "arrayDeref" builder
-                    | A.Bool -> L.build_inttoptr v i1_p_t "arrayDeref" builder
-                    | A.String -> L.build_inttoptr v str_p_t "arrayDeref" builder
-                    | A.ArrayType t -> L.build_inttoptr v arr_p_t "arrayDeref" builder
-                    | _ -> raise(Failure "unmatched type"))  *)
+            SId i -> boo = 1; lookup i  
+          | SArrayDeref(ar, idx) -> 
+               let (ty, _) = ar in
+               let arr_type = (match ty with
+                               ArrayType t -> t
+                              | _ -> raise (Failure "not an array")) in
+              let long = match arr_type with
+                A.Int -> cast_unsigned builder e2(*L.build_zext rhs i64_t "convertLong" builder *)
+              | A.String | A.Rgx -> L.build_ptrtoint rhs i64_t "convertLong" builder 
+              | A.Bool -> L.build_zext rhs i64_t "convertLong" builder
+              | A.ArrayType t -> L.build_ptrtoint rhs i64_t "convertLong" builder 
+              | _ -> raise (Failure "unmatched type")
+              in L.build_call assign_func [| expr builder ar; expr builder idx; long|] "assignElement" builder
             | _ -> raise (Failure "No match on left") 
-          and rhs = expr builder e2
-          in ignore(L.build_store rhs lhs builder); rhs
+          in if (boo = 1) then ignore(L.build_store rhs lhs builder); rhs
       | SArrayDeref (ar, idx) ->
         let (ty, _) = ar in
         let arr_type = match ty with
@@ -305,7 +309,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
           | _ -> raise(Failure "not an array") in
         let v = L.build_call arrayderef_func [| expr builder ar; expr builder idx |] "getElement" builder in
         (match arr_type with
-          A.String -> L.build_inttoptr v str_t "arrayDeref" builder
+          A.String | A.Rgx -> L.build_inttoptr v str_t "arrayDeref" builder
           | A.Int -> L.build_trunc v i32_t "arrayDeref" builder
           | A.Bool -> L.build_trunc v i1_t "arrayDeref" builder
           | A.ArrayType t -> L.build_inttoptr v arr_p_t "arrayDeref" builder
@@ -319,10 +323,10 @@ let translate (begin_block, loop_block, end_block, config_block) =
             | A.Mult    -> L.build_mul
             | A.Div     -> L.build_sdiv
             | A.And     -> L.build_and
-    	      | A.Or      -> L.build_or
-    	      | A.Equal   -> L.build_icmp L.Icmp.Eq
-    	      | A.Neq     -> L.build_icmp L.Icmp.Ne
-    	      | A.Less    -> L.build_icmp L.Icmp.Slt
+    	    | A.Or      -> L.build_or
+    	    | A.Equal   -> L.build_icmp L.Icmp.Eq
+    	    | A.Neq     -> L.build_icmp L.Icmp.Ne
+    	    | A.Less    -> L.build_icmp L.Icmp.Slt
     	  | A.Leq     -> L.build_icmp L.Icmp.Sle
     	  | A.Greater -> L.build_icmp L.Icmp.Sgt
     	  | A.Geq     -> L.build_icmp L.Icmp.Sge
