@@ -18,9 +18,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let i8_t	= L.i8_type     context in
   let i8_p_t = L.pointer_type i8_t
   	and  i1_t       = L.i1_type     context
-	and str_t	= L.pointer_type ( L.i8_type context ) 
-  	and arr_t	= L.pointer_type ( L.i8_type context )
-  	and ptr_t	= L.pointer_type ( L.i8_type context ) in
+	and str_t	= L.pointer_type ( L.i8_type context ) in 
   	let node_t	= let node_t = L.named_struct_type context "Node" in
                    L.struct_set_body node_t [| i64_t ; L.pointer_type node_t |] false;
                    node_t in
@@ -467,17 +465,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
             L.build_zext_or_bitcast temp i8_p_t "containsCast" builder*)
         | _ -> raise (Failure "Unable to cast expression 2 for contains")
 
-    and choose_compar_wrapper builder e2 =
-      let (e2_ty, _) = e2 in 
-      let rec compar_from_typ ty = match ty with
-        A.Int -> L.const_int i32_t 0
-        | A.Bool -> L.const_int i32_t 1
-        | A.String -> L.const_int i32_t 2
-        (* TODO: ArrayType needs to go all the way down to base type, instead of just 1 depth down. *)
-        | A.ArrayType t -> (*ignore(print_string (L.string_of_lltype (ltype_of_typ e2_ty))); *)arr_elem_type e2_ty; compar_from_typ t
-        | _ -> raise (Failure "Unable to find comparator")
-      in compar_from_typ e2_ty
-
     and choose_compar builder e2 =
       let (e2_ty, _) = e2 in
       let rec compar_from_typ ty = match ty with
@@ -490,11 +477,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
   in 
 
-  let rec iter_mult f arg1 arg2 lst = match lst with
-    [] -> ()
-    | x :: xs -> f arg1 arg2 x; iter_mult f arg1 arg2 xs
-        
-    in 
 
     let rec stmt builder = function
       SExpr ex -> ignore(expr builder ex); builder 
