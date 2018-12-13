@@ -4,5 +4,5 @@ LOOP {}
 
 END {
   string s;
-  s = 'hello'; # Fail: assigning regex to string
+  s = '[0]*'; # Fail: assigning regex to string
 }
