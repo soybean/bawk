@@ -147,7 +147,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
     L.declare_function "insertElement" insert_t the_module in
 
   let contains_t : L.lltype =
-    L.function_type i32_t [| arr_p_t ; i8_p_t ; i32_t |] in
+    L.function_type i1_t [| arr_p_t ; i8_p_t ; i32_t |] in
   let contains_func : L.llvalue =
     L.declare_function "contains_wrapper" contains_t the_module in
 
