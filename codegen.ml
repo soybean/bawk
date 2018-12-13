@@ -192,9 +192,9 @@ let translate (begin_block, loop_block, end_block, config_block) =
     L.declare_function "contains" contains_t the_module in
 
   let indexof_t : L.lltype =
-    L.function_type i32_t [| arr_p_t ; i8_p_t ; i32_t |] in
+    L.function_type i32_t [| arr_p_t ; i8_p_t ; compare_p_t |] in
   let indexof_func : L.llvalue =
-    L.declare_function "findIndexOfNode_wrapper" indexof_t the_module in
+    L.declare_function "findIndexOfNode" indexof_t the_module in
 
   let ftype = L.function_type void_t [||] in (* function takes in nothing, returns void *)
 
@@ -393,9 +393,9 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SCall ("insert", [e1; e2; e3]) -> 
         L.build_call insert_func [| expr builder e1 ; expr builder e2 ; cast_unsigned builder e3|] "insertElement" builder
       | SCall ("contains", [e1; e2]) ->
-        L.build_call contains_func [| expr builder e1 ; cast_to_void builder e2 ; choose_compar builder e2 |] "contains_wrapper" builder
-      | SCall ("indexOf", [e1 ; e2]) ->
-          L.build_call indexof_func [| expr builder e1 ; cast_to_void builder e2 ; choose_compar builder e2 |] "findIndexOfNode_wrapper" builder
+        L.build_call contains_func [| expr builder e1 ; cast_to_void builder e2 ; choose_compar builder e2 |] "contains" builder
+      | SCall ("index_of", [e1 ; e2]) ->
+          L.build_call indexof_func [| expr builder e1 ; cast_to_void builder e2 ; choose_compar builder e2 |] "findIndexOfNode" builder
       | SCall (f, args) ->
         let (fdef, fdecl) = StringMap.find f function_decls in
         let llargs = List.rev (List.map (expr builder) (List.rev args)) in
