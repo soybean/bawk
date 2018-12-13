@@ -172,10 +172,24 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let insert_func : L.llvalue =
     L.declare_function "insertElement" insert_t the_module in
 
+  let compare_t : L.lltype =
+    L.function_type i32_t [| i8_p_t ; i8_p_t |] in
+
+  let compare_p_t = L.pointer_type compare_t in
+
+  let compareint_func : L.llvalue =
+    L.declare_function "compareInts" compare_t the_module in
+  let comparebools_func : L.llvalue =
+    L.declare_function "compareBools" compare_t the_module in
+  let comparestr_func : L.llvalue =
+    L.declare_function "compareStrs" compare_t the_module in
+  let comparelists_func : L.llvalue =
+    L.declare_function "compareLists" compare_t the_module in
+
   let contains_t : L.lltype =
-    L.function_type i1_t [| arr_p_t ; i8_p_t ; i32_t |] in
+    L.function_type i1_t [| arr_p_t ; i8_p_t ; compare_p_t |] in
   let contains_func : L.llvalue =
-    L.declare_function "contains_wrapper" contains_t the_module in
+    L.declare_function "contains" contains_t the_module in
 
   let indexof_t : L.lltype =
     L.function_type i32_t [| arr_p_t ; i8_p_t ; i32_t |] in
@@ -460,8 +474,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
             L.build_zext_or_bitcast temp i8_p_t "containsCast" builder*)
         | _ -> raise (Failure "Unable to cast expression 2 for contains")
 
-    and choose_compar builder e2 =
-      let (e2_ty, e2_e) = e2 in 
+    and choose_compar_wrapper builder e2 =
+      let (e2_ty, _) = e2 in 
       let rec compar_from_typ ty = match ty with
         A.Int -> L.const_int i32_t 0
         | A.Bool -> L.const_int i32_t 1
@@ -470,6 +484,12 @@ let translate (begin_block, loop_block, end_block, config_block) =
         | A.ArrayType t -> (*ignore(print_string (L.string_of_lltype (ltype_of_typ e2_ty))); *)arr_elem_type e2_ty; compar_from_typ t
         | _ -> raise (Failure "Unable to find comparator")
       in compar_from_typ e2_ty
+
+    and choose_compar builder e2 =
+      let (e2_ty, _) = e2 in match e2_ty with
+      A.Int -> L.build_zext_or_bitcast compareint_func compare_p_t "compareCast" builder
+      | A.String -> L.build_zext_or_bitcast comparestr_func compare_p_t "compareCast" builder
+      | _ -> raise (Failure "Unable to find comparator")
 
   in 
 
