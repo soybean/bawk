@@ -305,7 +305,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
           | _ -> raise(Failure "not an array") in
         let v = L.build_call arrayderef_func [| expr builder ar; expr builder idx |] "getElement" builder in
         (match arr_type with
-          A.String -> L.build_inttoptr v str_t "arrayDeref" builder
+          A.String | A.Rgx -> L.build_inttoptr v str_t "arrayDeref" builder
           | A.Int -> L.build_trunc v i32_t "arrayDeref" builder
           | A.Bool -> L.build_trunc v i1_t "arrayDeref" builder
           | A.ArrayType t -> L.build_inttoptr v arr_p_t "arrayDeref" builder
