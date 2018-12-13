@@ -1,6 +1,9 @@
-BEGIN{}
-LOOP{
-int[] a;
-a = [1+1, 2+2, 3+2];
+BEGIN {}
+
+LOOP {}
+
+END {
+	int[] a;
+  a = [1+1, 2+2, 3+2];
+  print(int_to_string(a[0]));
 }
-END{}

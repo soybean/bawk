@@ -3,7 +3,8 @@ BEGIN {}
 LOOP {}
 
 END {
-  int x;
+ 	int x;
+	x = 0;
   x = x + 2;
   print(int_to_string(x));
 }
