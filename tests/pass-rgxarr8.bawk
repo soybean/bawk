@@ -6,4 +6,5 @@ END {
   rgx[] a; 
   a = ['[0]*', '[1]*', '[1]*'];
   print(bool_to_string(contains(a, '[0]*')));
+	print(bool_to_string(contains(a, '[2]*')));
 }

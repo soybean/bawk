@@ -4,6 +4,7 @@ LOOP {}
 
 END {
   bool[] a; 
-  a = [true, false, false];
+  a = [false, false, false];
+	print(bool_to_string(contains(a, false)));
   print(bool_to_string(contains(a, true)));
 }
