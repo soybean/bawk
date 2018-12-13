@@ -37,10 +37,36 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	| A.Bool  -> i1_t
 	| A.Void  -> void_t
 	| A.String -> str_t
-  	| A.Rgx -> str_t
+    | A.Rgx -> str_t
   	| A.ArrayType t -> arr_p_t
   	| _ -> raise (Failure "types no pattern match") in
 
+
+  let string_ops = function
+    A.Equal -> "string_equals"
+    | A.Neq -> "string_neq"
+    | A.Leq -> "string_leq"
+    | A.Geq -> "string_geq"
+    | A.Less -> "string_less"
+    | A.Greater -> "string_greater"
+  in
+
+
+  let int_ops = function
+    A.Add -> L.build_add
+    | A.Sub -> L.build_sub
+    | A.Mult -> L.build_mul
+    | A.Div -> L.build_sdiv
+    | A.And -> L.build_and
+    | A.Or -> L.build_or
+    | A.Equal -> L.build_icmp L.Icmp.Eq
+    | A.Neq -> L.build_icmp L.Icmp.Ne
+    | A.Less -> L.build_icmp L.Icmp.Slt
+    | A.Leq -> L.build_icmp L.Icmp.Sle
+    | A.Greater -> L.build_icmp L.Icmp.Sgt
+    | A.Geq -> L.build_icmp L.Icmp.Sge
+    | _ -> raise (Failure "no binary operation")
+  in
   (* Array helper functions *)
   	let arr_elem_type = function
     		A.ArrayType t -> t
@@ -345,7 +371,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SCall ("string_to_int", [e]) -> L.build_call string_to_int_func [| expr builder e |] "string_to_int" builder
       | SCall ("bool_to_string", [e]) -> L.build_call bool_to_string_func [| expr builder e |] "bool_to_string" builder
       | SCall ("print", [e]) ->
-    		L.build_call printf_func [| string_format_str builder; (expr builder e)|] "printf" builder
+    		L.build_call printf_func [| string_format_str builder; (expr builder e) |] "printf" builder
       | SCall ("length", [e]) -> 
         L.build_call length_func [| expr builder e |] "length" builder
       | SCall ("delete", [e1; e2]) -> 
