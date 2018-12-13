@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 void loop(char *line);
 
@@ -16,6 +17,7 @@ int main(int argc, char **argv) {
     FILE *fp = fopen(filename, "rw");
     char buffer[256];
     while (fgets(buffer, 256, fp)) {
+			buffer[strcspn(buffer, "\n")] = '\0';
       loop(buffer);
     }
 
