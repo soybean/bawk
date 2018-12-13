@@ -121,10 +121,10 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let arrayderef_func : L.llvalue =
     L.declare_function "getElement" arrayderef_t the_module in
 
-  let arrayderef_t : L.lltype =
-    L.function_type i64_t [| arr_p_t; i32_t |] in
-  let arrayderef_func : L.llvalue =
-    L.declare_function "getElement" arrayderef_t the_module in
+  let assign_t : L.lltype =
+    L.function_type i32_t [| arr_p_t; i32_t; i64_t |] in
+  let assign_func : L.llvalue =
+    L.declare_function "assignElement" assign_t the_module in
 
   let reverse_t : L.lltype =
     L.function_type i8_t [| arr_p_t |] in
