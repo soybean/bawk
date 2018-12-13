@@ -1,11 +1,7 @@
 set -e
-echo compiling
-./bawk.native -c sadtest.bawk > int_to.ll
-echo ll compiling
+./bawk.native -c tests/pass-config.bawk > int_to.ll
 llc -relocation-model=pic int_to.ll > int_to.s
-echo linking
 cc -o int_to.exe int_to.s convert.o structure.o mylist.o rgx.o
-echo executing
 ./int_to.exe input.txt
 
 
