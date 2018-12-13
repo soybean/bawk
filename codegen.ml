@@ -28,6 +28,9 @@ let translate (begin_block, loop_block, end_block, config_block) =
   	let arr_t	= let arr_t = L.named_struct_type context "Array" in
                    	L.struct_set_body arr_t [| node_p_t ; i32_t ; i32_t |] false;
                    	arr_t in
+        let str_p_t     = L.pointer_type str_t in
+        let i32_p_t     = L.pointer_type i32_t in
+        let i1_p_t      = L.pointer_type i1_t in
   	let arr_p_t	= L.pointer_type arr_t in
   	let void_t	= L.void_type context in
 
@@ -147,10 +150,10 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let arrayderef_func : L.llvalue =
     L.declare_function "getElement" arrayderef_t the_module in
 
-  let arrayderef_t : L.lltype =
-    L.function_type i64_t [| arr_p_t; i32_t |] in
-  let arrayderef_func : L.llvalue =
-    L.declare_function "getElement" arrayderef_t the_module in
+  let assign_t : L.lltype =
+    L.function_type i8_t [| arr_p_t; i32_t; i64_t |] in
+  let assign_func : L.llvalue =
+    L.declare_function "assignElement" assign_t the_module in
 
   let reverse_t : L.lltype =
     L.function_type i8_t [| arr_p_t |] in
@@ -176,6 +179,11 @@ let translate (begin_block, loop_block, end_block, config_block) =
     L.function_type i32_t [| arr_p_t ; i8_p_t ; i32_t |] in
   let contains_func : L.llvalue =
     L.declare_function "contains_wrapper" contains_t the_module in
+
+  let indexof_t : L.lltype =
+    L.function_type i32_t [| arr_p_t ; i8_p_t ; i32_t |] in
+  let indexof_func : L.llvalue =
+    L.declare_function "findIndexOfNode_wrapper" indexof_t the_module in
 
   let ftype = L.function_type void_t [||] in (* function takes in nothing, returns void *)
 
@@ -301,24 +309,25 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SArrayLit a -> array_gen builder ty a
       | SId i -> L.build_load (lookup i) i builder
       | SAssign (e1, e2) ->
+          let boo = 0 in
           let (_, e) = e1 in
+          let rhs = expr builder e2 in
           let lhs = match e with 
-            SId i -> lookup i
-            (*| SArrayDeref (ar, idx) ->
-                let (ty, _) = ar in
-                let arr_type = match ty with
-                  ArrayType t -> t
-                  | _ -> raise(Failure "not an array") in
-                let v = L.build_call arrayderef_func [| loopend_expr builder is_loop ar; loopend_expr builder is_loop idx |] "getElement" builder in
-                  (match arr_type with
-                    A.Int -> L.build_inttoptr v i32_p_t "arrayDeref" builder
-                    | A.Bool -> L.build_inttoptr v i1_p_t "arrayDeref" builder
-                    | A.String -> L.build_inttoptr v str_p_t "arrayDeref" builder
-                    | A.ArrayType t -> L.build_inttoptr v arr_p_t "arrayDeref" builder
-                    | _ -> raise(Failure "unmatched type"))  *)
+            SId i -> boo = 1; lookup i  
+          | SArrayDeref(ar, idx) -> 
+               let (ty, _) = ar in
+               let arr_type = (match ty with
+                               ArrayType t -> t
+                              | _ -> raise (Failure "not an array")) in
+              let long = match arr_type with
+                A.Int -> cast_unsigned builder e2(*L.build_zext rhs i64_t "convertLong" builder *)
+              | A.String | A.Rgx -> L.build_ptrtoint rhs i64_t "convertLong" builder 
+              | A.Bool -> L.build_zext rhs i64_t "convertLong" builder
+              | A.ArrayType t -> L.build_ptrtoint rhs i64_t "convertLong" builder 
+              | _ -> raise (Failure "unmatched type")
+              in L.build_call assign_func [| expr builder ar; expr builder idx; long|] "assignElement" builder
             | _ -> raise (Failure "No match on left") 
-          and rhs = expr builder e2
-          in ignore(L.build_store rhs lhs builder); rhs
+          in if (boo = 1) then ignore(L.build_store rhs lhs builder); rhs
       | SArrayDeref (ar, idx) ->
         let (ty, _) = ar in
         let arr_type = match ty with
@@ -326,7 +335,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
           | _ -> raise(Failure "not an array") in
         let v = L.build_call arrayderef_func [| expr builder ar; expr builder idx |] "getElement" builder in
         (match arr_type with
-          A.String -> L.build_inttoptr v str_t "arrayDeref" builder
+          A.String | A.Rgx -> L.build_inttoptr v str_t "arrayDeref" builder
           | A.Int -> L.build_trunc v i32_t "arrayDeref" builder
           | A.Bool -> L.build_trunc v i1_t "arrayDeref" builder
           | A.ArrayType t -> L.build_inttoptr v arr_p_t "arrayDeref" builder
@@ -334,12 +343,21 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SBinop(e1, op, e2) ->
         let e1' = expr builder e1
         and e2' = expr builder e2 in
-        let ltyp = L.type_of e1' in
-        (match ltyp with
-        str_t -> (L.build_call printf_func [| string_format_str builder; (expr builder e1) |] "printf" builder)
-        | i32_t -> (int_ops op e1' e2' "tmp" builder)
-      | _ -> raise(Failure "FUCK"))
-        (*let ltypes = (L.type_of e1', L.type_of e2') in*)
+        (match op with
+            A.Add       -> L.build_add
+            | A.Sub     -> L.build_sub
+            | A.Mult    -> L.build_mul
+            | A.Div     -> L.build_sdiv
+            | A.And     -> L.build_and
+    	    | A.Or      -> L.build_or
+    	    | A.Equal   -> L.build_icmp L.Icmp.Eq
+    	    | A.Neq     -> L.build_icmp L.Icmp.Ne
+    	    | A.Less    -> L.build_icmp L.Icmp.Slt
+    	  | A.Leq     -> L.build_icmp L.Icmp.Sle
+    	  | A.Greater -> L.build_icmp L.Icmp.Sgt
+    	  | A.Geq     -> L.build_icmp L.Icmp.Sge
+          | _         -> raise (Failure "no binary operation")
+        ) e1' e2' "tmp" builder
       | SUnop(uop, e) ->
         let e' = expr builder e in
         (match uop with
@@ -370,6 +388,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
           L.build_call printf_func [| string_format_str builder; printhi |] "printf" builder;*)
         L.build_call contains_func [| expr builder e1 ; cast_to_void builder e2 ; choose_compar builder e2 |] "contains_wrapper" builder
+      | SCall ("indexOf", [e1 ; e2]) ->
+          L.build_call indexof_func [| expr builder e1 ; cast_to_void builder e2 ; choose_compar builder e2 |] "findIndexOfNode_wrapper" builder
       | SCall (f, args) ->
         let (fdef, fdecl) = StringMap.find f function_decls in
         let llargs = List.rev (List.map (expr builder) (List.rev args)) in
@@ -384,8 +404,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SNumFields ->
           let (loop_func, fdecl) = StringMap.find "loop" function_decls in
           L.build_call numfields_func [| L.param loop_func 0 |] "numfields" builder
-
-    	| SDecrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Sub, (A.Int, SLiteral(1)))))) in expr builder e2
+    	| SIncrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Add, (A.Int, SLiteral(1)))))) in expr builder e2
+			| SDecrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Sub, (A.Int, SLiteral(1)))))) in expr builder e2
     	| SPluseq(e1, e2) -> let e = (A.Int, SAssign(e1, (A.Int, SBinop(e1, A.Add, e2)))) in expr builder e
     	| SMinuseq(e1, e2) -> let e = (A.Int, SAssign(e1, (A.Int, SBinop(e1, A.Sub, e2)))) in expr builder e
 			| SRgxLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
