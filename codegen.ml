@@ -379,10 +379,12 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SCall ("insert", [e1; e2; e3]) -> 
         L.build_call insert_func [| expr builder e1 ; expr builder e2 ; cast_unsigned builder e3|] "insertElement" builder
       | SCall ("contains", [e1; e2]) ->
+          
           (*let printhi = L.build_global_string "hihihi" "print" builder in
           print_string (L.string_of_llvalue (cast_to_void builder e2));
 
           L.build_call printf_func [| string_format_str builder; printhi |] "printf" builder;*)
+
         L.build_call contains_func [| expr builder e1 ; cast_to_void builder e2 ; choose_compar builder e2 |] "contains_wrapper" builder
       | SCall ("indexOf", [e1 ; e2]) ->
           L.build_call indexof_func [| expr builder e1 ; cast_to_void builder e2 ; choose_compar builder e2 |] "findIndexOfNode_wrapper" builder
@@ -447,19 +449,25 @@ let translate (begin_block, loop_block, end_block, config_block) =
         | _ -> raise (Failure "unable to cast to i64")
 
     and cast_to_void builder e2 =
-      let red_expr = expr builder  e2 in
+      let red_expr = (*ignore(print_string "reached cast to void");*) expr builder e2 in
       let ty = L.type_of red_expr in match (L.classify_type ty) with
-        Pointer -> L.build_zext red_expr i8_p_t "containsCast" builder
+        Pointer -> L.build_zext_or_bitcast red_expr i8_p_t "containsCast" builder
         | Integer -> L.build_inttoptr red_expr i8_p_t "containsCast" builder
+            (*let temp =
+              let cast_temp = L.build_alloca i32_t "castVoidTemp" builder in
+              L.build_store red_expr cast_temp builder 
+            in 
+            L.build_zext_or_bitcast temp i8_p_t "containsCast" builder*)
         | _ -> raise (Failure "Unable to cast expression 2 for contains")
 
     and choose_compar builder e2 =
-      let (e2_ty, _) = e2 in 
+      let (e2_ty, e2_e) = e2 in 
       let rec compar_from_typ ty = match ty with
         A.Int -> L.const_int i32_t 0
         | A.Bool -> L.const_int i32_t 1
         | A.String -> L.const_int i32_t 2
-        | A.ArrayType t -> arr_elem_type t; compar_from_typ t
+        (* TODO: ArrayType needs to go all the way down to base type, instead of just 1 depth down. *)
+        | A.ArrayType t -> (*ignore(print_string (L.string_of_lltype (ltype_of_typ e2_ty))); *)arr_elem_type e2_ty; compar_from_typ t
         | _ -> raise (Failure "Unable to find comparator")
       in compar_from_typ e2_ty
 
