@@ -483,6 +483,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
       let rec compar_from_typ ty = match ty with
         A.Int -> L.build_zext_or_bitcast compareint_func compare_p_t "compareCast" builder
         | A.String -> L.build_zext_or_bitcast comparestr_func compare_p_t "compareCast" builder
+        | A.Rgx -> L.build_zext_or_bitcast comparestr_func compare_p_t "compareCast" builder
         | A.ArrayType t -> compar_from_typ t
         | _ -> raise (Failure "Unable to find comparator")
       in compar_from_typ e2_ty
