@@ -325,7 +325,7 @@ let check (begin_list, loop_list, end_list, config_list) =
     }
   in 
     
-  let stmt boo block_list =
+  let stmt boo block_list = 
    
           let (locals,_) = block_list in 
     (* Raise an exception if the given rvalue type cannot be assigned to
@@ -377,7 +377,7 @@ let check (begin_list, loop_list, end_list, config_list) =
           and (num, e2') = expr e2 in
           if num <> Int then raise(Failure("Int expression expected in " ^ string_of_expr e))
         else let find_typ arr = 
-                     match arr with
+                match arr with
                      ArrayType(t) -> t 
                    | Bool | String | Rgx | Void | Int -> raise(Failure("array deref should be called on array, not " ^
                    string_of_typ arr))
@@ -578,7 +578,7 @@ let check (begin_list, loop_list, end_list, config_list) =
     | FSAssign e -> SFSAssign (expr e) 
         
   in
-	let gen_fn name fs boo binds stmts =
+	let gen_fn name fs binds stmts =
 	check_function ({ 
 		ret_type = Void;
 		fname = name;
@@ -588,7 +588,7 @@ let check (begin_list, loop_list, end_list, config_list) =
 	}) (* TODO: we are supposed to use the boo parameter *)
 	in 
   ((globals, List.map check_function functions), 
-  gen_fn "loop" [(String, "line")] false loop_locals loop_stmts,
-  gen_fn "end" [] true end_locals end_stmts,
+  gen_fn "loop" [(String, "line")] loop_locals loop_stmts,
+  gen_fn "end" [] end_locals end_stmts,
 	List.map check_config config_list)
 
