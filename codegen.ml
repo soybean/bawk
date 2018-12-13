@@ -393,12 +393,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SCall ("insert", [e1; e2; e3]) -> 
         L.build_call insert_func [| expr builder e1 ; expr builder e2 ; cast_unsigned builder e3|] "insertElement" builder
       | SCall ("contains", [e1; e2]) ->
-          
-          (*let printhi = L.build_global_string "hihihi" "print" builder in
-          print_string (L.string_of_llvalue (cast_to_void builder e2));
-
-          L.build_call printf_func [| string_format_str builder; printhi |] "printf" builder;*)
-
         L.build_call contains_func [| expr builder e1 ; cast_to_void builder e2 ; choose_compar builder e2 |] "contains_wrapper" builder
       | SCall ("indexOf", [e1 ; e2]) ->
           L.build_call indexof_func [| expr builder e1 ; cast_to_void builder e2 ; choose_compar builder e2 |] "findIndexOfNode_wrapper" builder
@@ -486,10 +480,13 @@ let translate (begin_block, loop_block, end_block, config_block) =
       in compar_from_typ e2_ty
 
     and choose_compar builder e2 =
-      let (e2_ty, _) = e2 in match e2_ty with
-      A.Int -> L.build_zext_or_bitcast compareint_func compare_p_t "compareCast" builder
-      | A.String -> L.build_zext_or_bitcast comparestr_func compare_p_t "compareCast" builder
-      | _ -> raise (Failure "Unable to find comparator")
+      let (e2_ty, _) = e2 in
+      let rec compar_from_typ ty = match ty with
+        A.Int -> L.build_zext_or_bitcast compareint_func compare_p_t "compareCast" builder
+        | A.String -> L.build_zext_or_bitcast comparestr_func compare_p_t "compareCast" builder
+        | A.ArrayType t -> compar_from_typ t
+        | _ -> raise (Failure "Unable to find comparator")
+      in compar_from_typ e2_ty
 
   in 
 

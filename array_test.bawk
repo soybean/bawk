@@ -2,8 +2,26 @@ BEGIN {}
 LOOP {
 }
 END {
-  int[] c;
-  c = [1, 2, 3];
-  contains(c, 2);
+  #int[] a;
+  #a = [1, 2, 3];
 
+  #string[] a;
+  string[][][] b;
+  #a = ["a"];
+  b = [[["a"]], [["b"]], [["c"]]];
+  
+
+  print(bool_to_string(contains(b, [["a"]])));
+  
+  #int[] a;
+  #a = [1, 2, 3];
+  #print(int_to_string(a[0]));
+  #print(int_to_string(a[1]));
+  #print(int_to_string(a[2]));
+
+  #print(int_to_string(length(a)));
+
+ # print(bool_to_string(contains(a, 1)));
+
+  #print("hi");
 }
