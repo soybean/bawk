@@ -1,15 +1,11 @@
-BEGIN {
-  function int add(int x, int y) {
-    return x + y;
-  }
+BEGIN {}
+
+LOOP {
+	print($1);
 }
 
-LOOP {}
-
-END {
-  print(int_to_string(add(1, 2)));
-}
+END {}
 
 CONFIG {
-  RS = "\n";
+  RS = "\n\n";
 }

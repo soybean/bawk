@@ -37,10 +37,36 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	| A.Bool  -> i1_t
 	| A.Void  -> void_t
 	| A.String -> str_t
-  	| A.Rgx -> str_t
+    | A.Rgx -> str_t
   	| A.ArrayType t -> arr_p_t
   	| _ -> raise (Failure "types no pattern match") in
 
+
+  let string_ops = function
+    A.Equal -> "string_equals"
+    | A.Neq -> "string_neq"
+    | A.Leq -> "string_leq"
+    | A.Geq -> "string_geq"
+    | A.Less -> "string_less"
+    | A.Greater -> "string_greater"
+  in
+
+
+  let int_ops = function
+    A.Add -> L.build_add
+    | A.Sub -> L.build_sub
+    | A.Mult -> L.build_mul
+    | A.Div -> L.build_sdiv
+    | A.And -> L.build_and
+    | A.Or -> L.build_or
+    | A.Equal -> L.build_icmp L.Icmp.Eq
+    | A.Neq -> L.build_icmp L.Icmp.Ne
+    | A.Less -> L.build_icmp L.Icmp.Slt
+    | A.Leq -> L.build_icmp L.Icmp.Sle
+    | A.Greater -> L.build_icmp L.Icmp.Sgt
+    | A.Geq -> L.build_icmp L.Icmp.Sge
+    | _ -> raise (Failure "no binary operation")
+  in
   (* Array helper functions *)
   	let arr_elem_type = function
     		A.ArrayType t -> t
@@ -121,10 +147,10 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let arrayderef_func : L.llvalue =
     L.declare_function "getElement" arrayderef_t the_module in
 
-  let arrayderef_t : L.lltype =
-    L.function_type i64_t [| arr_p_t; i32_t |] in
-  let arrayderef_func : L.llvalue =
-    L.declare_function "getElement" arrayderef_t the_module in
+  let assign_t : L.lltype =
+    L.function_type i32_t [| arr_p_t; i32_t; i64_t |] in
+  let assign_func : L.llvalue =
+    L.declare_function "assignElement" assign_t the_module in
 
   let reverse_t : L.lltype =
     L.function_type i8_t [| arr_p_t |] in
@@ -305,7 +331,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
           | _ -> raise(Failure "not an array") in
         let v = L.build_call arrayderef_func [| expr builder ar; expr builder idx |] "getElement" builder in
         (match arr_type with
-          A.String -> L.build_inttoptr v str_t "arrayDeref" builder
+          A.String | A.Rgx -> L.build_inttoptr v str_t "arrayDeref" builder
           | A.Int -> L.build_trunc v i32_t "arrayDeref" builder
           | A.Bool -> L.build_trunc v i1_t "arrayDeref" builder
           | A.ArrayType t -> L.build_inttoptr v arr_p_t "arrayDeref" builder
@@ -345,7 +371,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SCall ("string_to_int", [e]) -> L.build_call string_to_int_func [| expr builder e |] "string_to_int" builder
       | SCall ("bool_to_string", [e]) -> L.build_call bool_to_string_func [| expr builder e |] "bool_to_string" builder
       | SCall ("print", [e]) ->
-    		L.build_call printf_func [| string_format_str builder; (expr builder e)|] "printf" builder
+    		L.build_call printf_func [| string_format_str builder; (expr builder e) |] "printf" builder
       | SCall ("length", [e]) -> 
         L.build_call length_func [| expr builder e |] "length" builder
       | SCall ("delete", [e1; e2]) -> 
@@ -374,8 +400,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SNumFields ->
           let (loop_func, fdecl) = StringMap.find "loop" function_decls in
           L.build_call numfields_func [| L.param loop_func 0 |] "numfields" builder
-
-    	| SDecrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Sub, (A.Int, SLiteral(1)))))) in expr builder e2
+    	| SIncrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Add, (A.Int, SLiteral(1)))))) in expr builder e2
+			| SDecrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Sub, (A.Int, SLiteral(1)))))) in expr builder e2
     	| SPluseq(e1, e2) -> let e = (A.Int, SAssign(e1, (A.Int, SBinop(e1, A.Add, e2)))) in expr builder e
     	| SMinuseq(e1, e2) -> let e = (A.Int, SAssign(e1, (A.Int, SBinop(e1, A.Sub, e2)))) in expr builder e
 			| SRgxLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in

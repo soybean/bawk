@@ -10,4 +10,6 @@ BEGIN {
 
 LOOP {}
 
-END {}
+END {
+	print( int_to_string(y()) );
+}

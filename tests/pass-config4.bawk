@@ -1,10 +1,12 @@
 BEGIN {}
 
-LOOP {}
+LOOP {
+	print($1);
+}
 
 END {}
 
 CONFIG {
-  RS = "\n";
   RS = "\n\n";
+  RS = "\n";
 }
