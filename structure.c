@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 void loop(char *line);
 
@@ -11,11 +12,12 @@ int main(int argc, char **argv) {
     printf("You suck");
   }
   else {
-    
     char *filename = argv[1];
     FILE *fp = fopen(filename, "rw");
     char buffer[256];
+		char *rs = "\n";
     while (fgets(buffer, 256, fp)) {
+			buffer[strcspn(buffer, rs)] = '\0';
       loop(buffer);
     }
 

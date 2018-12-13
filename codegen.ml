@@ -378,8 +378,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SNumFields ->
           let (loop_func, fdecl) = StringMap.find "loop" function_decls in
           L.build_call numfields_func [| L.param loop_func 0 |] "numfields" builder
-
-    	| SDecrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Sub, (A.Int, SLiteral(1)))))) in expr builder e2
+    	| SIncrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Add, (A.Int, SLiteral(1)))))) in expr builder e2
+			| SDecrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Sub, (A.Int, SLiteral(1)))))) in expr builder e2
     	| SPluseq(e1, e2) -> let e = (A.Int, SAssign(e1, (A.Int, SBinop(e1, A.Add, e2)))) in expr builder e
     	| SMinuseq(e1, e2) -> let e = (A.Int, SAssign(e1, (A.Int, SBinop(e1, A.Sub, e2)))) in expr builder e
 			| SRgxLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in

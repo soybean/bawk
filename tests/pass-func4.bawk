@@ -7,4 +7,6 @@ BEGIN {
 
 LOOP {}
 
-END {}
+END {
+	print( int_to_string(foo(2)) );
+}
