@@ -36,8 +36,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	| A.Void  -> void_t
 	| A.String -> str_t
     | A.Rgx -> str_t
-  	| A.ArrayType t -> arr_p_t
-  	| _ -> raise (Failure "types no pattern match") in
+  	| A.ArrayType _ -> arr_p_t
+  	in
 
 
   (* Array helper functions *)
@@ -360,7 +360,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
             | A.Leq -> L.build_icmp L.Icmp.Sle
             | A.Greater -> L.build_icmp L.Icmp.Sgt
             | A.Geq -> L.build_icmp L.Icmp.Sge
-            | _ -> raise (Failure "no binary operation")
           ) e1' e2' "tmp" builder in
         let str_binop op =
           (match op with
@@ -409,11 +408,11 @@ let translate (begin_block, loop_block, end_block, config_block) =
                       | _ -> f ^ "_result") in
          L.build_call fdef (Array.of_list llargs) result builder
       | SAccess (a) -> 
-				let (loop_func, fdecl) = StringMap.find "loop" function_decls in
+				let (loop_func, _) = StringMap.find "loop" function_decls in
 				L.build_call access_func [| L.param loop_func 0; expr builder a|] "access" builder
 
       | SNumFields ->
-          let (loop_func, fdecl) = StringMap.find "loop" function_decls in
+          let (loop_func, _) = StringMap.find "loop" function_decls in
           L.build_call numfields_func [| L.param loop_func 0 |] "numfields" builder
     	| SIncrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Add, (A.Int, SLiteral(1)))))) in expr builder e2
 			| SDecrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Sub, (A.Int, SLiteral(1)))))) in expr builder e2
