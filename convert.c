@@ -21,10 +21,10 @@ char *concat(char *a, char *b) {
 
 char *bool_to_string(int a) {
   if(a) {
-    return "True";
+    return "true";
   }
   else {
-    return "False";
+    return "false";
   }
   return "";
 }
