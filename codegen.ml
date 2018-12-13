@@ -321,23 +321,22 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SId i -> L.build_load (lookup i) i builder
       | SAssign (e1, e2) ->
           let (_, e) = e1 in
-          let lhs = match e with 
-            SId i -> lookup i
-            (*| SArrayDeref (ar, idx) ->
+          let rhs = expr builder e2 in
+         (match e with 
+            SId i -> ignore (L.build_store rhs (lookup i) builder); rhs
+           | SArrayDeref (ar, idx) ->
                 let (ty, _) = ar in
                 let arr_type = match ty with
                   ArrayType t -> t
                   | _ -> raise(Failure "not an array") in
-                let v = L.build_call arrayderef_func [| loopend_expr builder is_loop ar; loopend_expr builder is_loop idx |] "getElement" builder in
-                  (match arr_type with
-                    A.Int -> L.build_inttoptr v i32_p_t "arrayDeref" builder
-                    | A.Bool -> L.build_inttoptr v i1_p_t "arrayDeref" builder
-                    | A.String -> L.build_inttoptr v str_p_t "arrayDeref" builder
-                    | A.ArrayType t -> L.build_inttoptr v arr_p_t "arrayDeref" builder
-                    | _ -> raise(Failure "unmatched type"))  *)
-            | _ -> raise (Failure "No match on left") 
-          and rhs = expr builder e2
-          in ignore(L.build_store rhs lhs builder); rhs
+                let long = match arr_type with
+                    A.Int -> L.build_zext rhs i64_t "arrayDerefAssign" builder
+                    | A.Bool -> L.build_zext rhs i64_t "arrayDerefAssign" builder
+                    | A.String | A.Rgx -> L.build_pointercast rhs i64_t "arrayDerefAssign" builder
+                    | A.ArrayType t -> L.build_pointercast rhs i64_t "arrayDerefAssign" builder
+                    | _ -> raise(Failure "unmatched type")
+                in ignore (L.build_call assign_func [| expr builder ar; expr builder idx; long |] "assignElement" builder); rhs
+            | _ -> raise (Failure "No match on left"))
       | SArrayDeref (ar, idx) ->
         let (ty, _) = ar in
         let arr_type = match ty with
