@@ -131,19 +131,19 @@ struct Node *findByIndex(struct List *list, int indexSought)
  * Returns the first node containing the matching data, 
  * NULL if not found.
  */
-struct Node *findNode(struct List *list, const void *dataSought, int (*compar)(const void *, const void *))
+struct Node *findNode(struct List *list, unsigned long dataSought, int (*compar)(const void *, const void *))
 {
 	struct Node *node = list->head;
 	if(list->depth == 1) {
 		while(node) {
-			if( compar(dataSought, (void *)(node->data)) == 0 )
+			if( compar((void *)dataSought, (void *)(node->data)) == 0 )
 				return node;
 			node = node->next;
 		}
 	}
 	if(list->depth > 1) {
 		while(node) {
-			if( compareLists(dataSought, (void *)(node->data), compar) == 0 )
+			if( compareLists((void *)dataSought, (void *)(node->data), compar) == 0 )
 				return node;
 			node = node->next;
 		}
@@ -151,34 +151,21 @@ struct Node *findNode(struct List *list, const void *dataSought, int (*compar)(c
 	return NULL;    
 }
 
-int contains(struct List *list, const void *dataSought, int (*compar)(const void *, const void *)) {
+int contains(struct List *list, unsigned long dataSought, int (*compar)(const void *, const void *)) {
 	struct Node *found = findNode(list, dataSought, compar);
 	if (found)
 		return 1;
 	return 0;
 }
 
-int contains_wrapper(struct List *list, const void *dataSought, int compare_type) {
-	if (compare_type == 0) {
-		return contains(list, dataSought, (int (*)(const void *, const void *))compareInts);
-	}
-	if (compare_type == 1) {
-		return contains(list, dataSought, (int (*)(const void *, const void *))compareBools);
-	}
-	if (compare_type == 2) {
-		return contains(list, dataSought, (int (*)(const void *, const void *))compareStrs);
-	}
-	return -1;
-}
-
 // Traverse list to find index of node
-int findIndexOfNode(struct List *list, const void *dataSought, int (*compar)(const void *, const void *))
+int findIndexOfNode(struct List *list, unsigned long dataSought, int (*compar)(const void *, const void *))
 { 
 	struct Node *node = list->head;
 	int count = 0;
 	if(list->depth == 1) {
 		while(node) {
-			if( compar(dataSought, (void *)(node->data)) == 0 ) {
+			if( compar((void *)dataSought, (void *)(node->data)) == 0 ) {
 				return count;
 			}
 			node = node->next;
@@ -187,7 +174,7 @@ int findIndexOfNode(struct List *list, const void *dataSought, int (*compar)(con
 	}
 	if(list->depth > 1) {
 		while(node) {
-			if( compareLists(dataSought, (void *)(node->data), compar) == 0 ) {
+			if( compareLists((void *)dataSought, (void *)(node->data), compar) == 0 ) {
 				return count;
 			}
 			node = node->next;
@@ -195,19 +182,6 @@ int findIndexOfNode(struct List *list, const void *dataSought, int (*compar)(con
 		}
 	}
 	return count;
-}
-
-int findIndexOfNode_wrapper(struct List *list, const void *dataSought, int compare_type) {
-	if (compare_type == 0) {
-		return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))compareInts);
-	}
-	if (compare_type == 1) {
-		return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))compareBools);
-	}
-	if (compare_type == 2) {
-		return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))compareStrs);
-	}
-	return -1;
 }
 
 /* Remove node at specific index, deallocate the memory for the node, 
@@ -455,12 +429,11 @@ int main()
 	printf("\n");
 
 	// index_of
-	printf("Element [10,20,30] is at index: %d\n", findIndexOfNode(nestedlist, elem, (int (*)(const void *, const void *))compareInts));
-	printf("Element [10,20,30] is at index: %d\n", findIndexOfNode_wrapper(nestedlist, elem, 0));	
+	printf("Element [10,20,30] is at index: %d\n", findIndexOfNode(nestedlist, (unsigned long)elem, (int (*)(const void *, const void *))compareInts));
 
 	// contains 
 	printf("Does list contain element [10,20,30]: ");
-	if( contains(nestedlist, elem, (int (*)(const void *, const void *))compareInts) )
+	if( contains(nestedlist, (unsigned long)elem, (int (*)(const void *, const void *))compareInts) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -477,13 +450,7 @@ int main()
 
 	// contains
 	printf("Does list contain element [0,0,0]: ");
-	if( contains(nestedlist, testlist, (int (*)(const void *, const void *))compareInts) )
-		printf("YES\n");
-	else
-		printf("NO\n");
-
-	printf("Does list contain element [0,0,0]: ");
-	if( contains_wrapper(nestedlist, testlist, 0) )
+	if( contains(nestedlist, (unsigned long)testlist, (int (*)(const void *, const void *))compareInts) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -559,12 +526,12 @@ int main()
 
 	// index_of
 	char *str_b = "def";
-	printf("Element 'def' is at index: %d\n", findIndexOfNode(strlist, str_b, (int (*)(const void *, const void *))compareStrs));
+	printf("Element 'def' is at index: %d\n", findIndexOfNode(strlist, (unsigned long)str_b, (int (*)(const void *, const void *))compareStrs));
   
 	// contains 
 	char *str_c = "hello";
 	printf("Does list contain element 'hello': ");
-	if( contains(strlist, str_c, (int (*)(const void *, const void *))compareStrs) )
+	if( contains(strlist, (unsigned long)str_c, (int (*)(const void *, const void *))compareStrs) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -572,7 +539,7 @@ int main()
 	// contains
 	char *str_c1 = "abc";
 	printf("Does list contain element 'abc': ");
-	if( contains(strlist, str_c1, (int (*)(const void *, const void *))compareStrs) )
+	if( contains(strlist, (unsigned long)str_c1, (int (*)(const void *, const void *))compareStrs) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -637,12 +604,12 @@ int main()
 
 	// index_of
 	bool bool_b = true;
-	printf("Element 'true' is at index: %d\n", findIndexOfNode(boollist, &bool_b, (int (*)(const void *, const void *))compareBools));
+	printf("Element 'true' is at index: %d\n", findIndexOfNode(boollist, (unsigned long)&bool_b, (int (*)(const void *, const void *))compareBools));
   
 	// contains 
 	bool bool_c = false;
 	printf("Does list contain element 'false': ");
-	if( contains(boollist, &bool_c, (int (*)(const void *, const void *))compareBools) )
+	if( contains(boollist, (unsigned long)&bool_c, (int (*)(const void *, const void *))compareBools) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -650,7 +617,7 @@ int main()
 	// contains
 	bool bool_c1 = true;
 	printf("Does list contain element 'true': ");
-	if( contains(boollist, &bool_c1, (int (*)(const void *, const void *))compareBools) )
+	if( contains(boollist, (unsigned long)&bool_c1, (int (*)(const void *, const void *))compareBools) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -715,13 +682,12 @@ int main()
 
 	// index_of
 	int int_b = 2;
-	printf("Element 2 is at index: %d\n", findIndexOfNode(intlist, &int_b, (int (*)(const void *, const void *))compareInts));
-	printf("Element 2 is at index: %d\n", findIndexOfNode_wrapper(intlist, &int_b, 0));
+	printf("Element 2 is at index: %d\n", findIndexOfNode(intlist, (unsigned long)&int_b, (int (*)(const void *, const void *))compareInts));
   
 	// contains 
 	int int_c = 7;
 	printf("Does list contain element 7: ");
-	if( contains(intlist, &int_c, (int (*)(const void *, const void *))compareInts) )
+	if( contains(intlist, (unsigned long)&int_c, (int (*)(const void *, const void *))compareInts) )
 		printf("YES\n");
 	else
 		printf("NO\n");
@@ -729,13 +695,7 @@ int main()
 	// contains
 	int int_c1 = -7;
 	printf("Does list contain element -7: ");
-	if( contains(intlist, &int_c1, (int (*)(const void *, const void *))compareInts) )
-		printf("YES\n");
-	else
-		printf("NO\n");
-
-	printf("Does list contain element -7: ");
-	if( contains_wrapper(intlist, &int_c1, 0) )
+	if( contains(intlist, (unsigned long)&int_c1, (int (*)(const void *, const void *))compareInts) )
 		printf("YES\n");
 	else
 		printf("NO\n");
