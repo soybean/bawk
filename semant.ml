@@ -224,7 +224,7 @@ let check (begin_list, loop_list, end_list, config_list) =
           if List.length args !=3 then raise (Failure("expecting three arguments for " ^ string_of_expr insert))
           else let (t1, e1') = expr (List.nth args 0)
             and (t2, e2') = expr(List.nth args 1) and (t3, e3') = expr(List.nth args 2) in
-         if t2 != Int then raise (Failure("expecting index argument for insert but had " ^ string_of_typ t2)) 
+         if t2 <> Int then raise (Failure("expecting index argument for insert but had " ^ string_of_typ t2)) 
          else 
             (match t1 with
                 String | Bool | Void | Rgx | Int -> raise (Failure("illegal argument found " 
@@ -238,13 +238,8 @@ let check (begin_list, loop_list, end_list, config_list) =
           if List.length args != 2 then raise (Failure("expecting two arguments for " ^ string_of_expr delete))
           else let (t1, e1') = expr (List.nth args 0) 
 	  and (t2, e2') = expr (List.nth args 1) in
-          (match t1 with
-          String | Bool | Void | Rgx | Int ->
-                  raise (Failure("illegal argument found " ^ string_of_typ t1 ^ " arraytype expected"))
-        | ArrayType(t) ->
-                  if (string_of_typ(t) = string_of_typ(t2) && t2 != Void)
-                  then  (t1, SCall("delete", [(t1, e1');(t2, e2')]))
-                  else raise(Failure("cannot perform delete on " ^ string_of_typ(t1) ^ " and " ^ string_of_typ(t2))))
+          if t2 <> Int then raise (Failure("expecting index argument for delete but had " ^ string_of_typ t2))
+          else (t1, SCall("delete", [(t1, e1');(t2, e2')]))
      | Call("contains", args) as contains -> 
           if List.length args != 2 then raise (Failure("expecting two arguments for " ^ string_of_expr contains))
 	  else let (t1, e1') = expr (List.nth args 0)
