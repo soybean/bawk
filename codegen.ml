@@ -15,7 +15,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	(* Get types from the context *)
 	let i32_t	= L.i32_type    context
   	and i64_t	= L.i64_type    context in
-  let i8_t	= L.i8_type     context
+        let i8_t	= L.i8_type     context
   	and  i1_t       = L.i1_type     context
 	and str_t	= L.pointer_type ( L.i8_type context ) in
   	let node_t	= let node_t = L.named_struct_type context "Node" in
@@ -34,10 +34,10 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	| A.Bool  -> i1_t
 	| A.Void  -> void_t
 	| A.String -> str_t
-    | A.Rgx -> str_t
+        | A.Rgx -> str_t
   	| A.ArrayType _ -> arr_p_t
   	in
-
+ 
 
   (* Array helper functions *)
   	let arr_elem_type = function
@@ -264,10 +264,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 			in let ftype = L.function_type (ltype_of_typ fdecl.sret_type) formal_types in
 			StringMap.add name (L.define_function name ftype the_module, fdecl) m in
     function_decl function_decls_loop (end_block)
-
-		(*function_decl function_decls_no_loop_end (loop_block);
-		function_decl function_decls_no_loop_end (end_block)*)
-	in
+        in
 
   (*--- Build function bodies defined in BEGIN block ---*)
   let build_function_body fdecl =
@@ -314,28 +311,31 @@ let translate (begin_block, loop_block, end_block, config_block) =
           let (_, e) = e1 in
           let rhs = expr builder e2 in
          (match e with 
-            SId i -> ignore (L.build_store rhs (lookup i) builder); rhs
+             SId i -> ignore (L.build_store rhs (lookup i) builder); rhs
            | SArrayDeref (ar, idx) ->
                 ignore(check_array_idx ar idx builder);
                 let (ty, _) = ar in
-                let arr_type = match ty with
-                  A.ArrayType t -> t
-                  | _ -> raise(Failure "ArrayDeref assign is not an array") in
-                let long = match arr_type with
-                    A.Int | A.Bool-> L.build_zext rhs i64_t "arrayDerefAssign" builder
-                    | A.String | A.Rgx -> L.build_pointercast rhs i64_t "arrayDerefAssign" builder
-                    | A.ArrayType _ -> L.build_pointercast rhs i64_t "arrayDerefAssign" builder
-                    | _ -> raise(Failure "unmatched type")
+                let arr_type = 
+                        match ty with
+                        A.ArrayType t -> t
+                      | _ -> raise(Failure "ArrayDeref assign is not an array") in
+                let long = 
+                        match arr_type with
+                        A.Int | A.Bool-> L.build_zext rhs i64_t "arrayDerefAssign" builder
+                      | A.String | A.Rgx -> L.build_pointercast rhs i64_t "arrayDerefAssign" builder
+                      | A.ArrayType _ -> L.build_pointercast rhs i64_t "arrayDerefAssign" builder
+                      | _ -> raise(Failure "unmatched type")
                 in ignore (L.build_call assign_func [| expr builder ar; expr builder idx; long |] "assignElement" builder); rhs
-            | _ -> raise (Failure "No match on left"))
+           | _ -> raise (Failure "No match on left"))
       | SArrayDeref (ar, idx) ->
         let (ty, _) = ar in
-        let arr_type = match ty with
-          A.ArrayType t -> t
-          | _ -> raise(Failure "ArrayDeref is not an array") in
+        let arr_type = 
+                match ty with
+                A.ArrayType t -> t
+              | _ -> raise(Failure "ArrayDeref is not an array") in
         let v = L.build_call arrayderef_func [| expr builder ar; expr builder idx |] "getElement" builder in
         (match arr_type with
-          A.String | A.Rgx -> L.build_inttoptr v str_t "arrayDeref" builder
+            A.String | A.Rgx -> L.build_inttoptr v str_t "arrayDeref" builder
           | A.Int -> L.build_trunc v i32_t "arrayDeref" builder
           | A.Bool -> L.build_trunc v i1_t "arrayDeref" builder
           | A.ArrayType _ -> L.build_inttoptr v arr_p_t "arrayDeref" builder
@@ -345,7 +345,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
         and e2' = expr builder e2 in
         let int_binop op = 
           (match op with
-            A.Add -> L.build_add
+              A.Add -> L.build_add
             | A.Sub -> L.build_sub
             | A.Mult -> L.build_mul
             | A.Div -> L.build_sdiv
@@ -360,7 +360,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
           ) e1' e2' "tmp" builder in
         let str_binop op =
           (match op with
-            A.Equal -> L.build_call strequals_func [| e1'; e2' |] "streq" builder
+              A.Equal -> L.build_call strequals_func [| e1'; e2' |] "streq" builder
             | A.Neq -> L.build_call strnequals_func [| e1'; e2' |] "strneq" builder
             | A.Greater -> L.build_call strgreater_func [| e1'; e2' |] "strgreater" builder
             | A.Less -> L.build_call strless_func [| e1'; e2' |] "strless" builder
@@ -373,7 +373,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SUnop(uop, e) ->
         let e' = expr builder e in
         (match uop with
-          A.Neg -> L.build_neg
+            A.Neg -> L.build_neg
           | A.Not -> L.build_not
         ) e' "tmp" builder; 
       | SStrcat(e1, e2) -> L.build_call concat_func [| expr builder e1; expr builder e2 |] "concat" builder
@@ -405,21 +405,20 @@ let translate (begin_block, loop_block, end_block, config_block) =
                       | _ -> f ^ "_result") in
          L.build_call fdef (Array.of_list llargs) result builder
       | SAccess (a) -> 
-				let (loop_func, _) = StringMap.find "loop" function_decls in
-				L.build_call access_func [| L.param loop_func 0; expr builder a|] "access" builder
+         let (loop_func, _) = StringMap.find "loop" function_decls in
+         L.build_call access_func [| L.param loop_func 0; expr builder a|] "access" builder
 
       | SNumFields ->
           let (loop_func, _) = StringMap.find "loop" function_decls in
           L.build_call numfields_func [| L.param loop_func 0 |] "numfields" builder
-    	| SIncrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Add, (A.Int, SLiteral(1)))))) in expr builder e2
-			| SDecrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Sub, (A.Int, SLiteral(1)))))) in expr builder e2
-    	| SPluseq(e1, e2) -> let e = (A.Int, SAssign(e1, (A.Int, SBinop(e1, A.Add, e2)))) in expr builder e
-    	| SMinuseq(e1, e2) -> let e = (A.Int, SAssign(e1, (A.Int, SBinop(e1, A.Sub, e2)))) in expr builder e
-			| SRgxLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
-      	L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
-			| _ -> raise (Failure "Cannot find expression") 
-
-		and
+      | SIncrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Add, (A.Int, SLiteral(1)))))) in expr builder e2
+      | SDecrement(e) -> let e2 = (A.Int, SAssign(e, (A.Int, SBinop(e, A.Sub, (A.Int, SLiteral(1)))))) in expr builder e2
+      | SPluseq(e1, e2) -> let e = (A.Int, SAssign(e1, (A.Int, SBinop(e1, A.Add, e2)))) in expr builder e
+      | SMinuseq(e1, e2) -> let e = (A.Int, SAssign(e1, (A.Int, SBinop(e1, A.Sub, e2)))) in expr builder e
+      | SRgxLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in 
+         L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
+      | _ -> raise (Failure "Cannot find expression") 
+                and
 
     (* array gen functions *)
     find_arr_type ty = 
@@ -441,7 +440,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
         let red_expr = expr builder e in
         let ty = L.type_of red_expr in
         let data = match  L.classify_type ty with
-          L.TypeKind.Pointer -> L.build_pointercast red_expr i64_t "addFrontCast" builder
+            L.TypeKind.Pointer -> L.build_pointercast red_expr i64_t "addFrontCast" builder
           | L.TypeKind.Integer -> L.build_zext red_expr i64_t "addFrontCast" builder
           | _ -> raise (Failure "Cannot find type of array")
         in
@@ -453,14 +452,14 @@ let translate (begin_block, loop_block, end_block, config_block) =
     and cast_unsigned builder e3 =
       let red_expr = expr builder e3 in
       let ty = L.type_of red_expr in match (L.classify_type ty) with
-        L.TypeKind.Pointer -> L.build_pointercast red_expr i64_t "castToUnsigned" builder
+          L.TypeKind.Pointer -> L.build_pointercast red_expr i64_t "castToUnsigned" builder
         | L.TypeKind.Integer -> L.build_sext_or_bitcast red_expr i64_t "castToUnsigned" builder
         | _ -> raise (Failure "Cannot cast data to i64")
 
     and choose_compar builder e2 =
       let (e2_ty, _) = e2 in
       let rec compar_from_typ ty = match ty with
-        A.Int -> L.build_zext_or_bitcast compareint_func compare_p_t "compareCast" builder
+          A.Int -> L.build_zext_or_bitcast compareint_func compare_p_t "compareCast" builder
         | A.Bool -> L.build_zext_or_bitcast comparebools_func compare_p_t "compareCast" builder
         | A.String -> L.build_zext_or_bitcast comparestr_func compare_p_t "compareCast" builder
         | A.Rgx -> L.build_zext_or_bitcast comparestr_func compare_p_t "compareCast" builder
@@ -492,15 +491,15 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
 
     let rec stmt builder = function
-      SExpr ex -> ignore(expr builder ex); builder 
+        SExpr ex -> ignore(expr builder ex); builder 
       | SBlock sl -> List.fold_left stmt builder sl
       | SReturn e -> ignore (match fdecl.sret_type with
-          A.Void -> L.build_ret_void builder
+            A.Void -> L.build_ret_void builder
           | _ -> L.build_ret (expr builder e) builder); builder
       | SIf (predicate, then_stmt, else_stmt) ->
         let bool_val = expr builder predicate in
   	    let merge_bb = L.append_block context "merge" the_function in
-           let build_br_merge = L.build_br merge_bb in (* partial function *)
+            let build_br_merge = L.build_br merge_bb in (* partial function *)
 
   	    let then_bb = L.append_block context "then" the_function in
   	    add_terminal (stmt (L.builder_at_end context then_bb) then_stmt)
@@ -539,7 +538,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
     (* return types for functions *)
     add_terminal func_builder (match fdecl.sret_type with
-      A.Void -> L.build_ret_void
+        A.Void -> L.build_ret_void
       | A.Int -> L.build_ret (L.const_int i32_t 0)
       | A.Bool -> L.build_ret (L.const_int i1_t 0)
       | A.String -> L.build_ret (L.const_pointer_null str_t)
