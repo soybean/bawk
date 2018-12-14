@@ -1,0 +1,11 @@
+BEGIN {}
+ 
+LOOP {}
+ 
+END {
+  RS = "\n\n"; # Fail: reassigning RS
+}
+ 
+CONFIG {
+  RS = "\n";
+}

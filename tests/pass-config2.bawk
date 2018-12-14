@@ -1,0 +1,11 @@
+BEGIN {}
+ 
+LOOP {
+  print($1);
+}
+ 
+END {}
+ 
+CONFIG {
+  FS = "  ";
+}

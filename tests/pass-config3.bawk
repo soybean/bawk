@@ -1,0 +1,12 @@
+BEGIN {}
+ 
+LOOP {
+  print($1);
+}
+ 
+END {}
+ 
+CONFIG {
+  RS = "\n\n";
+  FS = "  ";
+}

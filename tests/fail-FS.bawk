@@ -1,0 +1,11 @@
+BEGIN {}
+
+LOOP {}
+ 
+END {
+  FS = "  "; # Fail: reassigning FS
+}
+
+CONFIG {
+  FS = " ";
+}
