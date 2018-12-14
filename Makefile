@@ -13,7 +13,8 @@ bawk.native :
 .PHONY : clean
 clean :
 	ocamlbuild -clean
-	rm -rf *.o *.s *.ll *.exe
+	rm -rf testall.log *.diff
+	rm -rf *.o *.s *.ll *.out *.exe
 
 convert : convert.c 
 	cc -o convert convert.c

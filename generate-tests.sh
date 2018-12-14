@@ -7,9 +7,9 @@ for filename in tests/*.bawk; do
     echo $filename
     if [[ ${filename:0:10} = "tests/fail" ]];
       then
-        ./bawk.native -s $filename 2> $v.err
+				./bawk.sh $filename input.txt 2> $v.err
       else
-        ./bawk.native -s $filename > $v.out
+				./bawk.sh $filename input.txt > $v.out
     fi
   fi
 done
