@@ -178,8 +178,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
     L.declare_function "compareBools" compare_t the_module in
   let comparestr_func : L.llvalue =
     L.declare_function "compareStrs" compare_t the_module in
-  let comparelists_func : L.llvalue =
-    L.declare_function "compareLists" compare_t the_module in
 
   let contains_t : L.lltype =
     L.function_type i1_t [| arr_p_t ; i64_t ; compare_p_t |] in
