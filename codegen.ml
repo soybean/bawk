@@ -200,9 +200,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
   (* Create a map of global variables after creating each *)
   let global_vars : L.llvalue StringMap.t =
     let global_var m (t, n) = 
-      let int_init = L.const_int (ltype_of_typ t) 0 and
-      rs_init = L.const_stringz context "\n" and
-      fs_init = L.const_stringz context " " 
+      let int_init = L.const_int (ltype_of_typ t) 0
       in StringMap.add n (L.define_global n int_init the_module) m
       (*StringMap.add "RS" (L.define_global "RS"  rs_init  the_module);
       StringMap.add "FS" (L.define_global "FS" fs_init the_module) m*)
@@ -220,6 +218,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
   (*---Build config block ---*)
   let build_config_block configblock =
+    ignore(configblock);
     let configexpr builder = function
       SRSAssign e -> let get_string ((_, e): sexpr) = match e with SStringLiteral s ->  s | _ -> "" in 
       ignore(L.build_global_string (get_string e) "RS" builder); builder
