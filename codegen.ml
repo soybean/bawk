@@ -321,7 +321,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
                 let (ty, _) = ar in
                 let arr_type = match ty with
                   A.ArrayType t -> t
-                  | _ -> raise(Failure "not an array") in
+                  | _ -> raise(Failure "ArrayDeref assign is not an array") in
                 let long = match arr_type with
                     A.Int | A.Bool-> L.build_zext rhs i64_t "arrayDerefAssign" builder
                     | A.String | A.Rgx -> L.build_pointercast rhs i64_t "arrayDerefAssign" builder
@@ -333,14 +333,14 @@ let translate (begin_block, loop_block, end_block, config_block) =
         let (ty, _) = ar in
         let arr_type = match ty with
           A.ArrayType t -> t
-          | _ -> raise(Failure "not an array") in
+          | _ -> raise(Failure "ArrayDeref is not an array") in
         let v = L.build_call arrayderef_func [| expr builder ar; expr builder idx |] "getElement" builder in
         (match arr_type with
           A.String | A.Rgx -> L.build_inttoptr v str_t "arrayDeref" builder
           | A.Int -> L.build_trunc v i32_t "arrayDeref" builder
           | A.Bool -> L.build_trunc v i1_t "arrayDeref" builder
           | A.ArrayType _ -> L.build_inttoptr v arr_p_t "arrayDeref" builder
-          | _ -> raise (Failure "unmatched type"))
+          | _ -> raise (Failure "Cannot find array type"))
       | SBinop(e1, op, e2) ->
         let e1' = expr builder e1
         and e2' = expr builder e2 in
@@ -418,7 +418,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
     	| SMinuseq(e1, e2) -> let e = (A.Int, SAssign(e1, (A.Int, SBinop(e1, A.Sub, e2)))) in expr builder e
 			| SRgxLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
       	L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) str_t
-			| _ -> raise (Failure "expr no pattern match") 
+			| _ -> raise (Failure "Cannot find expression") 
 
 		and
 
@@ -444,7 +444,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
         let data = match  L.classify_type ty with
           L.TypeKind.Pointer -> L.build_pointercast red_expr i64_t "addFrontCast" builder
           | L.TypeKind.Integer -> L.build_zext red_expr i64_t "addFrontCast" builder
-          | _ -> raise (Failure "unable to find type of array")
+          | _ -> raise (Failure "Cannot find type of array")
         in
 
         ignore(L.build_call addfront_func [| lst; data |] "addFront" builder)
@@ -456,19 +456,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
       let ty = L.type_of red_expr in match (L.classify_type ty) with
         L.TypeKind.Pointer -> L.build_pointercast red_expr i64_t "castToUnsigned" builder
         | L.TypeKind.Integer -> L.build_sext_or_bitcast red_expr i64_t "castToUnsigned" builder
-        | _ -> raise (Failure "unable to cast to i64")
-
-    (*and cast_to_void builder e2 =
-      let red_expr = (*ignore(print_string "reached cast to void");*) expr builder e2 in
-      let ty = L.type_of red_expr in match (L.classify_type ty) with
-        L.TypeKind.Pointer -> L.build_pointercast red_expr i64_t "containsCast" builder
-        | L.TypeKind.Integer -> L.build_sext_or_bitcast red_expr i64_t "containsCast" builder
-            (*let temp =
-              let cast_temp = L.build_alloca i32_t "castVoidTemp" builder in
-              L.build_store red_expr cast_temp builder 
-            in 
-            L.build_zext_or_bitcast temp i8_p_t "containsCast" builder*)
-        | _ -> raise (Failure "Unable to cast expression 2 for contains")*)
+        | _ -> raise (Failure "Cannot cast data to i64")
 
     and choose_compar builder e2 =
       let (e2_ty, _) = e2 in
@@ -478,7 +466,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
         | A.String -> L.build_zext_or_bitcast comparestr_func compare_p_t "compareCast" builder
         | A.Rgx -> L.build_zext_or_bitcast comparestr_func compare_p_t "compareCast" builder
         | A.ArrayType t -> compar_from_typ t
-        | _ -> raise (Failure "Unable to find comparator")
+        | _ -> raise (Failure "Unable to find comparator for list")
       in compar_from_typ e2_ty
 
   in 
@@ -525,7 +513,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
                let v = lookup str1 in
                let arr = lookup str2 in
                stmt builder (SBlock [ SWhile (e2, SBlock [body ; SExpr e3])]) *)
-      | _ -> raise (Failure "stmt no pattern match")
+      | _ -> raise (Failure "Cannot pattern match statement")
     in
 
     let func_builder = stmt func_builder (SBlock fdecl.sbody) in
