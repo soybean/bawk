@@ -1,7 +1,0 @@
-BEGIN {}
-
-LOOP {}
-
-END {
-  int RS; # Fail: declaring RS
-}
