@@ -168,7 +168,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
     L.declare_function "insertElement" insert_t the_module in
 
   let compare_t : L.lltype =
-    L.function_type i32_t [| i8_p_t ; i8_p_t |] in
+    L.function_type i32_t [| i64_t ; i64_t |] in
 
   let compare_p_t = L.pointer_type compare_t in
 
@@ -182,7 +182,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
     L.declare_function "compareLists" compare_t the_module in
 
   let contains_t : L.lltype =
-    L.function_type i1_t [| arr_p_t ; i8_p_t ; compare_p_t |] in
+    L.function_type i1_t [| arr_p_t ; i64_t ; compare_p_t |] in
   let contains_func : L.llvalue =
     L.declare_function "contains" contains_t the_module in
 
@@ -463,8 +463,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
     and cast_to_void builder e2 =
       let red_expr = (*ignore(print_string "reached cast to void");*) expr builder e2 in
       let ty = L.type_of red_expr in match (L.classify_type ty) with
-        L.TypeKind.Pointer -> L.build_zext_or_bitcast red_expr i8_p_t "containsCast" builder
-        | L.TypeKind.Integer -> L.build_inttoptr red_expr i8_p_t "containsCast" builder
+        L.TypeKind.Pointer -> L.build_pointercast red_expr i64_t "containsCast" builder
+        | L.TypeKind.Integer -> L.build_sext_or_bitcast red_expr i64_t "containsCast" builder
             (*let temp =
               let cast_temp = L.build_alloca i32_t "castVoidTemp" builder in
               L.build_store red_expr cast_temp builder 
@@ -476,6 +476,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
       let (e2_ty, _) = e2 in
       let rec compar_from_typ ty = match ty with
         A.Int -> L.build_zext_or_bitcast compareint_func compare_p_t "compareCast" builder
+        | A.Bool -> L.build_zext_or_bitcast comparebools_func compare_p_t "compareCast" builder
         | A.String -> L.build_zext_or_bitcast comparestr_func compare_p_t "compareCast" builder
         | A.Rgx -> L.build_zext_or_bitcast comparestr_func compare_p_t "compareCast" builder
         | A.ArrayType t -> compar_from_typ t
