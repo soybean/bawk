@@ -28,27 +28,27 @@ int length(struct List *list) {
 }
 
 // function given to compare bools
-int compareBools(const void *a, const void *b)
+int compareBools(unsigned long a, unsigned long b)
 {
-	if (*(bool *)a < *(bool *)b) return -1;
-	if (*(bool *)a > *(bool *)b) return 1;
+	if ((bool)a < (bool)b) return -1;
+	if ((bool)a > (bool)b) return 1;
 	return 0;
 }
 
 // function given to compare ints
-int compareInts(const void *a, const void *b)
+int compareInts(unsigned long a, unsigned long b)
 {
-	if (*(int *)a < *(int *)b) return -1;
-	if (*(int *)a > *(int *)b) return 1;
+	if ((int)a < (int)b) return -1;
+	if ((int)a > (int)b) return 1;
 	return 0;
 }
 
-int compareStrs(const void *a, const void *b)
+int compareStrs(unsigned long a, unsigned long b)
 {
 	return strcmp((const char *)a, (const char *)b);
 }
 
-int compareLists(const void *a, const void *b, int (*compar)(const void *, const void *))
+int compareLists(unsigned long a, unsigned long b, int (*compar)(unsigned long, unsigned long))
 {
 	struct List *lista = (struct List *)a;
 	struct List *listb = (struct List *)b;
@@ -59,7 +59,7 @@ int compareLists(const void *a, const void *b, int (*compar)(const void *, const
  		struct Node *nodeb = listb->head;
  		int total = 0;
 		while( nodea ) {
- 			total += abs(compareLists((void *)(nodea->data), (void *)(nodeb->data), compar));
+ 			total += abs(compareLists(nodea->data, nodeb->data, compar));
  			nodea = nodea->next;
 			nodeb = nodeb->next;
 		} 
@@ -73,7 +73,7 @@ int compareLists(const void *a, const void *b, int (*compar)(const void *, const
 		struct Node *nodeb = listb->head;
 		int total = 0;
 		while( nodea ) {
- 			total += abs(compar((void *)(nodea->data), (void *)(nodeb->data)));
+ 			total += abs(compar(nodea->data, nodeb->data));
 			nodea = nodea->next;
 			nodeb = nodeb->next;
  		}
@@ -131,19 +131,19 @@ struct Node *findByIndex(struct List *list, int indexSought)
  * Returns the first node containing the matching data, 
  * NULL if not found.
  */
-struct Node *findNode(struct List *list, const void *dataSought, int (*compar)(const void *, const void *))
+struct Node *findNode(struct List *list, unsigned long dataSought, int (*compar)(unsigned long, unsigned long))
 {
 	struct Node *node = list->head;
 	if(list->depth == 1) {
 		while(node) {
-			if( compar(dataSought, (void *)(node->data)) == 0 )
+			if( compar(dataSought, node->data) == 0 )
 				return node;
 			node = node->next;
 		}
 	}
 	if(list->depth > 1) {
 		while(node) {
-			if( compareLists(dataSought, (void *)(node->data), compar) == 0 )
+			if( compareLists(dataSought, node->data, compar) == 0 )
 				return node;
 			node = node->next;
 		}
@@ -151,34 +151,21 @@ struct Node *findNode(struct List *list, const void *dataSought, int (*compar)(c
 	return NULL;    
 }
 
-int contains(struct List *list, const void *dataSought, int (*compar)(const void *, const void *)) {
+int contains(struct List *list, unsigned long dataSought, int (*compar)(unsigned long, unsigned long)) {
 	struct Node *found = findNode(list, dataSought, compar);
 	if (found)
 		return 1;
 	return 0;
 }
 
-int contains_wrapper(struct List *list, const void *dataSought, int compare_type) {
-	if (compare_type == 0) {
-		return contains(list, dataSought, (int (*)(const void *, const void *))compareInts);
-	}
-	if (compare_type == 1) {
-		return contains(list, dataSought, (int (*)(const void *, const void *))compareBools);
-	}
-	if (compare_type == 2) {
-		return contains(list, dataSought, (int (*)(const void *, const void *))compareStrs);
-	}
-	return -1;
-}
-
 // Traverse list to find index of node
-int findIndexOfNode(struct List *list, const void *dataSought, int (*compar)(const void *, const void *))
+int findIndexOfNode(struct List *list, unsigned long dataSought, int (*compar)(unsigned long, unsigned long))
 { 
 	struct Node *node = list->head;
 	int count = 0;
 	if(list->depth == 1) {
 		while(node) {
-			if( compar(dataSought, (void *)(node->data)) == 0 ) {
+			if( compar(dataSought, node->data) == 0 ) {
 				return count;
 			}
 			node = node->next;
@@ -187,7 +174,7 @@ int findIndexOfNode(struct List *list, const void *dataSought, int (*compar)(con
 	}
 	if(list->depth > 1) {
 		while(node) {
-			if( compareLists(dataSought, (void *)(node->data), compar) == 0 ) {
+			if( compareLists(dataSought, node->data, compar) == 0 ) {
 				return count;
 			}
 			node = node->next;
@@ -195,19 +182,6 @@ int findIndexOfNode(struct List *list, const void *dataSought, int (*compar)(con
 		}
 	}
 	return count;
-}
-
-int findIndexOfNode_wrapper(struct List *list, const void *dataSought, int compare_type) {
-	if (compare_type == 0) {
-		return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))compareInts);
-	}
-	if (compare_type == 1) {
-		return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))compareBools);
-	}
-	if (compare_type == 2) {
-		return findIndexOfNode(list, dataSought, (int (*)(const void *, const void *))compareStrs);
-	}
-	return -1;
 }
 
 /* Remove node at specific index, deallocate the memory for the node, 
@@ -387,5 +361,3 @@ static void printInt(void *p)
 {	
 	printf("%d ", *(int *)p);
 }
-
-

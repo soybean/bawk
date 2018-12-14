@@ -116,7 +116,7 @@ let check (begin_list, loop_list, end_list, config_list) =
                       in let l' = List.map check_array l  in
               let types e = 
                       let (a, _)  = expr e in
-                      if a <> arraytype then raise(Failure("array of different types, expected" ^
+                      if a <> arraytype then raise(Failure("array of different types, expected " ^
                       string_of_typ arraytype ^ " found " ^ string_of_typ a))
                       in let _ = List.map types l in (ArrayType(arraytype), SArrayLit(l'))
               else (Void, SArrayLit([])) 
@@ -229,7 +229,7 @@ let check (begin_list, loop_list, end_list, config_list) =
                         if (string_of_typ t = string_of_typ(t3) && t3 != Void) 
                         then (Void, SCall("insert", [(t1, e1');(t2, e2');(t3, e3')]))
                         else raise(Failure("cannot perform insert on " ^ string_of_typ t1 ^ " and " ^ 
-                        string_of_typ t3 ^ " at index " ^ string_of_typ t2))) 
+                        string_of_typ t3))) 
      | Call("delete", args) as delete -> 
           if List.length args != 2 then raise (Failure("expecting two arguments for " ^ string_of_expr delete))
           else let (t1, e1') = expr (List.nth args 0) 
@@ -481,7 +481,7 @@ let check (begin_list, loop_list, end_list, config_list) =
                         if (string_of_typ t = string_of_typ(t3) && t3 != Void) 
                         then (Void, SCall("insert", [(t1, e1');(t2, e2');(t3, e3')]))
                         else raise(Failure("cannot perform insert on " ^ string_of_typ t1 ^ " and " ^ 
-                        string_of_typ t3 ^ " at index " ^ string_of_typ t2))) 
+                        string_of_typ t3))) 
      | Call("delete", args) as delete -> 
           if List.length args != 2 then raise (Failure("expecting two arguments for " ^ string_of_expr delete))
           else let (t1, e1') = expr (List.nth args 0) 

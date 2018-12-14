@@ -1,6 +1,7 @@
-./bawk.native -c $1 > int_to.ll
-llc -relocation-model=pic int_to.ll > int_to.s
-cc -o int_to.exe int_to.s convert.o structure.o mylist.o rgx.o
-./int_to.exe $2
+set -e
+./bawk.native -c $1 > bawk_out.ll
+llc -relocation-model=pic bawk_out.ll > bawk_out.s
+cc -o bawk_out.exe bawk_out.s convert.o structure.o mylist.o rgx.o
+./bawk_out.exe $2
 
 
