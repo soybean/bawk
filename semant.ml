@@ -45,7 +45,11 @@ let check (begin_list, loop_list, end_list, config_list) =
                                                  (Void, "contains", []);
                                                  (Int, "index_of", []);
                                                  (Void, "insert", []);
-                                                 (Void, "delete", [])]
+                                                 (Void, "delete", []);
+                                                 (Void, "LOOP", []);
+                                                 (Void, "END", []);
+                                                 (Void, "loop", []);
+                                                 (Void, "end", [])]
   in 
 	
   
