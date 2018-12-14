@@ -1,0 +1,7 @@
+BEGIN {
+  function void end() {}
+}
+
+LOOP {}
+
+END {}
