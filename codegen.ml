@@ -15,8 +15,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	(* Get types from the context *)
 	let i32_t	= L.i32_type    context
   	and i64_t	= L.i64_type    context in
-  let i8_t	= L.i8_type     context in
-  let i8_p_t = L.pointer_type i8_t
+  let i8_t	= L.i8_type     context
   	and  i1_t       = L.i1_type     context
 	and str_t	= L.pointer_type ( L.i8_type context ) in
   	let node_t	= let node_t = L.named_struct_type context "Node" in
@@ -189,7 +188,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let indexof_func : L.llvalue =
     L.declare_function "findIndexOfNode" indexof_t the_module in
 
-  let ftype = L.function_type void_t [||] in (* function takes in nothing, returns void *)
 
   let ltype : L.lltype =  
     L.function_type void_t [| str_t |] in (* function takes in string (line), returns void *)
@@ -449,7 +447,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
         ignore(L.build_call addfront_func [| lst; data |] "addFront" builder)
     in
-    List.iter add_front arr; L.build_call reverse_func [| lst |] "reverseList" builder; lst
+    List.iter add_front arr; ignore(L.build_call reverse_func [| lst |] "reverseList" builder); lst
 
     and cast_unsigned builder e3 =
       let red_expr = expr builder e3 in
