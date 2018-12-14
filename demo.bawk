@@ -1,0 +1,6 @@
+BEGIN {}
+LOOP {
+  print($0);
+}
+END {}
+
