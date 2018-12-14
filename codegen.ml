@@ -322,7 +322,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
            | SArrayDeref (ar, idx) ->
                 let (ty, _) = ar in
                 let arr_type = match ty with
-                  ArrayType t -> t
+                  A.ArrayType t -> t
                   | _ -> raise(Failure "not an array") in
                 let long = match arr_type with
                     A.Int | A.Bool-> L.build_zext rhs i64_t "arrayDerefAssign" builder
@@ -334,7 +334,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SArrayDeref (ar, idx) ->
         let (ty, _) = ar in
         let arr_type = match ty with
-          ArrayType t -> t
+          A.ArrayType t -> t
           | _ -> raise(Failure "not an array") in
         let v = L.build_call arrayderef_func [| expr builder ar; expr builder idx |] "getElement" builder in
         (match arr_type with
@@ -444,8 +444,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
         let red_expr = expr builder e in
         let ty = L.type_of red_expr in
         let data = match  L.classify_type ty with
-          Pointer -> L.build_pointercast red_expr i64_t "addFrontCast" builder
-          | Integer -> L.build_zext red_expr i64_t "addFrontCast" builder
+          L.TypeKind.Pointer -> L.build_pointercast red_expr i64_t "addFrontCast" builder
+          | L.TypeKind.Integer -> L.build_zext red_expr i64_t "addFrontCast" builder
           | _ -> raise (Failure "unable to find type of array")
         in
 
@@ -456,15 +456,15 @@ let translate (begin_block, loop_block, end_block, config_block) =
     and cast_unsigned builder e3 =
       let red_expr = expr builder e3 in
       let ty = L.type_of red_expr in match (L.classify_type ty) with
-        Pointer -> L.build_pointercast red_expr i64_t "castToUnsigned" builder
-        | Integer -> L.build_zext red_expr i64_t "castToUnsigned" builder
+        L.TypeKind.Pointer -> L.build_pointercast red_expr i64_t "castToUnsigned" builder
+        | L.TypeKind.Integer -> L.build_zext red_expr i64_t "castToUnsigned" builder
         | _ -> raise (Failure "unable to cast to i64")
 
     and cast_to_void builder e2 =
       let red_expr = (*ignore(print_string "reached cast to void");*) expr builder e2 in
       let ty = L.type_of red_expr in match (L.classify_type ty) with
-        Pointer -> L.build_zext_or_bitcast red_expr i8_p_t "containsCast" builder
-        | Integer -> L.build_inttoptr red_expr i8_p_t "containsCast" builder
+        L.TypeKind.Pointer -> L.build_zext_or_bitcast red_expr i8_p_t "containsCast" builder
+        | L.TypeKind.Integer -> L.build_inttoptr red_expr i8_p_t "containsCast" builder
             (*let temp =
               let cast_temp = L.build_alloca i32_t "castVoidTemp" builder in
               L.build_store red_expr cast_temp builder 
