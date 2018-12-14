@@ -2,6 +2,15 @@ BEGIN {}
 LOOP {
 }
 END {
+  int[] a;
+  
+  a = [1, 2, 3, 4, 5];
+
+  a[2] = 5;
+
+  #print(int_to_string(a[1]));
+
+
   #rgx[] arr;
   #arr = ['abc', 'def'];
   #print(bool_to_string(contains(arr, 'abc')));
@@ -12,10 +21,10 @@ END {
   #print(int_to_string(index_of(a, 2)));
 
   #string[] a;
-  string[][][] b;
+  #string[][][] b;
   #a = ["a", "b", "c"];
-  b = [[["a"]], [["b"]], [["c"]]];
-  print(int_to_string(index_of(b, [["c"]])));
+  #b = [[["a"]], [["b"]], [["c"]]];
+  #print(int_to_string(index_of(b, [["c"]])));
   
   #print(int_to_string(index_of(a, "a")));
   #print(bool_to_string(contains(b, [["a"]])));
