@@ -5,10 +5,10 @@ LOOP {}
 END {
   int i;
   int[] arr;
-  arr = [];
+  arr = [1, 2, 3];
 
-  for (i in arr) {
-    print(int_to_string(i));
+  for (i = 0; i < length(arr); i++) {
+    print(int_to_string(arr[i]));
   }
   print(int_to_string(42));
 }
