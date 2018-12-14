@@ -12,6 +12,6 @@ https://docs.google.com/document/d/1zcDIIdA9I_ojrPPggEDf7FLhy-NnEqZ2D6yCkj62pPg/
 To run a `.bawk` file, first run `make` in the home directory. Then, run
 
 ```
-./bawk.sh <bawk file> <input file>
+./bawk.sh [bawk file] [input file]
 ```
-where `<bawk file>` is the `.bawk` file and `<input file>` is the text file being used.
+where `[bawk file]` is the `.bawk` file and `[input file]` is the text file being used.

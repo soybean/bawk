@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
 
   // Filename not specified
   if (argc < 2) {
-    printf("You suck");
+    printf("usage: ./bawk.sh [bawk file] [input file]\n");
   }
   else {
     char *filename = argv[1];
