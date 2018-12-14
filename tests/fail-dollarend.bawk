@@ -1,6 +1,0 @@
-BEGIN {}
-LOOP {}
-END {
-string hello;
-hello = $0;
-}
