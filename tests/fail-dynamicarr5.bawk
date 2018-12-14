@@ -5,5 +5,5 @@ LOOP {}
 END {
   int[] a;
   a = [1,2,3];
-  delete(a, true); # Fail: Deleting bool from int array
+  delete(a, -1); # Fail: Deleting from an invalid index
 }
