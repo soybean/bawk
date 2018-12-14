@@ -129,7 +129,7 @@ let check (begin_list, loop_list, end_list, config_list) =
          else (Void, SArrayLit([])) 
       | ArrayDeref (e1, e2) as e ->
          let (arr, e1') = expr e1 and (num, e2') = expr e2 in
-         if num <> Int then raise(Failure("Int expression expected in " ^ string_of_expr e2))
+         if num <> Int then raise(Failure("Int expression expected in " ^ string_of_expr e))
          else let find_typ arr =
                  match arr with
                  ArrayType(t) -> t 
