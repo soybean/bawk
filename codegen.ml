@@ -368,7 +368,14 @@ let translate (begin_block, loop_block, end_block, config_block) =
             | A.Geq -> L.build_call strgeq_func [| e1'; e2' |] "strgeq" builder
             | _ -> raise(Failure "Invalid operation on string")
           ) in
+        let bool_binop op = 
+          (match op with
+              A.Equal -> L.build_icmp L.Icmp.Eq
+              | A.Neq -> L.build_icmp L.Icmp.Ne
+              | A.And -> L.build_and
+              | A.Or -> L.build_or) e1' e2' "tmp" builder in
         if (L.type_of e1' = i32_t) then int_binop op
+        else if (L.type_of e1' = i1_t) then bool_binop op
         else str_binop op
       | SUnop(uop, e) ->
         let e' = expr builder e in
