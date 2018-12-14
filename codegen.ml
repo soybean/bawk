@@ -187,7 +187,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
     L.declare_function "contains" contains_t the_module in
 
   let indexof_t : L.lltype =
-    L.function_type i32_t [| arr_p_t ; i8_p_t ; compare_p_t |] in
+    L.function_type i32_t [| arr_p_t ; i64_t ; compare_p_t |] in
   let indexof_func : L.llvalue =
     L.declare_function "findIndexOfNode" indexof_t the_module in
 
@@ -397,9 +397,9 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | SCall ("insert", [e1; e2; e3]) -> 
         L.build_call insert_func [| expr builder e1 ; expr builder e2 ; cast_unsigned builder e3|] "insertElement" builder
       | SCall ("contains", [e1; e2]) ->
-        L.build_call contains_func [| expr builder e1 ; cast_to_void builder e2 ; choose_compar builder e2 |] "contains" builder
+        L.build_call contains_func [| expr builder e1 ; cast_unsigned builder e2 ; choose_compar builder e2 |] "contains" builder
       | SCall ("index_of", [e1 ; e2]) ->
-          L.build_call indexof_func [| expr builder e1 ; cast_to_void builder e2 ; choose_compar builder e2 |] "findIndexOfNode" builder
+          L.build_call indexof_func [| expr builder e1 ; cast_unsigned builder e2 ; choose_compar builder e2 |] "findIndexOfNode" builder
       | SCall (f, args) ->
         let (fdef, fdecl) = StringMap.find f function_decls in
         let llargs = List.rev (List.map (expr builder) (List.rev args)) in
@@ -457,10 +457,10 @@ let translate (begin_block, loop_block, end_block, config_block) =
       let red_expr = expr builder e3 in
       let ty = L.type_of red_expr in match (L.classify_type ty) with
         L.TypeKind.Pointer -> L.build_pointercast red_expr i64_t "castToUnsigned" builder
-        | L.TypeKind.Integer -> L.build_zext red_expr i64_t "castToUnsigned" builder
+        | L.TypeKind.Integer -> L.build_sext_or_bitcast red_expr i64_t "castToUnsigned" builder
         | _ -> raise (Failure "unable to cast to i64")
 
-    and cast_to_void builder e2 =
+    (*and cast_to_void builder e2 =
       let red_expr = (*ignore(print_string "reached cast to void");*) expr builder e2 in
       let ty = L.type_of red_expr in match (L.classify_type ty) with
         L.TypeKind.Pointer -> L.build_pointercast red_expr i64_t "containsCast" builder
@@ -470,7 +470,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
               L.build_store red_expr cast_temp builder 
             in 
             L.build_zext_or_bitcast temp i8_p_t "containsCast" builder*)
-        | _ -> raise (Failure "Unable to cast expression 2 for contains")
+        | _ -> raise (Failure "Unable to cast expression 2 for contains")*)
 
     and choose_compar builder e2 =
       let (e2_ty, _) = e2 in
