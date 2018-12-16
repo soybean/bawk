@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
 
   // Filename not specified
   if (argc < 2) {
-    printf("usage: ./bawk.sh [bawk file] [input file]\n");
+    fprintf(stderr, "usage: ./bawk.sh [bawk file] [input file]\n");
   }
   else {
     char *filename = argv[1];

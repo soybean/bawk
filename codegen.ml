@@ -312,7 +312,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
     let (the_function, _) = StringMap.find fdecl.sfname function_decls in
     let func_builder = L.builder_at_end context (L.entry_block the_function) in
     let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
-    let int_format_str builder = L.build_global_stringptr "%d\n" "fmt" builder in
     
     let local_vars =
       let add_formal m (t, n) p = 
@@ -354,7 +353,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
          (match e with 
              SId i -> ignore (L.build_store rhs (lookup i) builder); rhs
            | SArrayDeref (ar, idx) ->
-                ignore(check_array_idx ar idx builder);
                 let (ty, _) = ar in
                 let arr_type = 
                         match ty with
@@ -515,26 +513,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
         | _ -> raise (Failure "Unable to find comparator for list")
       in compar_from_typ e2_ty
 
-    and check_array_idx arr idx builder =
-      let red_arr = expr builder arr 
-      and red_idx = expr builder idx in
-
-      L.build_call printf_func [| int_format_str builder ; red_idx |] "printf" builder;
-
-      let arr_length = L.build_call length_func [| red_arr |] "length" builder in
-      L.build_call printf_func [| int_format_str builder ; arr_length |] "printf" builder;
-
-      let comp_result = L.build_icmp L.Icmp.Sgt arr_length red_idx "indexCheck" builder in
-      L.build_call printf_func [| int_format_str builder ; comp_result |] "printf" builder; 
-
-      let compare result = 
-        let zero = L.const_int i1_t 0 in
-        match result with
-          zero -> raise (Failure "Index out of bounds")
-          | _ -> result
-      in compare comp_result
-
-      
   in 
 
 
