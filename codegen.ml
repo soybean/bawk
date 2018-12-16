@@ -204,11 +204,13 @@ let translate (begin_block, loop_block, end_block, config_block) =
     L.function_type void_t [| str_t |] in (* function takes in string (line), returns void *)
  
   (* Config  LLVM function *)
-  let config_func = L.define_function "config" ltype the_module in
-  let configbuilder = L.builder_at_end context (L.entry_block config_func) in
+  (*let config_func = L.define_function "config" ltype the_module in
+  let configbuilder = L.builder_at_end context (L.entry_block config_func) in*)
 
+  (*
   let rs_init = L.const_stringz context "\n" and
   fs_init = L.const_stringz context " " in
+  *)
 
 
 
@@ -217,10 +219,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let global_vars : L.llvalue StringMap.t =
     let global_var m (t, n) = 
       let int_init = L.const_int (ltype_of_typ t) 0
-      in StringMap.add n (L.define_global n int_init the_module);
-      StringMap.add "RS" (L.define_global "RS"  rs_init  the_module);
-      StringMap.add "FS" (L.define_global "FS" fs_init the_module) m
-
+      in StringMap.add n (L.define_global n int_init the_module) m
     in
 
     List.fold_left global_var StringMap.empty (fst begin_block)
@@ -233,8 +232,23 @@ let translate (begin_block, loop_block, end_block, config_block) =
       | None -> ignore (instr builder) in
 
   (*---Build config block ---*)
-  let build_config_block configblock =
+  let build_config_block (rs, fs) =
+    let build_global_str str name =
+      let const_str = L.define_global ("_" ^ name) (L.const_stringz context str) the_module in
+      let _ = L.set_unnamed_addr true const_str;
+              L.set_global_constant true const_str;
+              L.set_linkage L.Linkage.Private const_str;
+              L.set_alignment 1 const_str;
+      in
+      let get_ptr = L.const_in_bounds_gep const_str [| L.const_int i32_t 0; L.const_int i32_t 0 |] in
+      (*let _ = raise (Failure "shid") in *)
+      L.define_global name get_ptr the_module
+    in
+    ignore(build_global_str rs "RS");
+    ignore(build_global_str fs "FS");
 
+
+    (*
     let lookup name =
       match L.lookup_global name the_module with 
       None -> raise (Failure "something went wrong")
@@ -242,12 +256,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
     let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
     let configexpr builder = function
       SRSAssign e ->  
-
-        let (item, _) = StringMap.find "RS" global_vars in
-        match item with
-        Some _ -> raise(Failure "hi")
-      | None -> raise(Failure "none")
-      ; builder
+        let x = L.const_string context e in
+        builder
         (*ignore(L.build_global_string (e) "RS" builder);
         lookup "RS"; builder*)
         (*ignore(L.build_call printf_func [| string_format_str builder; rs_builder builder|] "printf" builder);
@@ -261,6 +271,7 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
     in 
     add_terminal configbuilder L.build_ret_void
+    *)
 
   in
 

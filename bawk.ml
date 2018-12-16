@@ -1,5 +1,6 @@
 type action = Ast | Sast | LLVM_IR | Compile
 
+
 let () =
   let action = ref Ast in
   let set_action a () = action := a in

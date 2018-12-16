@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 /* This function converts a string to an int */
 int string_to_int(char *a) {
   char *cleaned = malloc(strlen(a) + 1);

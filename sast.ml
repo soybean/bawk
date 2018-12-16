@@ -27,10 +27,6 @@ and sx =
   | SNumFields
   | SNoexpr
 
-type sconfig_expr = 
-    SRSAssign of sexpr
-  | SFSAssign of sexpr
-
 type sstmt = 
     SReturn of sexpr
   | SExpr of sexpr
@@ -51,9 +47,9 @@ type sfunc_decl = {
 type sbegin_list = bind list * sfunc_decl list
 type sloop_list = sfunc_decl
 type send_list = sfunc_decl
-type sconfig_list = sconfig_expr list
+type sconfig_pair = string * string (* RS * FS *)
 
-type sprogram = sbegin_list * sloop_list * send_list * sconfig_list
+type sprogram = sbegin_list * sloop_list * send_list * sconfig_pair
 
 (* Pretty-printing functions *)
 
@@ -88,9 +84,8 @@ let rec string_of_sexpr (t, e) =
   | SNoexpr -> ""
           ) ^ ")"
 
-let string_of_config_sexpr = function
-    SRSAssign(e) -> "RS = " ^ string_of_sexpr e ^ "\n"
-  | SFSAssign(e) -> "FS = " ^ string_of_sexpr e ^ "\n"
+let string_of_config_pair (rs, fs) = 
+  "RS = " ^ rs ^ "\nFS = " ^ fs ^ "\n"
 
 let rec string_of_sstmt = function
     SReturn(expr) -> "return " ^ string_of_sexpr expr ^ ";\n";
@@ -127,7 +122,7 @@ let string_of_sendBlock (end_func) =
   String.concat "\n" (List.map string_of_sstmt end_func.sbody) ^ "\n}\n"
 
 let string_of_sconfigBlock (configs) = 
-  "CONFIG {\n" ^ String.concat "" (List.map string_of_config_sexpr configs) ^ "\n}\n"
+  "CONFIG {\n" ^ (string_of_config_pair configs) ^ "\n}\n"
 
 let string_of_sprogram(beginBlock, loopBlock, endBlock, configBlock) =
   "" ^ string_of_sbeginBlock beginBlock ^ "\n" ^
