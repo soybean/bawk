@@ -114,7 +114,7 @@ struct Node *findByIndex(struct List *list, int indexSought)
 {
   int arr_len = length(list);
   if (indexSought >= arr_len || indexSought < 0) {
-    printf("%s\n", "Index Out of Bounds Error.");
+    fprintf(stderr, "%s\n", "Index Out of Bounds Error.");
     exit(0); 
   }
 	struct Node *node = list->head;
@@ -200,7 +200,7 @@ unsigned long removeNode(struct List *list, int indexSought)
 
   int arr_len = length(list);
   if (indexSought >= arr_len || indexSought < 0) {
-    printf("%s\n", "Index Out of Bounds Error.");
+    fprintf(stderr, "%s\n", "Index Out of Bounds Error.");
     exit(0);
   }
 
