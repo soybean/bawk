@@ -125,6 +125,17 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let numfields_func : L.llvalue =
     L.declare_function "numfields" numfields_t the_module in
 
+
+  let setRS_t : L.lltype =
+    L.function_type void_t [| str_t |] in
+  let setRS_func : L.llvalue =
+    L.declare_function "setRS" setRS_t the_module in
+
+  let setFS_t : L.lltype =
+    L.function_type void_t [| str_t |] in
+  let setFS_func : L.llvalue =
+    L.declare_function "setFS" setFS_t the_module in
+
   (* array functions *)
   let initlist_t : L.lltype =
     L.function_type arr_p_t [| i64_t; i32_t |] in
@@ -196,14 +207,19 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let config_func = L.define_function "config" ltype the_module in
   let configbuilder = L.builder_at_end context (L.entry_block config_func) in
 
+  let rs_init = L.const_stringz context "\n" and
+  fs_init = L.const_stringz context " " in
+
+
+
   (*--- Build begin block: globals ---*)
   (* Create a map of global variables after creating each *)
   let global_vars : L.llvalue StringMap.t =
     let global_var m (t, n) = 
       let int_init = L.const_int (ltype_of_typ t) 0
-      in StringMap.add n (L.define_global n int_init the_module) m
-      (*StringMap.add "RS" (L.define_global "RS"  rs_init  the_module);
-      StringMap.add "FS" (L.define_global "FS" fs_init the_module) m*)
+      in StringMap.add n (L.define_global n int_init the_module);
+      StringMap.add "RS" (L.define_global "RS"  rs_init  the_module);
+      StringMap.add "FS" (L.define_global "FS" fs_init the_module) m
 
     in
 
@@ -218,13 +234,27 @@ let translate (begin_block, loop_block, end_block, config_block) =
 
   (*---Build config block ---*)
   let build_config_block configblock =
-    ignore(configblock);
+
+    let lookup name =
+      match L.lookup_global name the_module with 
+      None -> raise (Failure "something went wrong")
+      | _ -> raise (Failure "found it") in
+    let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
     let configexpr builder = function
-      SRSAssign e -> let get_string ((_, e): sexpr) = match e with SStringLiteral s ->  s | _ -> "" in 
-      ignore(L.build_global_string (get_string e) "RS" builder); builder
+      SRSAssign e ->  
+
+        let (item, _) = StringMap.find "RS" global_vars in
+        match item with
+        Some _ -> raise(Failure "hi")
+      | None -> raise(Failure "none")
+      ; builder
+        (*ignore(L.build_global_string (e) "RS" builder);
+        lookup "RS"; builder*)
+        (*ignore(L.build_call printf_func [| string_format_str builder; rs_builder builder|] "printf" builder);
+        builder*)
       | SFSAssign e -> let get_string ((_,e): sexpr) = match e with SStringLiteral s -> s | _ -> "" in 
-      ignore(L.build_global_string (get_string e) "FS" builder); builder
-    
+      ignore(L.build_global_string (e) "FS" builder); builder
+      | _ -> raise(Failure "config expression not recognized")
     in
 
     let configbuilder = List.fold_left configexpr configbuilder config_block
