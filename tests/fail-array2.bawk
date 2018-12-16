@@ -4,7 +4,7 @@ LOOP {}
 
 END {
   int[] a;
-  int b;
+  bool b;
   a = [1,2,3];
-  b = a[3]; # Fail: Accessing past size of array
+  b = contains(a, true); # Fail: Checking for bool inside int array
 }

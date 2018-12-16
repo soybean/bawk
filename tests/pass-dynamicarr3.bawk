@@ -1,0 +1,10 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+  int[] a;
+  int b;
+  a = [1,2,3];
+  b = a[3]; # Fail: Accessing past size of array
+}
