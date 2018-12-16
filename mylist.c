@@ -112,6 +112,11 @@ void traverseList(struct List *list, void (*f)(void *))
 // Traverse the list until node at index found. NULL if not found.
 struct Node *findByIndex(struct List *list, int indexSought) 
 {
+  int arr_len = length(list);
+  if (indexSought >= arr_len || indexSought < 0) {
+    printf("%s\n", "Index Out of Bounds Error.");
+    exit(0); 
+  }
 	struct Node *node = list->head;
 	int indexAt = 0;
 	while(node) {
@@ -192,6 +197,12 @@ unsigned long removeNode(struct List *list, int indexSought)
 { 
 	struct Node *node = list->head;
 	int indexAt = 0;
+
+  int arr_len = length(list);
+  if (indexSought >= arr_len || indexSought < 0) {
+    printf("%s\n", "Index Out of Bounds Error.");
+    exit(0);
+  }
 
 	// check that list is not empty
 	if ( list->head ) {
