@@ -29,7 +29,6 @@ int main(int argc, char **argv) {
     size_t n = sizeof(buffer);
     char *buf = buffer;
 		char *rs = RS;
-    fprintf(stderr, "hello\n");
     while(getdelim(&buf, &n, *RS, fp) > 0){
     //while (fgets(buffer, 256, fp)) {
 			buffer[strcspn(buffer, FS)] = '\0';
