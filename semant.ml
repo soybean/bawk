@@ -318,14 +318,32 @@ let check (begin_list, loop_list, end_list, config_list) =
     }
   in 
   let check_config config_list =  
+    (*
     let expr = function
             StringLiteral l -> (String, SStringLiteral l)
       |_ -> raise(Failure("shouldn't have this expr in config"))
     in
-    match config_list with
-    RSAssign e -> SRSAssign (expr e)
-    | FSAssign e -> SFSAssign (expr e) 
-        
+    *)
+    let obtain_config (default_rs, default_fs) config_list =
+      let obtain_config_folder (rs, fs) = function
+        | RSAssign e -> (match rs with
+          | Some _ -> raise (Failure "RS set twice")
+          | None -> (Some (string_of_expr e), fs)
+          )
+        | FSAssign e -> (match fs with
+          | Some _ -> raise (Failure "fS set twice")
+          | None -> (fs, Some (string_of_expr e))
+          )
+      in
+      match List.fold_left
+            obtain_config_folder (None, None) config_list
+      with
+      | (Some rs, Some fs) -> rs, fs
+      | (Some rs, None) -> rs, default_fs
+      | (None, Some fs) -> default_rs, fs
+      | (None, None) -> default_rs, default_fs
+    in
+    obtain_config ("\n", " ") config_list
   in
 	let gen_fn name fs binds stmts =
 	check_function ({ 
@@ -339,5 +357,5 @@ let check (begin_list, loop_list, end_list, config_list) =
   ((globals, List.map check_function functions), 
   gen_fn "loop" [(String, "line")] loop_locals loop_stmts,
   gen_fn "end" [] end_locals end_stmts,
-	List.map check_config config_list)
+	check_config config_list)
 

@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern char *FS;
+
 /* This function converts a string to an int */
 int string_to_int(char *a) {
   char *cleaned = malloc(strlen(a) + 1);
@@ -100,7 +102,7 @@ char *access(char *line, int field) {
 
     int i=0;
 
-    array[i] = strtok(line," ");
+    array[i] = strtok(line,FS);
 
     while(array[i]!=NULL)
     {
