@@ -193,12 +193,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
   (*let config_func = L.define_function "config" ltype the_module in
   let configbuilder = L.builder_at_end context (L.entry_block config_func) in*)
 
-  (*
-  let rs_init = L.const_stringz context "\n" and
-  fs_init = L.const_stringz context " " in
-  *)
-
-
 
   (*--- Build begin block: globals ---*)
   (* Create a map of global variables after creating each *)
