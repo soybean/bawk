@@ -104,6 +104,9 @@ int numfields(char *line) {
 
 /* Return whatever is at the specified field */
 char *access(char *line, int field) {
+   if (field == 0) {
+     return line;
+   }
    char *copy = malloc(strlen(line) + 1);
    strcpy(copy, line);
    char *token;
