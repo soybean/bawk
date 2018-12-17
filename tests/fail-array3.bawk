@@ -4,7 +4,7 @@ LOOP {}
 
 END {
   int[] a;
-  bool b;
+  int b;
   a = [1,2,3];
-  b = contains(a, true); # Fail: Checking for bool inside int array
+  b = index_of(a, true); # Fail: Finding index of bool in an int array
 }

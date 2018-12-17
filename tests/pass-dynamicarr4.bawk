@@ -1,0 +1,9 @@
+BEGIN {}
+
+LOOP {}
+
+END {
+  int[] a;
+  a = [1,2,3];
+  insert(a, 6, 4); # Fail: Inserting past (size of array + 1)
+}

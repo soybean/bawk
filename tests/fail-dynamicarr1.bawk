@@ -5,5 +5,5 @@ LOOP {}
 END {
   int[] a;
   a = [1,2,3];
-  insert(a, 6, 4); # Fail: Inserting past (size of array + 1)
+  insert(a, 1, true); # Fail: Inserting bool into int array
 }

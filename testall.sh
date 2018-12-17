@@ -71,7 +71,7 @@ Check() {
     Run "$BAWK" "-c" "$1" ">" "${basename}.ll" &&
     Run "$LLC" "-relocation-model=pic" "${basename}.ll" ">" "${basename}.s" &&
     Run "$CC" "-o" "${basename}.exe" "${basename}.s" "convert.o" "structure.o" "mylist.o" "rgx.o" &&
-    Run "./${basename}.exe" "input.txt" > "${basename}.out" &&
+    Run "./${basename}.exe" "input.txt" "&>" "${basename}.out" &&
     Compare ${basename}.out ${reffile}.out ${basename}.diff
 
     # Report the status and clean up the generated files

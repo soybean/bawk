@@ -1,9 +1,0 @@
-BEGIN {}
-
-LOOP {}
-
-END {
-  int[] a;
-  a = [1,2,3];
-  insert(a, 1, true); # Fail: Inserting bool into int array
-}
