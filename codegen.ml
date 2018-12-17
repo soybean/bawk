@@ -1,3 +1,5 @@
+(* Loosely based on MicroC *)
+
 module L = Llvm
 module A = Ast
 open Sast
@@ -188,12 +190,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let indexof_func : L.llvalue =
     L.declare_function "findIndexOfNode" indexof_t the_module in
 
-
-  (* Config  LLVM function *)
-  (*let config_func = L.define_function "config" ltype the_module in
-  let configbuilder = L.builder_at_end context (L.entry_block config_func) in*)
-
-
   (*--- Build begin block: globals ---*)
   (* Create a map of global variables after creating each *)
   let global_vars : L.llvalue StringMap.t =
@@ -226,32 +222,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
     in
     ignore(build_global_str rs "RS");
     ignore(build_global_str fs "FS");
-
-
-    (*
-    let lookup name =
-      match L.lookup_global name the_module with 
-      None -> raise (Failure "something went wrong")
-      | _ -> raise (Failure "found it") in
-    let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
-    let configexpr builder = function
-      SRSAssign e ->  
-        let x = L.const_string context e in
-        builder
-        (*ignore(L.build_global_string (e) "RS" builder);
-        lookup "RS"; builder*)
-        (*ignore(L.build_call printf_func [| string_format_str builder; rs_builder builder|] "printf" builder);
-        builder*)
-      | SFSAssign e -> let get_string ((_,e): sexpr) = match e with SStringLiteral s -> s | _ -> "" in 
-      ignore(L.build_global_string (e) "FS" builder); builder
-      | _ -> raise(Failure "config expression not recognized")
-    in
-
-    let configbuilder = List.fold_left configexpr configbuilder config_block
-
-    in 
-    add_terminal configbuilder L.build_ret_void
-    *)
 
   in
 
@@ -318,7 +288,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
                    with Not_found -> StringMap.find n global_vars
     
     in
- 
 
     let rec expr builder((ty,e): sexpr) = match e with
       SStringLiteral s -> let l = L.define_global "" (L.const_stringz context s) the_module in
@@ -537,10 +506,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
 	      L.builder_at_end context merge_bb
       | SFor (e1, e2, e3, body) -> stmt builder
 	      ( SBlock [SExpr e1 ; SWhile (e2, SBlock [body ; SExpr e3]) ] )
-    (*  | SEnhancedFor(str1, str2, body) -> 
-               let v = lookup str1 in
-               let arr = lookup str2 in
-               stmt builder (SBlock [ SWhile (e2, SBlock [body ; SExpr e3])]) *)
       | _ -> raise (Failure "Cannot pattern match statement")
     in
 

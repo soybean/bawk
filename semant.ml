@@ -1,3 +1,5 @@
+(* Loosely based on MicroC *)
+
 open Ast
 open Sast
 

@@ -1,3 +1,5 @@
+(* Loosely based on MicroC *)
+
 type action = Ast | Sast | LLVM_IR | Compile
 
 let () =
@@ -13,7 +15,6 @@ let () =
   let usage_msg = "usage: ./bawk.native [-a|-s|-l|-c] [file.bawk]" in
   let channel = ref stdin in
   Arg.parse speclist (fun filename -> channel := open_in filename) usage_msg;
-
   let lexbuf = Lexing.from_channel !channel in
   let ast = Parser.program Scanner.token lexbuf in
   match !action with
@@ -24,5 +25,5 @@ let () =
     | Sast    -> print_string (Sast.string_of_sprogram sast)
     | LLVM_IR -> print_string (Llvm.string_of_llmodule (Codegen.translate sast))
     | Compile -> let m = Codegen.translate sast in
-  Llvm_analysis.assert_valid_module m;
-  print_string (Llvm.string_of_llmodule m)
+      Llvm_analysis.assert_valid_module m;
+      print_string (Llvm.string_of_llmodule m)
