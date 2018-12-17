@@ -44,6 +44,7 @@ let check (begin_list, loop_list, end_list, config_list) =
 						 (String, "rgx_to_string", [(Rgx, "a")]);
                                                  (Void, "length", []); 
 						 (Void, "print", [(String, "a")]);
+             (Void, "nprint", [(String, "a")]);
                                                  (Void, "contains", []);
                                                  (Int, "index_of", []);
                                                  (Void, "insert", []);
