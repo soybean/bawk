@@ -1,6 +1,9 @@
 BEGIN {}
 LOOP {
-  print($0);
+  int i;
+  for (i = 1; i <= NF; i++) {
+      
+  }
 }
 END {}
 
