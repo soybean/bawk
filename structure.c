@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
 		char *rs = RS;
     
 		while(getdelim(&buf, &n, *RS, fp) > 0){
-			buffer[strcspn(buffer, RS)] = '\0';
+			buffer[strcspn(buffer, FS)] = '\0';
       loop(buffer);
     }
 
