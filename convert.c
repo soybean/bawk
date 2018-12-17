@@ -104,19 +104,20 @@ int numfields(char *line) {
 
 /* Return whatever is at the specified field */
 char *access(char *line, int field) {
-  if(field == 0){
-    return line;
-  }
+   char *copy = malloc(strlen(line) + 1);
+   strcpy(copy, line);
+   char *token;
+   int count = 1;
 
-  char *token;
-
-  /* get the first token */
-  token = strtok(line, FS);
-  int count = 1;
-  /* walk through other tokens */
-  while( token != NULL && field != count) {
-    token = strtok(NULL, FS);
-    count++;
-  }
-  return token;
+   token = strtok(copy, FS);
+   
+   /* walk through other tokens */
+   while( token != NULL ) {
+      if (count == field) {
+        return token;
+      }
+      token = strtok(NULL, FS);
+      count++;
+   }
+   return "";
 }

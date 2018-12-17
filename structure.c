@@ -30,10 +30,9 @@ int main(int argc, char **argv) {
     char buffer[256];
     size_t n = sizeof(buffer);
     char *buf = buffer;
-		char *rs = RS;
     
 		while(getdelim(&buf, &n, *RS, fp) > 0){
-			buffer[strcspn(buffer, FS)] = '\0';
+			buffer[strcspn(buffer, RS)] = '\0';
       loop(buffer);
     }
 
