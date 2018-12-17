@@ -1,0 +1,1 @@
+Fatal error: exception Failure("cannot perform index_of on int[] and bool")
