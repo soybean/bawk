@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
 		char *rs = RS;
     while(getdelim(&buf, &n, *RS, fp) > 0){
     //while (fgets(buffer, 256, fp)) {
-			buffer[strcspn(buffer, FS)] = '\0';
+			buffer[strcspn(buffer, RS)] = '\0';
       loop(buffer);
     }
 
