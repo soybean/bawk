@@ -93,28 +93,16 @@ char *access(char *line, int field) {
   if(field == 0){
     return line;
   }
-  else {
-    char *array[strlen(line)+1];
 
-    for (int k = 0; k < strlen(line) + 1; k++) {
-      array[k] = NULL;
-    }
+  char *token;
 
-    int i=0;
-
-    array[i] = strtok(line,FS);
-
-    while(array[i]!=NULL)
-    {
-      array[++i] = strtok(NULL," ");
-    }
-
-    field = field - 1;
-    if (array[field] != NULL) {
-      return array[field];
-    }
-    else {
-      return "";
-    }
+  /* get the first token */
+  token = strtok(line, FS);
+  int count = 1;
+  /* walk through other tokens */
+  while( token != NULL && field != count) {
+    token = strtok(NULL, FS);
+    count++;
   }
+  return token;
 }
