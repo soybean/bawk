@@ -125,17 +125,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
   let numfields_func : L.llvalue =
     L.declare_function "numfields" numfields_t the_module in
 
-
-  let setRS_t : L.lltype =
-    L.function_type void_t [| str_t |] in
-  let setRS_func : L.llvalue =
-    L.declare_function "setRS" setRS_t the_module in
-
-  let setFS_t : L.lltype =
-    L.function_type void_t [| str_t |] in
-  let setFS_func : L.llvalue =
-    L.declare_function "setFS" setFS_t the_module in
-
   (* array functions *)
   let initlist_t : L.lltype =
     L.function_type arr_p_t [| i64_t; i32_t |] in
@@ -200,9 +189,6 @@ let translate (begin_block, loop_block, end_block, config_block) =
     L.declare_function "findIndexOfNode" indexof_t the_module in
 
 
-  let ltype : L.lltype =  
-    L.function_type void_t [| str_t |] in (* function takes in string (line), returns void *)
- 
   (* Config  LLVM function *)
   (*let config_func = L.define_function "config" ltype the_module in
   let configbuilder = L.builder_at_end context (L.entry_block config_func) in*)
@@ -412,7 +398,8 @@ let translate (begin_block, loop_block, end_block, config_block) =
               A.Equal -> L.build_icmp L.Icmp.Eq
               | A.Neq -> L.build_icmp L.Icmp.Ne
               | A.And -> L.build_and
-              | A.Or -> L.build_or) e1' e2' "tmp" builder in
+              | A.Or -> L.build_or
+              | _ -> raise (Failure "Boolean operator not supported")) e1' e2' "tmp" builder in
         if (L.type_of e1' = i32_t) then int_binop op
         else if (L.type_of e1' = i1_t) then bool_binop op
         else str_binop op
