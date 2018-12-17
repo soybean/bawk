@@ -110,10 +110,7 @@ struct List *initList(size_t size_of_type, int depth)
 struct Node *findByIndex(struct List *list, int indexSought) 
 {
   int arr_len = length(list);
-  if (indexSought >= arr_len || indexSought < 0) {
-    fprintf(stderr, "%s\n", "Index Out of Bounds Error.");
-    exit(0); 
-  }
+  
 	struct Node *node = list->head;
 	int indexAt = 0;
 	while(node) {
@@ -315,12 +312,22 @@ void reverseList(struct List *list)
 unsigned long getElement(struct List *list, int index) 
 {
 	struct Node *node_by_index = findByIndex(list, index);
+  int arr_len = length(list);
+  if (index >= arr_len || index < 0) {
+    fprintf(stderr, "%s\n", "Index Out of Bounds Error.");
+    exit(0); 
+  }
 	return node_by_index->data;
 }
 
 /* Insert element in list at specified index */
 void insertElement(struct List *list, int index, unsigned long insert)
 {
+  int arr_len = length(list);
+  if (index > arr_len || index < 0) {
+    fprintf(stderr, "%s\n", "Index Out of Bounds Error.");
+    exit(0); 
+  }
 	if (index == 0)
 		addFront(list, insert);
 	else {
