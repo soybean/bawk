@@ -1,8 +1,5 @@
 .PHONY : all
-all : san clean bawk.native convert.o structure.o mylist.o rgx.o
-
-san:
-	if [[ -f _build/sanitize.sh ]] ; then _build/sanitize.sh ; fi
+all : clean bawk.native convert.o structure.o mylist.o rgx.o
 
 .PRECIOUS : bawk.native
 bawk.native :
