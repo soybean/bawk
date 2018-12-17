@@ -9,7 +9,7 @@ for filename in tests/*.bawk; do
       then
 				./bawk.sh $filename input.txt 2> $v.err
       else
-				./bawk.sh $filename input.txt > $v.out
+				./bawk.sh $filename input.txt &> $v.out
     fi
   fi
 done
