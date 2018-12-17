@@ -1,0 +1,14 @@
+BEGIN {}
+LOOP {
+  #print($0);
+  #nprint($5);
+  #nprint($3);
+  #nprint($1);
+  nprint($2);
+  #nprint($5);
+  nprint("\n");
+}
+END {}
+CONFIG {
+  FS = "|";  
+}
