@@ -1,5 +1,6 @@
 BEGIN {}
 LOOP {
+  nprint("|");
   nprint($5);
   nprint("|");
   nprint($3);
@@ -11,6 +12,7 @@ LOOP {
   nprint($4);
   nprint("|");
   nprint($6);
+  nprint("|");
   nprint("\n");
 }
 END {}
