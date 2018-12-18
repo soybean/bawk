@@ -1,11 +1,16 @@
 BEGIN {}
 LOOP {
-  #print($0);
-  #nprint($5);
-  #nprint($3);
-  #nprint($1);
+  nprint($5);
+  nprint("|");
+  nprint($3);
+  nprint("|");
+  nprint($1);
+  nprint("|");
   nprint($2);
-  #nprint($5);
+  nprint("|");
+  nprint($4);
+  nprint("|");
+  nprint($6);
   nprint("\n");
 }
 END {}

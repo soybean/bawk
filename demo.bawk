@@ -1,9 +1,12 @@
 BEGIN {}
-LOOP {
-  int i;
-  for (i = 1; i <= NF; i++) {
-      
-  }
+LOOP { 
+  nprint($3);
+  nprint($4);
+  nprint($2);
+  nprint($5);
+  nprint($1);
+  nprint($6);
+  nprint("\n");
 }
 END {}
 
