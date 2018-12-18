@@ -1,14 +1,30 @@
-BEGIN {}
+BEGIN {
+  function int[][] matrix_mult(int[][] product, int[][] a, int[][] b) {
+    int i;
+    int j;
+    int k;
+
+    for (i = 0; i < length(a); i++) {
+      for (j = 0; j < length(b[0]); j++) {
+        for (k = 0; k < length(a[0]); k++) {
+          product[i][j] += a[i][k] * b[k][j];
+        }
+      }
+    }
+    
+    return product;
+	}
+}
+
 LOOP {
   int i;
   int j;
-  int[] reshuffle_arr;
   int col;
+  int[] reshuffle_arr;
   string constitution_word;
   rgx rgx_match;
 
   reshuffle_arr = [3, 4, 2, 5, 1, 6];
-
   rgx_match = '\*[a-zA-Z]*\*';
   constitution_word = "";
 
@@ -25,10 +41,71 @@ LOOP {
   nprint("\t");
   nprint(constitution_word);
   nprint("\n");
-
 }
-END {}
+
+END {
+  int i;
+  int j;
+  int k;
+  int l;
+  int m;
+  int n;
+  int[][] a;
+  int[][] b;
+  int[][] product;
+
+  a = [[1,2,3,1,2,3], 
+       [1,2,3,1,2,3], 
+       [1,2,3,1,2,3],
+       [1,2,3,1,2,3],
+       [1,2,3,1,2,3],
+       [1,2,3,1,2,3]];
+  b = [[1,2,3,1,2,3], 
+       [1,2,3,1,2,3], 
+       [1,2,3,1,2,3], 
+       [1,2,3,1,2,3],
+       [1,2,3,1,2,3],
+       [1,2,3,1,2,3]];
+  product = [[0,0,0,0,0,0], 
+             [0,0,0,0,0,0], 
+             [0,0,0,0,0,0], 
+             [0,0,0,0,0,0],
+             [0,0,0,0,0,0],
+             [0,0,0,0,0,0]];
+  product = matrix_mult(product, a, b);
+
+  print("A: ");
+  for (i = 0; i < length(a); i++) {
+    for (j = 0; j < length(a[0]); j++) {
+      nprint(int_to_string(a[i][j]));
+      nprint(" ");
+    }
+    nprint("\n");
+  }
+
+  nprint("\n");
+
+  print("B: ");
+  for (k = 0; k < length(b); k++) {
+    for (l = 0; l < length(b[0]); l++) {
+      nprint(int_to_string(b[k][l]));
+      nprint(" ");
+    }
+    nprint("\n");
+  }
+
+  nprint("\n");
+
+  print("A x B: ");
+  for (m = 0; m < length(product); m++) {
+    for (n = 0; n < length(product[0]); n++) {
+      nprint(int_to_string(product[m][n]));
+      nprint(" ");
+    }
+    nprint("\n");
+  }
+}
+
 CONFIG {
   FS = "|";
 }
-
