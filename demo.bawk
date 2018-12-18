@@ -25,6 +25,7 @@ LOOP {
   # a[2] = array of stripped out characters
 
   # a[0] 
+  arr1 = [];
   insert(arr1, 0, $3);
   #insert(arr1, 1, $4);
   #insert(arr1, 2, $2);
