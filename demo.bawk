@@ -1,38 +1,31 @@
 BEGIN {}
 LOOP {
   int i;
+  int j;
   int[] reshuffle_arr;
   int col;
-  string[][] arr;
-  string[] arr1;
-  string[] arr2;
-  string[] arr3;
-  int arr_len;
+  string constitution_word;
+  rgx rgx_match;
 
   reshuffle_arr = [3, 4, 2, 5, 1, 6];
-  
+
+  rgx_match = '\*[a-zA-Z]*\*';
+  constitution_word = "";
 
   # Reshuffle columns
   for (i = 0; i < length(reshuffle_arr); i++) {
     col = reshuffle_arr[i];
-    nprint($col);
+    if ($col !~ rgx_match) {
+      nprint($col);
+    }
+    else {
+      constitution_word = $col;
+    }
   }
+  nprint("\t");
+  nprint(constitution_word);
   nprint("\n");
 
-  # Strip out regex and add it to 2D array.
-  # a[0] = array of entire line
-  # a[1] = array of line without stripped out regex
-  # a[2] = array of stripped out characters
-
-  # a[0] 
-  arr1 = [];
-  insert(arr1, 0, $3);
-  #insert(arr1, 1, $4);
-  #insert(arr1, 2, $2);
-  #insert(arr1, 3, $5);
-  #insert(arr1, 4, $1);
-  #insert(arr1, 5, $6);
-  #insert(arr, 0, arr1);
 }
 END {}
 CONFIG {
