@@ -7,6 +7,6 @@ LOOP {
 END {}
  
 CONFIG {
-  RS = "\n\n";
+  RS = "\n";
   FS = "  ";
 }

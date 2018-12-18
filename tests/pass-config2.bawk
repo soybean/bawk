@@ -7,5 +7,5 @@ LOOP {
 END {}
  
 CONFIG {
-  FS = "  ";
+  FS = " ";
 }
