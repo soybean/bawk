@@ -1,4 +1,5 @@
 /* 
+ * Authors: Ashley, Christine
  * Arrays
  * Loosely based on Lab 3 from COMS 3157
  */

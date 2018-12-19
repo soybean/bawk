@@ -1,3 +1,5 @@
+(* Authors: Ashley, Christine, Melanie, Victoria *)
+
 { open Parser }
 
 rule token = parse 

@@ -1,3 +1,4 @@
+/* Authors: Ashley, Christine, Melanie */
 /* Built-in conversion functions, string operations, NF, $ */
 
 #include <stdio.h>

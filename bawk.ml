@@ -1,3 +1,4 @@
+(* Authors: Ashley, Melanie, Victoria *)
 (* Loosely based on MicroC *)
 
 type action = Ast | Sast | LLVM_IR | Compile

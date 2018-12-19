@@ -1,3 +1,4 @@
+(* Authors: Ashley, Christine, Melanie, Victoria *)
 (* Loosely based on MicroC *)
 
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | 

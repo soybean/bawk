@@ -1,3 +1,5 @@
+(* Authors: Ashley, Christine, Melanie, Victoria *)
+
 %{ open Ast %}
 
 %token LPAREN RPAREN LCURLY RCURLY LSQUARE RSQUARE SEMI COMMA

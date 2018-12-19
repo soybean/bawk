@@ -1,3 +1,6 @@
+# Author: Ashley
+# Based off of MicroC testall.sh
+
 LLI="lli"
 LLC="llc"
 CC="cc"

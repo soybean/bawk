@@ -1,3 +1,5 @@
+(* Authors: Ashley, Christine, Melanie, Victoria *)
+
 open Ast
 
 type sexpr = typ * sx

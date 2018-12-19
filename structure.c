@@ -1,3 +1,4 @@
+/* Authors: Ashley, Christine, Melanie */
 /* Allows LOOP block to loop through a file */
 
 #include <stdio.h>

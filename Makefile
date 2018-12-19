@@ -1,3 +1,5 @@
+# Authors: Ashley, Christine, Melanie 
+
 .PHONY : all
 all : clean bawk.native convert.o structure.o mylist.o rgx.o
 

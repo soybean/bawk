@@ -1,3 +1,4 @@
+(* Authors: Ashley, Christine, Melanie, Victoria *)
 (* Loosely based on MicroC *)
 
 module L = Llvm
